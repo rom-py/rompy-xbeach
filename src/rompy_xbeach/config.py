@@ -63,13 +63,13 @@ class Config(BaseConfig):
     xori: float = Field(
         description="X-coordinate of origin of axis (m)",
         default=0.0,
-        ge=-1000000000.0
+        ge=-1000000000.0,
         le=1000000000.0,
     )
     yori: float = Field(
         description="Y-coordinate of origin of axis",
         default=0.0,
-        ge=-1000000000.0
+        ge=-1000000000.0,
         le=1000000000.0,
     )
     alfa: float = Field(
