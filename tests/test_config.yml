@@ -1,0 +1,61 @@
+model_type: xbeach
+nx: 100
+ny: 100
+dx: 1.0
+dy: 1.0
+xori: 0
+yori: 0
+alfa: 0.0
+posdwn: -1
+depfile: "bathy.txt"
+front: abs_2d #1
+back: abs_2d #2
+left: neumann #0
+right: neumann #0
+rugdepth: 0.011
+projection: proj|stere lon_0|0.0 lat_0|0.0 ellps|wgs84
+tunits: seconds since 1970-01-01 00:00:00.00 +00"
+instat: 41
+break: 1
+scheme: 1
+order: 1
+leftwave: wavecrest
+rightwave: wavecrest
+random: 1
+windfile: wind.txt
+zs0file: zs0input.txt
+tidelen: 49
+tideloc: 1
+zs0: 0.0
+hmin: 0.01
+wci: 0
+alpha: 1
+delta: 0.0
+n: 10
+rho: 1025
+g: 9.81
+thetamin: -80
+thetamax: 80
+dtheta: 10.0
+beta: 0.1
+roller: 1
+gamma: 0.55
+gammax: 1.0
+bcfile: jonswap.txt
+sedtrans: 0
+morfac: 0.0
+morphology: 0
+cf: 0.01
+paulrevere: 0
+eps: 0.01
+epsi: 0.001
+tstart: 0
+tint: 3600.0
+tstop: 86400
+CFL: 0.8
+umin: 0.1
+oldhu: 1
+outputformat: netcdf
+ncfilename: xboutput_test.nc
+tintm: 3600.0
+nmeanvar: 14
