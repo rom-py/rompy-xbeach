@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 HERE = Path(__file__).parent
 
 
+# TODO: What xbeach version? Does it matter? Docker available?
 # TODO: rugdetpth vs nrugdepth
 # TODO: instat: example says 41, manual says stat, bichrom, ts_1, ts_2, jons, swan, vardens, reuse, ts_nonh, off, stat_table, jons_table
 # TODO: break: example says 1, manual says roelvink1, baldock, roelvink2, roelvink_daly, janssen
@@ -24,6 +25,7 @@ HERE = Path(__file__).parent
 # TODO: cf: not in manual
 # TODO: paulrevere: example says 0, manual says land, sea
 # TODO: tint: not in manual, available ones are tintc, ting, tintm, tintp
+# TODO: How to define the projection string?
 
 
 class Config(BaseConfig):
@@ -89,7 +91,7 @@ class Config(BaseConfig):
         description="Switch for seaward flow boundary",
         default="abs_2d",
     )
-    back: Literal["wall", "abs_1d", "abs_2d" "wlevel"] = Field(
+    back: Literal["wall", "abs_1d", "abs_2d", "wlevel"] = Field(
         description="Switch for boundary at bay side",
         default="abs_2d",
     )
@@ -101,14 +103,10 @@ class Config(BaseConfig):
         description="Switch for lateral boundary at 0",
         default="neumann",
     )
-    rugdepth: int = Field(
-        description=(
-            "Number of depths to compute runup in runup gauge (advanced, default=1)"
-            "(this isn't in the manual, the closest one there is nrugdepth)"
-        ),
-        default=1,
-        ge=1,
-        le=10,
+    rugdepth: float = Field(
+        description="To be defined",
+        ge=0,
+        le=1,
     )
     projection: str = Field(
         description="Projection string",
