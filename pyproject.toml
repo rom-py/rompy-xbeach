@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rompy_xbeach"
+version = "0.1.0"
+description = "Rompy Xbeach Config package."
+readme = "README.rst"
+authors = [
+  {name = "Rompy Developers", email = "developers@rompy.com"}
+]
+maintainers = [
+  {name = "Rompy Developers", email = "developers@rompy.com"}
+]
+classifiers = [
+
+]
+license = {text = "MIT license"}
+dependencies = [
+  # "rompy",
+  "rompy @ git+https://github.com/rom-py/rompy.git@main",
+  "pyschism @ git+https://github.com/oceanum/pyschism.git", # Needed until schism is split from rompy
+  "typer"
+]
+
+[project.optional-dependencies]
+dev = [
+    "coverage",
+    "mypy",
+    "pytest",
+    "ruff"
+]
+
+[project.scripts]
+rompy_xbeach = "rompy_xbeach.cli:app"
+
+[project.entry-points."rompy.config"]
+xbeach = "rompy_xbeach.config:Config"
+
+[project.entry-points."rompy.source"]
+# Register here any new source. For example:
+# xbeach_source_type = "rompy_xbeach.source:XbeachSource"
+
+[project.urls]
+bugs = "https://github.com/rom-py/rompy_xbeach/issues"
+changelog = "https://github.com/rom-py/rompy_xbeach/blob/master/changelog.md"
+homepage = "https://github.com/rom-py/rompy_xbeach"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.package-data]
+"*" = ["*.*"]
