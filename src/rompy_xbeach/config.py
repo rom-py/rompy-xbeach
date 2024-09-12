@@ -343,7 +343,7 @@ class Config(BaseConfig):
 
     def __call__(self, runtime) -> dict:
         """Callable where data and config are interfaced and CMD is rendered."""
-        staging_dir = runtime.staging_dir
-        # Do something
-        ret = {"staging_dir": staging_dir}
+        ret = self.model_dump()
+        ret["grid"] = None
+        # Data interface
         return ret

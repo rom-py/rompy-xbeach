@@ -3,6 +3,7 @@ import yaml
 import pytest
 from importlib.metadata import entry_points
 
+from rompy.model import ModelRun
 from rompy_xbeach.config import Config
 
 
@@ -23,3 +24,14 @@ def test_config_entrypoint():
 def test_xbeach_config(kwargs):
     config = Config(**kwargs)
     assert config.model_type == "xbeach"
+
+
+def test_model_generate(kwargs, tmp_path):
+    config = Config(**kwargs)
+    model = ModelRun(
+        run_id="test",
+        output_dir=tmp_path,
+        config=config,
+    )
+    model.generate()
+    assert (tmp_path / model.run_id / "params.txt").is_file()

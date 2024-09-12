@@ -1,5 +1,86 @@
-$
-$ XBEACH - Simple example template used by rompy
-$ Template: {{_template}}
-$ Generated: {{runtime._generated_at}} on {{runtime._generated_on}} by {{runtime._generated_by}}
-$
+#
+# XBEACH - Simple example template used by rompy
+# Template: {{_template}}
+# Generated: {{runtime._generated_at}} on {{runtime._generated_on}} by {{runtime._generated_by}}
+#
+
+nx           = {{ config.nx }}
+ny           = {{ config.ny }}
+dx           = {{ config.dx }}
+dy           = {{ config.dy }}
+xori         = {{ config.xori }}
+yori         = {{ config.yori }}
+alfa         = {{ config.alfa }}
+posdwn       = {{ config.posdwn }}
+depfile      = {{ config.depfile }}
+front        = {{ config.front }}
+back         = {{ config.back }}
+left         = {{ config.left }}
+right        = {{ config.right }}
+rugdepth     = {{ config.rugdepth }}
+projection   = {{ config.projection }}
+tunits       = {{ config.tunits }}
+
+wave input
+instat       = {{ config.instat }}
+break        = {{ config.breaker }}
+scheme       = {{ config.scheme }}
+order        = {{ config.order }}
+leftwave     = {{ config.leftwave }}
+rightwave    = {{ config.rightwave }}
+random       = {{ config.random }}
+windfile     = {{ config.windfile }}
+zs0file      = {{ config.zs0file }}
+tidelen      = {{ config.tidelen }}
+tideloc      = {{ config.tideloc }}
+zs0          = {{ config.zs0 }}
+hmin         = {{ config.hmin }}
+wci          = {{ config.wci }}
+alpha        = {{ config.alpha }}
+delta        = {{ config.delta }}
+n            = {{ config.n }}
+rho          = {{ config.rho }}
+g            = {{ config.g }}
+thetamin     = {{ config.thetamin }}
+thetamax     = {{ config.thetamax }}
+dtheta       = {{ config.dtheta }}
+beta         = {{ config.beta }}
+roller       = {{ config.roller }}
+gamma        = {{ config.gamma }}
+gammax       = {{ config.gammax }}
+bcfile       = {{ config.bcfile }}
+
+sed input
+sedtrans     = {{ config.sedtrans }}
+morfac       = {{ config.morfac }}
+morphology   = {{ config.morphology }}
+cf           = {{ config.cf }}
+
+flow input
+paulrevere   = {{ config.paulrevere }}
+eps          = {{ config.eps }}
+epsi         = {{ config.epsi }}
+tstart       = {{ config.tstart }}
+tint         = {{ config.tint }}
+tstop        = {{ config.tstop }}
+CFL          = {{ config.CFL }}
+umin         = {{ config.umin }}
+oldhu        = {{ config.oldhu }}
+outputformat = {{ config.outputformat }}
+ncfilename   = {{ config.ncfilename }}
+tintm        = {{ config.tintm }}
+nmeanvar     = {{ config.nmeanvar }}
+H
+thetamean
+hh
+u
+v
+D
+R
+k
+ue
+ve
+urms
+Qb
+zb
+zs
