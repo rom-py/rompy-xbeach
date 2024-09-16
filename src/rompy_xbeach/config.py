@@ -122,7 +122,7 @@ class Config(BaseConfig):
     )
     breaker: int = Field(
         description="Type of breaker formulation",
-        alias="break",
+        alias="breaker",
     )
     scheme: int = Field(
         description="Numerical scheme for wave propagation",
