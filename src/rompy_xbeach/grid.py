@@ -122,7 +122,7 @@ class RegularGrid(BaseGrid):
     @property
     def transform(self):
         """Cartopy transformation for the grid."""
-        return ccrs.epsg(self.crs)
+        return ccrs.epsg(self.crs.to_epsg())
 
     def _generate(self):
         """Generate the grid coordinates."""
