@@ -2,10 +2,17 @@
 
 import logging
 from pathlib import Path
-from typing import Literal
-from pydantic import Field
+from typing import Literal, Optional, Union
+from pydantic import Field, field_validator
+from cartopy import crs as ccrs
+from cartopy import feature as cfeature
+from pyproj import Transformer
+import numpy as np
+import matplotlib.pyplot as plt
+import geopandas
 
-from rompy.core.grid import BaseGrid, RegularGrid
+from rompy.core.types import RompyBaseModel
+from rompy.core.grid import BaseGrid
 
 
 logger = logging.getLogger(__name__)
@@ -13,16 +20,192 @@ logger = logging.getLogger(__name__)
 HERE = Path(__file__).parent
 
 
-class Grid(RegularGrid):
-    """Xbeach grid class.
+class Ori(RompyBaseModel):
+    """Origin of the grid in geographic space."""
 
-    This is a placeholder for a Xbeach specific grid class. You do not need to
-    implement this class if the existing functionality in one of the existing core
-    rompy grid classes (e.g., BaseGrid, RegularGrid) is sufficient.
+    x: float = Field(
+        description="X coordinate of the origin",
+    )
+    y: float = Field(
+        description="Y coordinate of the origin",
+    )
+    crs: Optional[Union[int, str]] = Field(
+        default=None,
+        description="EPSG code for the coordinate reference system",
+    )
 
-    """
+    @field_validator("crs")
+    @classmethod
+    def to_crs(cls, v):
+        if v is None:
+            return v
+        if isinstance(v, str):
+            v = v.split(":")[-1]
+        return ccrs.CRS(str(v))
+
+    def transform(self, epsg: int) -> "Ori":
+        """Transform the origin to a new coordinate reference system."""
+        if self.crs is None:
+            raise ValueError("No CRS defined for the origin")
+        transformer = Transformer.from_crs(self.crs, epsg, always_xy=True)
+        x, y = transformer.transform(self.x, self.y)
+        return Ori(x=x, y=y, crs=epsg)
+
+
+class RegularGrid(BaseGrid):
+    """Xbeach regular grid class."""
 
     model_type: Literal["xbeach"] = Field(
         default="xbeach",
         description="Model type discriminator",
     )
+    ori: Ori = Field(
+        description="Origin of the grid in geographic space",
+    )
+    alfa: float = Field(
+        description="Angle of x-axis from east in degrees",
+    )
+    dx: float = Field(
+        description="Grid spacing in the x-direction in meters",
+    )
+    dy: float = Field(
+        description="Grid spacing in the y-direction in meters",
+    )
+    nx: int = Field(
+        description="Number of grid points in the x-direction",
+    )
+    ny: int = Field(
+        description="Number of grid points in the y-direction",
+    )
+    crs: Optional[Union[str, int]] = Field(
+        default=None,
+        description="EPSG code for the grid projection",
+    )
+
+    @field_validator("crs")
+    @classmethod
+    def to_crs(cls, v):
+        if v is None:
+            return v
+        if isinstance(v, int):
+            v = str(v)
+        elif isinstance(v, str):
+            v = v.split(":")[-1]
+        return v
+
+    @property
+    def x0(self):
+        """X coordinate of the grid origin in the grid crs."""
+        if self.crs is not None:
+            return self.ori.transform(self.crs).x
+        else:
+            return self.ori.x
+
+    @property
+    def y0(self):
+        """Y coordinate of the grid origin in the grid crs."""
+        if self.crs is not None:
+            return self.ori.transform(self.crs).y
+        else:
+            return self.ori.y
+
+    @property
+    def x(self) -> np.ndarray:
+        """X coordinates of the grid."""
+        return self._generate()[0]
+
+    @property
+    def y(self) -> np.ndarray:
+        """Y coordinates of the grid."""
+        return self._generate()[1]
+
+    @property
+    def transform(self):
+        """Cartopy transformation for the grid."""
+        return ccrs.epsg(self.crs)
+
+    def _generate(self):
+        """Generate the grid coordinates."""
+        # Grid at origin
+        i = np.arange(0.0, self.dx * self.nx, self.dx)
+        j = np.arange(0.0, self.dy * self.ny, self.dy)
+        ii, jj = np.meshgrid(i, j)
+
+        # Rotation
+        alpha = -self.alfa * np.pi / 180.0
+        R = np.array([[np.cos(alpha), -np.sin(alpha)], [np.sin(alpha), np.cos(alpha)]])
+        gg = np.dot(np.vstack([ii.ravel(), jj.ravel()]).T, R)
+
+        # Translation
+        x = gg[:, 0] + self.x0
+        y = gg[:, 1] + self.y0
+
+        x = np.reshape(x, ii.shape)
+        y = np.reshape(y, ii.shape)
+        return x, y
+
+    def plot(
+        self,
+        ax=None,
+        scale=None,
+        projection=None,
+        buffer=500,
+        set_extent=True,
+        set_gridlines=True,
+    ):
+        """Plot the grid optionally overlaid with GSHHS coastlines.
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            Axes object to plot on, by default create a new figure and axes.
+        scale : str, optional
+            Scale for the GSHHS coastline feature, one of 'c', 'l', 'i', 'h', 'f',
+            by default None which implies no coastlines are plotted.
+        projection : cartopy.crs.Projection, optional
+            Map projection, by default use a stereographic projection.
+        buffer : float, optional
+            Buffer around the grid in meters, by default 500.
+        set_extent : bool, optional
+            Set the extent of the axes to the grid bbox and buffer, by default True.
+        set_gridlines : bool, optional
+            Add gridlines to the plot, by default True.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            Axes object with the plot.
+
+        """
+        # Define the projection if not provided
+        if projection is None:
+            projection = ccrs.Stereographic(
+                central_longitude=self.ori.x, central_latitude=self.ori.y,
+            )
+
+        # Define axis if not provided
+        if ax is None:
+            __, ax = plt.subplots(subplot_kw=dict(projection=projection))
+
+        # Add coastlines
+        if scale is not None:
+            coast = cfeature.GSHHSFeature(scale=scale)
+            ax.add_feature(coast, facecolor="0.7", edgecolor="0.3", linewidth=0.5)
+
+        # Add the model grid
+        bnd = geopandas.GeoSeries(self.boundary(), crs=self.transform)
+        bnd.plot(ax=ax, transform=self.transform, alpha=0.5, zorder=2)
+
+        # Set extent
+        if set_extent:
+            x0, y0, x1, y1 = self.bbox()
+            ax.set_extent(
+                [x0-buffer, x1+buffer, y0-buffer, y1+buffer],
+                crs=self.transform,
+            )
+
+        # set grid lines
+        if set_gridlines is not None:
+            ax.gridlines(crs=self.transform, linewidth=0.5, color="gray", alpha=0.5)
+
+        return ax
