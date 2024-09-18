@@ -54,4 +54,3 @@ def test_regular_grid():
     assert grid.model_type == "xbeach"
     assert grid.x0 == pytest.approx(1725195.9271650459)
     assert grid.y0 == pytest.approx(5404649.736336306)
-    import ipdb; ipdb.set_trace()

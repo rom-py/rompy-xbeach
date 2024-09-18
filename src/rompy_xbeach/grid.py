@@ -6,6 +6,7 @@ from typing import Literal, Optional, Union
 from pydantic import Field, field_validator
 from cartopy import crs as ccrs
 from cartopy import feature as cfeature
+from cartopy.mpl.geoaxes import GeoAxes
 from pyproj import Transformer
 import numpy as np
 import matplotlib.pyplot as plt
@@ -44,7 +45,7 @@ class Ori(RompyBaseModel):
     )
     _validate_crs = field_validator("crs")(validate_crs)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}(x={self.x}, y={self.y}, crs={self.crs})"
 
     def transform(self, epsg: int) -> "Ori":
@@ -87,14 +88,14 @@ class RegularGrid(BaseGrid):
     )
     _validate_crs = field_validator("crs")(validate_crs)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"{self.__class__.__name__}(x0={self.x0}, y0={self.y0}, alfa={self.alfa}, "
             f"nx={self.nx}, ny={self.ny}, dx={self.dx}, dy={self.dy}, crs={self.crs})"
         )
 
     @property
-    def x0(self):
+    def x0(self) -> float:
         """X coordinate of the grid origin in the grid crs."""
         if self.crs is not None:
             return self.ori.transform(self.crs).x
@@ -102,7 +103,7 @@ class RegularGrid(BaseGrid):
             return self.ori.x
 
     @property
-    def y0(self):
+    def y0(self) -> float:
         """Y coordinate of the grid origin in the grid crs."""
         if self.crs is not None:
             return self.ori.transform(self.crs).y
@@ -124,7 +125,7 @@ class RegularGrid(BaseGrid):
         """Cartopy transformation for the grid."""
         return ccrs.epsg(self.crs.to_epsg())
 
-    def _generate(self):
+    def _generate(self) -> tuple[np.ndarray, np.ndarray]:
         """Generate the grid coordinates."""
         # Grid at origin
         i = np.arange(0.0, self.dx * self.nx, self.dx)
@@ -152,7 +153,7 @@ class RegularGrid(BaseGrid):
         buffer=500,
         set_extent=True,
         set_gridlines=True,
-    ):
+    ) -> GeoAxes:
         """Plot the grid optionally overlaid with GSHHS coastlines.
 
         Parameters
