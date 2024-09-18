@@ -20,6 +20,15 @@ logger = logging.getLogger(__name__)
 HERE = Path(__file__).parent
 
 
+def validate_crs(crs: Optional[Union[str, int]]) -> int:
+    """Validate the coordinate reference system input."""
+    if crs is None:
+        return crs
+    if isinstance(crs, str):
+        crs = crs.split(":")[-1]
+    return ccrs.CRS(str(crs))
+
+
 class Ori(RompyBaseModel):
     """Origin of the grid in geographic space."""
 
@@ -33,15 +42,10 @@ class Ori(RompyBaseModel):
         default=None,
         description="EPSG code for the coordinate reference system",
     )
+    _validate_crs = field_validator("crs")(validate_crs)
 
-    @field_validator("crs")
-    @classmethod
-    def to_crs(cls, v):
-        if v is None:
-            return v
-        if isinstance(v, str):
-            v = v.split(":")[-1]
-        return ccrs.CRS(str(v))
+    def __repr__(self):
+        return f"{self.__class__.__name__}(x={self.x}, y={self.y}, crs={self.crs})"
 
     def transform(self, epsg: int) -> "Ori":
         """Transform the origin to a new coordinate reference system."""
@@ -49,7 +53,7 @@ class Ori(RompyBaseModel):
             raise ValueError("No CRS defined for the origin")
         transformer = Transformer.from_crs(self.crs, epsg, always_xy=True)
         x, y = transformer.transform(self.x, self.y)
-        return Ori(x=x, y=y, crs=epsg)
+        return Ori(x=x, y=y, crs=str(epsg))
 
 
 class RegularGrid(BaseGrid):
@@ -81,17 +85,13 @@ class RegularGrid(BaseGrid):
         default=None,
         description="EPSG code for the grid projection",
     )
+    _validate_crs = field_validator("crs")(validate_crs)
 
-    @field_validator("crs")
-    @classmethod
-    def to_crs(cls, v):
-        if v is None:
-            return v
-        if isinstance(v, int):
-            v = str(v)
-        elif isinstance(v, str):
-            v = v.split(":")[-1]
-        return v
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}(x0={self.x0}, y0={self.y0}, alfa={self.alfa}, "
+            f"nx={self.nx}, ny={self.ny}, dx={self.dx}, dy={self.dy}, crs={self.crs})"
+        )
 
     @property
     def x0(self):
@@ -179,8 +179,9 @@ class RegularGrid(BaseGrid):
         """
         # Define the projection if not provided
         if projection is None:
+            ori = self.ori.transform(4326)
             projection = ccrs.Stereographic(
-                central_longitude=self.ori.x, central_latitude=self.ori.y,
+                central_longitude=ori.x, central_latitude=ori.y,
             )
 
         # Define axis if not provided
