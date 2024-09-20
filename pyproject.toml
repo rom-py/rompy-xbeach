@@ -19,6 +19,7 @@ classifiers = [
 license = {text = "MIT license"}
 dependencies = [
   # "rompy",
+  "rioxarray",
   "rompy @ git+https://github.com/rom-py/rompy.git@main",
   "pyschism @ git+https://github.com/oceanum/pyschism.git", # Needed until schism is split from rompy
   "typer"
