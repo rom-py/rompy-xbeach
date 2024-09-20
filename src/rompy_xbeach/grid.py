@@ -153,6 +153,7 @@ class RegularGrid(BaseGrid):
         buffer=500,
         set_extent=True,
         set_gridlines=True,
+        grid_kwargs=dict(alpha=0.5, zorder=2),
     ) -> GeoAxes:
         """Plot the grid optionally overlaid with GSHHS coastlines.
 
@@ -171,6 +172,8 @@ class RegularGrid(BaseGrid):
             Set the extent of the axes to the grid bbox and buffer, by default True.
         set_gridlines : bool, optional
             Add gridlines to the plot, by default True.
+        grid_kwargs : dict, optional
+            Keyword arguments for the grid plot, by default dict(alpha=0.5, zorder=2).
 
         Returns
         -------
@@ -196,7 +199,7 @@ class RegularGrid(BaseGrid):
 
         # Add the model grid
         bnd = geopandas.GeoSeries(self.boundary(), crs=self.transform)
-        bnd.plot(ax=ax, transform=self.transform, alpha=0.5, zorder=2)
+        bnd.plot(ax=ax, transform=self.transform, **grid_kwargs)
 
         # Set extent
         if set_extent:
