@@ -121,9 +121,40 @@ class RegularGrid(BaseGrid):
         return self._generate()[1]
 
     @property
+    def left(self) -> tuple[np.ndarray, np.ndarray]:
+        """Coordinates of the left (lateral) boundary of the grid."""
+        return self.x[0, :], self.y[0, :]
+
+    @property
+    def right(self) -> tuple[np.ndarray, np.ndarray]:
+        """Coordinates of the right (lateral) boundary of the grid."""
+        return self.x[-1, :], self.y[-1, :]
+
+    @property
+    def back(self) -> tuple[np.ndarray, np.ndarray]:
+        """Coordinates of the back (offshore) boundary of the grid."""
+        return self.x[:, 0], self.y[:, 0]
+
+    @property
+    def front(self) -> tuple[np.ndarray, np.ndarray]:
+        """Coordinates of the front (land) boundary of the grid."""
+        return self.x[:, -1], self.y[:, -1]
+
+    @property
     def transform(self):
         """Cartopy transformation for the grid."""
         return ccrs.epsg(self.crs.to_epsg())
+
+    @property
+    def namelist(self):
+        """Return the namelist representation of the grid."""
+        return dict(
+            nx=self.nx,
+            ny=self.ny,
+            dx=self.dx,
+            dy=self.dy,
+            alfa=self.alfa
+        )
 
     def _generate(self) -> tuple[np.ndarray, np.ndarray]:
         """Generate the grid coordinates."""
