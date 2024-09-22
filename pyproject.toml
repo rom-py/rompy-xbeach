@@ -43,6 +43,9 @@ xbeach = "rompy_xbeach.config:Config"
 # Register here any new source. For example:
 # xbeach_source_type = "rompy_xbeach.source:XbeachSource"
 
+[project.entry-points."xbeach.interpolator"]
+regular_grid = "rompy_xbeach.interpolate:RegularGridInterpolator"
+
 [project.urls]
 bugs = "https://github.com/rom-py/rompy_xbeach/issues"
 changelog = "https://github.com/rom-py/rompy_xbeach/blob/master/changelog.md"
