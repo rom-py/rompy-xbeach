@@ -3,7 +3,7 @@ import pytest
 import xarray as xr
 
 from rompy_xbeach.data import XBeachDataGrid
-from rompy_xbeach.source import SourceRasterio
+from rompy_xbeach.source import SourceGeotiff
 from rompy_xbeach.grid import Ori, RegularGrid
 
 
@@ -17,32 +17,32 @@ def tif_path():
 
 @pytest.fixture(scope="module")
 def source():
-    yield SourceRasterio(filename=HERE / "data/bathy.tif")
+    yield SourceGeotiff(filename=HERE / "data/bathy.tif")
 
 
 def test_source_rasterio(tif_path):
-    source = SourceRasterio(filename=tif_path)
+    source = SourceGeotiff(filename=tif_path)
     dset = source._open()
     assert list(dset.data_vars.keys()) == ["data"]
     assert dset.rio.crs == 4326
 
 
 def test_source_rasterio_band_index(tif_path):
-    source = SourceRasterio(filename=tif_path, band=1)
+    source = SourceGeotiff(filename=tif_path, band=1)
     assert "data" in source._open()
     with pytest.raises(KeyError):
-        source = SourceRasterio(filename=tif_path, band=2)
+        source = SourceGeotiff(filename=tif_path, band=2)
         source._open()
 
 
 def test_source_rasterio_kwargs(tif_path):
-    source = SourceRasterio(filename=tif_path, kwargs={"chunks": {"x": 100, "y": 100}})
+    source = SourceGeotiff(filename=tif_path, kwargs={"chunks": {"x": 100, "y": 100}})
     dset = source._open()
     assert dset.data.chunks is not None
 
 
 def test_source_rasterio_not_exposed_kwargs(tif_path):
-    source = SourceRasterio(
+    source = SourceGeotiff(
         filename=tif_path,
         kwargs={"band_as_variable": True, "default_name": "dummy"},
     )

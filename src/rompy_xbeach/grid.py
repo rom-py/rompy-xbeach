@@ -57,6 +57,7 @@ class Ori(RompyBaseModel):
         return Ori(x=x, y=y, crs=str(epsg))
 
 
+# TODO: Method to extend the boundaries of the grid
 class RegularGrid(BaseGrid):
     """Xbeach regular grid class."""
 
@@ -156,8 +157,21 @@ class RegularGrid(BaseGrid):
             alfa=self.alfa
         )
 
-    def _generate(self) -> tuple[np.ndarray, np.ndarray]:
-        """Generate the grid coordinates."""
+    def _generate(self, left=0, right=0, back=0, front=0) -> tuple[np.ndarray, np.ndarray]:
+        """Generate the grid coordinates.
+
+        Parameters
+        ----------
+        left : int, optional
+            Number of points to extend the left boundary, by default 0.
+        right : int, optional
+            Number of points to extend the right boundary, by default 0.
+        back : int, optional
+            Number of points to extend the back boundary, by default 0.
+        front : int, optional
+            Number of points to extend the front boundary, by default 0.
+
+        """
         # Grid at origin
         i = np.arange(0.0, self.dx * self.nx, self.dx)
         j = np.arange(0.0, self.dy * self.ny, self.dy)

@@ -12,7 +12,7 @@ from importlib.metadata import entry_points
 from rompy.core.data import DataGrid
 from rompy.core.time import TimeRange
 from rompy_xbeach.grid import RegularGrid
-from rompy_xbeach.source import SourceRasterio
+from rompy_xbeach.source import SourceGeotiff
 
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,7 @@ HERE = Path(__file__).parent
 
 # Load the interpolator types from the entry points
 eps = entry_points(group="xbeach.interpolator")
-INTERPOLATORS = Union[tuple([e.load() for e in eps])]
+Interpolators = Union[tuple([e.load() for e in eps])]
 
 
 class XBeachDataGrid(DataGrid):
@@ -31,28 +31,17 @@ class XBeachDataGrid(DataGrid):
         default="xbeach_data_grid",
         description="Model type discriminator",
     )
-    source: SourceRasterio = Field(
+    source: SourceGeotiff = Field(
         description=(
             "Source reader, must return a dataset with "
             "the rioxarray accessor in the open method"
         ),
         discriminator="model_type",
     )
-    interpolator: INTERPOLATORS = Field(
+    interpolator: Interpolators = Field(
         default_factory=eps["regular_grid"].load(),
         description="Interpolator for the data",
     )
-
-    @field_validator("interpolator")
-    @classmethod
-    def validate_source(cls, v) -> SourceRasterio:
-        """Ensure coordinate names have been defined in the rio accessor."""
-        if not hasattr(v.ds, "rio"):
-            raise ValueError("rio accessor missing from dataset")
-        for attr in ["x_dim", "y_dim"]:
-            if not hasattr(v.ds.rio, attr):
-                raise ValueError(f"rio accessor missing attribute '{attr}'")
-        return v
 
     @cached_property
     def crs(self):

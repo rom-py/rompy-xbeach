@@ -15,17 +15,17 @@ logger = logging.getLogger(__name__)
 HERE = Path(__file__).parent
 
 
-class SourceRasterio(SourceBase):
-    """Rioxarray source class."""
+class SourceGeotiff(SourceBase):
+    """Geotiff source class."""
 
-    model_type: Literal["xbeach"] = Field(
-        default="xbeach",
+    model_type: Literal["geotiff"] = Field(
+        default="geotiff",
         description="Model type discriminator",
     )
-    filename: str | Path = Field(description="Path to the rasterio dataset")
+    filename: str | Path = Field(description="Path to the geotiff dataset")
     band: int = Field(
         default=1,
-        description="Band to read from the rasterio dataset",
+        description="Band to read from the dataset after opening it with rasterio",
         ge=1,
     )
     kwargs: dict = Field(
