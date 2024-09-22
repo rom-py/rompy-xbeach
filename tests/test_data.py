@@ -1,0 +1,78 @@
+from pathlib import Path
+import pytest
+import xarray as xr
+
+from rompy_xbeach.data import XBeachDataGrid
+from rompy_xbeach.source import SourceRasterio
+from rompy_xbeach.grid import Ori, RegularGrid
+
+
+HERE = Path(__file__).parent
+
+
+@pytest.fixture(scope="module")
+def tif_path():
+    yield HERE / "data/bathy.tif"
+
+
+@pytest.fixture(scope="module")
+def source():
+    yield SourceRasterio(filename=HERE / "data/bathy.tif")
+
+
+def test_source_rasterio(tif_path):
+    source = SourceRasterio(filename=tif_path)
+    dset = source._open()
+    assert list(dset.data_vars.keys()) == ["data"]
+    assert dset.rio.crs == 4326
+
+
+def test_source_rasterio_band_index(tif_path):
+    source = SourceRasterio(filename=tif_path, band=1)
+    assert "data" in source._open()
+    with pytest.raises(KeyError):
+        source = SourceRasterio(filename=tif_path, band=2)
+        source._open()
+
+
+def test_source_rasterio_kwargs(tif_path):
+    source = SourceRasterio(filename=tif_path, kwargs={"chunks": {"x": 100, "y": 100}})
+    dset = source._open()
+    assert dset.data.chunks is not None
+
+
+def test_source_rasterio_not_exposed_kwargs(tif_path):
+    source = SourceRasterio(
+        filename=tif_path,
+        kwargs={"band_as_variable": True, "default_name": "dummy"},
+    )
+    assert source.kwargs["band_as_variable"] is False
+    assert "default_name" not in source.kwargs
+
+
+def test_xbeach_data_grid(source):
+    data = XBeachDataGrid(source=source)
+    assert data.model_type == "xbeach_data_grid"
+    assert hasattr(data.ds, "rio")
+
+
+def test_xbeach_data_grid_rio_accessor(source):
+    data = XBeachDataGrid(source=source)
+    assert hasattr(data.ds, "rio")
+    assert hasattr(data.ds.rio, "x_dim")
+    assert hasattr(data.ds.rio, "y_dim")
+
+
+def test_xbeach_data_grid_get(source, tmp_path):
+    data = XBeachDataGrid(source=source)
+    grid = RegularGrid(
+        ori=Ori(x=115.594239, y=-32.641104, crs="epsg:4326"),
+        alfa=347.0,
+        dx=10,
+        dy=15,
+        nx=230,
+        ny=220,
+        crs="28350",
+    )
+
+    depfile = data.get(destdir=tmp_path, grid=grid)
