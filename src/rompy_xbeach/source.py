@@ -2,12 +2,13 @@
 
 import logging
 from pathlib import Path
-from typing import Literal
+from typing import Literal, Union, Optional
 from pydantic import Field, field_validator
+import cartopy.crs as ccrs
 import rioxarray
 import xarray as xr
 
-from rompy.core.source import SourceBase
+from rompy.core.source import SourceBase, SourceDataset, SourceFile, SourceIntake
 
 
 logger = logging.getLogger(__name__)
@@ -50,3 +51,43 @@ class SourceGeotiff(SourceBase):
         xds = rioxarray.open_rasterio(self.filename, **self.kwargs)
         xds = xds.sel(band=self.band).to_dataset(name="data")
         return xds
+
+
+class SourceMixin:
+    """Mixin class for crs aware source objects."""
+    crs: Union[int, str] = Field(
+        description="EPSG code for the coordinate reference system",
+    )
+    x_dim: str = Field(
+        default="x",
+        description="Name of the x dimension",
+    )
+    y_dim: str = Field(
+        default="y",
+        description="Name of the y dimension",
+    )
+
+    @field_validator("crs")
+    @classmethod
+    def validate_crs(cls, v):
+        """Validate the coordinate reference system input."""
+        if isinstance(v, str):
+            v = v.split(":")[-1]
+        return ccrs.CRS(str(v))
+
+    def _open(self):
+        """Return a CRS aware dataset."""
+        ds = super()._open()
+        return ds.rio.set_spatial_dims(self.x_dim, self.y_dim).rio.write_crs(self.crs)
+
+
+class SourceCRSDataset(SourceMixin, SourceDataset):
+    """Source dataset with CRS support from an existing xarray Dataset object."""
+
+
+class SourceCRSFile(SourceMixin, SourceFile):
+    """Source dataset with CRS support from file to open with xarray.open_dataset."""
+
+
+class SourceCRSIntake(SourceMixin, SourceIntake):
+    """Source dataset with CRS support from intake catalog."""
