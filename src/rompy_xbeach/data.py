@@ -12,17 +12,19 @@ from importlib.metadata import entry_points
 from rompy.core.data import DataGrid
 from rompy.core.time import TimeRange
 from rompy_xbeach.grid import RegularGrid
-from rompy_xbeach.source import SourceGeotiff
 
 
 logger = logging.getLogger(__name__)
 
 HERE = Path(__file__).parent
 
+# Load the source types from the entry points
+eps = entry_points(group="xbeach.source")
+Sources = Union[tuple([e.load() for e in eps])]
+
 # Load the interpolator types from the entry points
 eps = entry_points(group="xbeach.interpolator")
 Interpolators = Union[tuple([e.load() for e in eps])]
-
 
 class XBeachDataGrid(DataGrid):
     """Xbeach data class."""
@@ -31,7 +33,7 @@ class XBeachDataGrid(DataGrid):
         default="xbeach_data_grid",
         description="Model type discriminator",
     )
-    source: SourceGeotiff = Field(
+    source: Sources = Field(
         description=(
             "Source reader, must return a dataset with "
             "the rioxarray accessor in the open method"

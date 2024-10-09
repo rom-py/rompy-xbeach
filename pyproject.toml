@@ -39,9 +39,11 @@ rompy_xbeach = "rompy_xbeach.cli:app"
 [project.entry-points."rompy.config"]
 xbeach = "rompy_xbeach.config:Config"
 
-[project.entry-points."rompy.source"]
-# Register here any new source. For example:
-# xbeach_source_type = "rompy_xbeach.source:XbeachSource"
+[project.entry-points."xbeach.source"]
+geotiff = "rompy_xbeach.source:SourceGeotiff"
+dataset = "rompy_xbeach.source:SourceDataset"
+file = "rompy_xbeach.source:SourceCRSFile"
+intake = "rompy_xbeach.source:SourceIntake"
 
 [project.entry-points."xbeach.interpolator"]
 regular_grid = "rompy_xbeach.interpolate:RegularGridInterpolator"
