@@ -48,7 +48,7 @@ class Ori(RompyBaseModel):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(x={self.x}, y={self.y}, crs={self.crs})"
 
-    def transform(self, epsg: int) -> "Ori":
+    def reproject(self, epsg: int) -> "Ori":
         """Transform the origin to a new coordinate reference system."""
         if self.crs is None:
             raise ValueError("No CRS defined for the origin")
@@ -99,7 +99,7 @@ class RegularGrid(BaseGrid):
     def x0(self) -> float:
         """X coordinate of the grid origin in the grid crs."""
         if self.crs is not None:
-            return self.ori.transform(self.crs).x
+            return self.ori.reproject(self.crs).x
         else:
             return self.ori.x
 
@@ -107,7 +107,7 @@ class RegularGrid(BaseGrid):
     def y0(self) -> float:
         """Y coordinate of the grid origin in the grid crs."""
         if self.crs is not None:
-            return self.ori.transform(self.crs).y
+            return self.ori.reproject(self.crs).y
         else:
             return self.ori.y
 
@@ -124,22 +124,22 @@ class RegularGrid(BaseGrid):
     @property
     def left(self) -> tuple[np.ndarray, np.ndarray]:
         """Coordinates of the left (lateral) boundary of the grid."""
-        return self.x[0, :], self.y[0, :]
+        return self.x[-1, :], self.y[-1, :]
 
     @property
     def right(self) -> tuple[np.ndarray, np.ndarray]:
         """Coordinates of the right (lateral) boundary of the grid."""
-        return self.x[-1, :], self.y[-1, :]
+        return self.x[0, :], self.y[0, :]
 
     @property
     def back(self) -> tuple[np.ndarray, np.ndarray]:
         """Coordinates of the back (offshore) boundary of the grid."""
-        return self.x[:, 0], self.y[:, 0]
+        return self.x[:, -1], self.y[:, -1]
 
     @property
     def front(self) -> tuple[np.ndarray, np.ndarray]:
         """Coordinates of the front (land) boundary of the grid."""
-        return self.x[:, -1], self.y[:, -1]
+        return self.x[:, 0], self.y[:, 0]
 
     @property
     def transform(self):
@@ -157,24 +157,51 @@ class RegularGrid(BaseGrid):
             alfa=self.alfa
         )
 
+    def expand(self, left=0, right=0, back=0, front=0) -> "RegularGrid":
+        """Expand the grid boundaries."""
+        x, y = self._generate(left, right, back, front)
+        crs = self.crs.to_epsg()
+        ori = Ori(x=x[0, 0], y=y[0, 0], crs=crs).reproject(self.ori.crs.to_epsg())
+        return RegularGrid(
+            ori=ori,
+            alfa=self.alfa,
+            dx=self.dx,
+            dy=self.dy,
+            nx=self.nx + back + front,
+            ny=self.ny + left + right,
+            crs=crs,
+        )
+
     def _generate(self, left=0, right=0, back=0, front=0) -> tuple[np.ndarray, np.ndarray]:
         """Generate the grid coordinates.
 
         Parameters
         ----------
         left : int, optional
-            Number of points to extend the left boundary, by default 0.
+            Number of points to extend the left lateral boundary, by default 0.
         right : int, optional
-            Number of points to extend the right boundary, by default 0.
+            Number of points to extend the right lateral boundary, by default 0.
         back : int, optional
-            Number of points to extend the back boundary, by default 0.
+            Number of points to extend the back offshore boundary, by default 0.
         front : int, optional
-            Number of points to extend the front boundary, by default 0.
+            Number of points to extend the front inshore boundary, by default 0.
 
         """
         # Grid at origin
         i = np.arange(0.0, self.dx * self.nx, self.dx)
         j = np.arange(0.0, self.dy * self.ny, self.dy)
+
+        # Expanding the grid
+        if front > 0:
+            i = np.concatenate([np.arange(-front * self.dx, 0, self.dx), i])
+        if back > 0:
+            i = np.concatenate([i, np.arange(self.dx * self.nx, self.dx * self.nx + back * self.dx, self.dx)])
+        if right > 0:
+            j = np.concatenate([np.arange(-right * self.dy, 0, self.dy), j])
+        if left > 0:
+            j = np.concatenate([j, np.arange(self.dy * self.ny, self.dy * self.ny + left * self.dy, self.dy)])
+
+        # 2D grid indices
         ii, jj = np.meshgrid(i, j)
 
         # Rotation
@@ -199,6 +226,7 @@ class RegularGrid(BaseGrid):
         set_extent=True,
         set_gridlines=True,
         grid_kwargs=dict(alpha=0.5, zorder=2),
+        figsize=None,
         show_offshore=True,
     ) -> GeoAxes:
         """Plot the grid optionally overlaid with GSHHS coastlines.
@@ -220,6 +248,8 @@ class RegularGrid(BaseGrid):
             Add gridlines to the plot, by default True.
         grid_kwargs : dict, optional
             Keyword arguments for the grid plot, by default dict(alpha=0.5, zorder=2).
+        figsize : tuple, optional
+            Figure size in inches, by default None.
         show_offshore : bool, optional
             Show the offshore boundary, by default True.
 
@@ -231,14 +261,14 @@ class RegularGrid(BaseGrid):
         """
         # Define the projection if not provided
         if projection is None:
-            ori = self.ori.transform(4326)
+            ori = self.ori.reproject(4326)
             projection = ccrs.Stereographic(
                 central_longitude=ori.x, central_latitude=ori.y,
             )
 
         # Define axis if not provided
         if ax is None:
-            __, ax = plt.subplots(subplot_kw=dict(projection=projection))
+            __, ax = plt.subplots(figsize=figsize, subplot_kw=dict(projection=projection))
 
         # Add coastlines
         if scale is not None:
@@ -249,10 +279,10 @@ class RegularGrid(BaseGrid):
         bnd = geopandas.GeoSeries(self.boundary(), crs=self.transform)
         bnd.plot(ax=ax, transform=self.transform, **grid_kwargs)
 
-        # Add boundary points
+        # Add the offshore boundary
         if show_offshore:
-            x, y = self.back
-            ax.plot(x, y, color="red", transform=self.transform, label="Back")
+            x, y = self.front
+            ax.plot(x, y, color="red", transform=self.transform, label="Front")
 
         # Set extent
         if set_extent:
