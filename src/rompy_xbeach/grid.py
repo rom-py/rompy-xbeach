@@ -293,12 +293,6 @@ class RegularGrid(BaseGrid):
         if show_mesh:
             ix = np.unique(np.append(np.arange(0, self.nx, mesh_step), self.nx - 1))
             iy = np.unique(np.append(np.arange(0, self.ny, mesh_step), self.ny - 1))
-            # ix = np.arange(0, self.nx, mesh_step)
-            # if ix[-1] != self.nx - 1:
-            #     ix = np.append(ix, self.nx - 1)
-            # iy = np.arange(0, self.ny, mesh_step)
-            # if iy[-1] != self.ny - 1:
-            #     iy = np.append(iy, self.ny - 1)
             x = self.x[np.ix_(iy, ix)]
             y = self.y[np.ix_(iy, ix)]
             ax.plot(x, y, transform=self.transform, **mesh_kwargs)
