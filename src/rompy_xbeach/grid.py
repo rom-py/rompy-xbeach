@@ -11,6 +11,7 @@ from pyproj import Transformer
 import numpy as np
 import matplotlib.pyplot as plt
 import geopandas
+from functools import cached_property
 
 from rompy.core.types import RompyBaseModel
 from rompy.core.grid import BaseGrid
@@ -95,7 +96,7 @@ class RegularGrid(BaseGrid):
             f"nx={self.nx}, ny={self.ny}, dx={self.dx}, dy={self.dy}, crs={self.crs})"
         )
 
-    @property
+    @cached_property
     def x0(self) -> float:
         """X coordinate of the grid origin in the grid crs."""
         if self.crs is not None:
@@ -103,7 +104,7 @@ class RegularGrid(BaseGrid):
         else:
             return self.ori.x
 
-    @property
+    @cached_property
     def y0(self) -> float:
         """Y coordinate of the grid origin in the grid crs."""
         if self.crs is not None:
@@ -111,42 +112,42 @@ class RegularGrid(BaseGrid):
         else:
             return self.ori.y
 
-    @property
+    @cached_property
     def x(self) -> np.ndarray:
         """X coordinates of the grid."""
         return self._generate()[0]
 
-    @property
+    @cached_property
     def y(self) -> np.ndarray:
         """Y coordinates of the grid."""
         return self._generate()[1]
 
-    @property
+    @cached_property
     def left(self) -> tuple[np.ndarray, np.ndarray]:
         """Coordinates of the left (lateral) boundary of the grid."""
         return self.x[-1, :], self.y[-1, :]
 
-    @property
+    @cached_property
     def right(self) -> tuple[np.ndarray, np.ndarray]:
         """Coordinates of the right (lateral) boundary of the grid."""
         return self.x[0, :], self.y[0, :]
 
-    @property
+    @cached_property
     def back(self) -> tuple[np.ndarray, np.ndarray]:
         """Coordinates of the back (offshore) boundary of the grid."""
         return self.x[:, -1], self.y[:, -1]
 
-    @property
+    @cached_property
     def front(self) -> tuple[np.ndarray, np.ndarray]:
         """Coordinates of the front (land) boundary of the grid."""
         return self.x[:, 0], self.y[:, 0]
 
-    @property
+    @cached_property
     def transform(self):
         """Cartopy transformation for the grid."""
         return ccrs.epsg(self.crs.to_epsg())
 
-    @property
+    @cached_property
     def namelist(self):
         """Return the namelist representation of the grid."""
         return dict(
@@ -227,6 +228,9 @@ class RegularGrid(BaseGrid):
         set_gridlines=True,
         grid_kwargs=dict(alpha=0.5, zorder=2),
         figsize=None,
+        show_mesh=False,
+        mesh_step=1,
+        mesh_kwargs=dict(color="k", linewidth=0.5),
         show_offshore=True,
     ) -> GeoAxes:
         """Plot the grid optionally overlaid with GSHHS coastlines.
@@ -250,6 +254,12 @@ class RegularGrid(BaseGrid):
             Keyword arguments for the grid plot, by default dict(alpha=0.5, zorder=2).
         figsize : tuple, optional
             Figure size in inches, by default None.
+        show_mesh : bool, optional
+            Show the model grid mesh, by default False.
+        mesh_step: int, optional
+            Step for the mesh plot, by default 1.
+        mesh_kwargs : dict, optional
+            Keyword arguments for the mesh, by default dict(color="k", linewidth=0.5).
         show_offshore : bool, optional
             Show the offshore boundary, by default True.
 
@@ -278,6 +288,21 @@ class RegularGrid(BaseGrid):
         # Add the model grid
         bnd = geopandas.GeoSeries(self.boundary(), crs=self.transform)
         bnd.plot(ax=ax, transform=self.transform, **grid_kwargs)
+
+        # Draw the model grid mesh
+        if show_mesh:
+            ix = np.unique(np.append(np.arange(0, self.nx, mesh_step), self.nx - 1))
+            iy = np.unique(np.append(np.arange(0, self.ny, mesh_step), self.ny - 1))
+            # ix = np.arange(0, self.nx, mesh_step)
+            # if ix[-1] != self.nx - 1:
+            #     ix = np.append(ix, self.nx - 1)
+            # iy = np.arange(0, self.ny, mesh_step)
+            # if iy[-1] != self.ny - 1:
+            #     iy = np.append(iy, self.ny - 1)
+            x = self.x[np.ix_(iy, ix)]
+            y = self.y[np.ix_(iy, ix)]
+            ax.plot(x, y, transform=self.transform, **mesh_kwargs)
+            ax.plot(x.T, y.T, transform=self.transform, **mesh_kwargs)
 
         # Add the offshore boundary
         if show_offshore:
