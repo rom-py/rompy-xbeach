@@ -149,6 +149,14 @@ class RegularGrid(BaseGrid):
         return ccrs.epsg(self.crs.to_epsg())
 
     @cached_property
+    def projection(self):
+        """Cartopy stereographic projection for this grid."""
+        if self.ori.crs is None:
+            raise ValueError("No CRS defined for the grid origin")
+        ori = self.ori.reproject(4326)
+        return ccrs.Stereographic(central_longitude=ori.x, central_latitude=ori.y)
+
+    @cached_property
     def namelist(self):
         """Return the namelist representation of the grid."""
         return dict(
@@ -275,10 +283,7 @@ class RegularGrid(BaseGrid):
         """
         # Define the projection if not provided
         if projection is None:
-            ori = self.ori.reproject(4326)
-            projection = ccrs.Stereographic(
-                central_longitude=ori.x, central_latitude=ori.y,
-            )
+            projection = self.projection
 
         # Define axis if not provided
         if ax is None:
