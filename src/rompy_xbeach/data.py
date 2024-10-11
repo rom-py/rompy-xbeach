@@ -9,6 +9,10 @@ import numpy as np
 import xarray as xr
 from importlib.metadata import entry_points
 
+import cartopy.crs as ccrs
+import matplotlib.pyplot as plt
+from matplotlib import gridspec
+
 from pydantic import Field, field_validator, ConfigDict
 from pydantic_numpy.typing import Np2DArray
 
@@ -375,12 +379,109 @@ class XBeach_accessor(object):
     def __init__(self, xarray_obj):
         self._obj = xarray_obj
 
-    @property
-    def x(self):
-        """Return the x coord."""
-        return self._obj[self._obj.rio.x_dim]
+    def plot_model_bathy(
+        self,
+        grid: RegularGrid,
+        variable: str = "dep",
+        figsize=(15, 12),
+        vmin: float = -20,
+        vmax: float = 20,
+        cmap: str = "terrain",
+    ):
+        """Plot the model bathy"""
 
-    @property
-    def y(self):
-        """Return the y coord."""
-        return self._obj[self._obj.rio.y_dim]
+        fig = plt.figure(figsize=figsize)
+        gs = gridspec.GridSpec(2, 2, height_ratios=[1.5, 1], width_ratios=[1, 1])
+        dep = self._obj[variable]
+
+        # =========================
+        # Plot in real coordinates
+        # =========================
+        ax = plt.subplot(gs[0], projection=grid.projection)
+        ax.pcolormesh(
+            grid.x,
+            grid.y,
+            dep,
+            transform=grid.transform,
+            vmin=vmin,
+            vmax=vmax,
+            cmap=cmap,
+        )
+        ax = grid.plot(
+            ax=ax,
+            buffer=50,
+            grid_kwargs=dict(edgecolor="k", facecolor="none"),
+            show_mesh=True,
+            mesh_step=5,
+            mesh_kwargs=dict(color="k", linewidth=0.3, alpha=0.5),
+        )
+        ax.set_title("Real coordinates")
+
+        # ==========================
+        # Plot in model coordinates
+        # ==========================
+        ax = plt.subplot(gs[1])
+        x = np.arange(grid.nx) * grid.dx
+        y = np.arange(grid.ny) * grid.dy
+        p = ax.pcolormesh(x, y, dep, vmin=vmin, vmax=vmax, cmap=cmap)
+        plt.colorbar(p)
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+        xlim = 0, x[-1]
+        ax.set_xlim(xlim)
+        ax.set_aspect("equal", "box")
+        ax.set_title("Model coordinates")
+
+        # =============================
+        # Plot the cross-shore profile
+        # =============================
+        ax = plt.subplot(gs[1, :])
+        slopes = np.zeros((grid.ny, grid.nx))
+        for iy in range(grid.ny):
+            ax.plot(x, dep[iy, :], color="0.5", alpha=0.5)
+            slopes[iy, :] = np.gradient(dep[iy, :], grid.dx)
+        z = np.nanmean(dep, axis=0)
+        ax.plot(x, z, color="k", linewidth=3)
+        ax.plot(x, x*0, "k--")
+        ax.set_xlabel("x")
+        ax.set_ylabel("z")
+        ax.set_xlim(xlim)
+        ax.set_title("Cross-shore profile")
+        # Plot the cross-shore slopes on the right axis
+        ax2 = ax.twinx()
+        slope = np.gradient(z, grid.dx)
+        ax2.fill_between(x, np.nanmin(slopes, 0), np.nanmax(slopes, 0), color="r", alpha=0.2)
+        ax2.plot(x, slope, color="r")
+        ax2.yaxis.label.set_color("r")
+        ax2.tick_params(axis="y", colors="r")
+        ax2.set_ylabel(r"$\tan(\alpha)$")
+        ax2.set_xlim(xlim)
+
+    @classmethod
+    def from_xbeach(cls, xfile, yfile, datafile, grid, **kwargs):
+        """
+        Construct GeoDataFrame from dict of array-like or dicts by
+        overriding DataFrame.from_dict method with geometry and crs
+
+        Parameters
+        ----------
+        data : dict
+            Of the form {field : array-like} or {field : dict}.
+        geometry : str or array (optional)
+            If str, column to use as geometry. If array, will be set as 'geometry'
+            column on GeoDataFrame.
+        crs : str or dict (optional)
+            Coordinate reference system to set on the resulting frame.
+        kwargs : key-word arguments
+            These arguments are passed to DataFrame.from_dict
+
+        Returns
+        -------
+        GeoDataFrame
+
+        """
+        dset = xr.Dataset()
+        dset["xc"] = xr.DataArray(np.loadtxt(xfile), dims=("y", "x"))
+        dset["yc"] = xr.DataArray(np.loadtxt(yfile), dims=("y", "x"))
+        dset["dep"] = xr.DataArray(np.loadtxt(datafile), dims=("y", "x"))
+        return dset.rio.write_crs(grid.crs).set_coords(["xc", "yc"])
