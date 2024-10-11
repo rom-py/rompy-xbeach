@@ -3,8 +3,10 @@ from typing import List, Tuple, Callable, Any, Literal
 from abc import ABC, abstractmethod
 import numpy as np
 
+from rompy.core.types import RompyBaseModel
 
-class BaseInterpolator(ABC, BaseModel):
+
+class BaseInterpolator(ABC, RompyBaseModel):
     """Base interpolator class."""
 
     model_type: Literal["base"] = Field(
