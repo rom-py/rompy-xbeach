@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 from typing import Literal, Optional, Union
 from pydantic import Field, field_validator
+import cartopy
 from cartopy import crs as ccrs
 from cartopy import feature as cfeature
 from cartopy.mpl.geoaxes import GeoAxes
@@ -220,48 +221,51 @@ class RegularGrid(BaseGrid):
 
     def plot(
         self,
-        ax=None,
-        scale=None,
-        projection=None,
-        buffer=500,
-        set_extent=True,
-        set_gridlines=True,
-        grid_kwargs=dict(alpha=0.5, zorder=2),
-        figsize=None,
-        show_mesh=False,
-        mesh_step=1,
-        mesh_kwargs=dict(color="k", linewidth=0.5),
-        show_offshore=True,
+        ax: cartopy.mpl.geoaxes.GeoAxes = None,
+        scale: str = None,
+        projection: cartopy.crs.PlateCarree = None,
+        buffer: float = 500,
+        set_extent: bool = True,
+        set_gridlines: bool = True,
+        grid_kwargs: dict = dict(alpha=0.5, zorder=2),
+        figsize: tuple = None,
+        show_mesh: bool = False,
+        mesh_step: int = 1,
+        mesh_kwargs: dict = dict(color="k", linewidth=0.5),
+        show_offshore: bool = True,
+        show_origin: bool = True,
     ) -> GeoAxes:
         """Plot the grid optionally overlaid with GSHHS coastlines.
 
         Parameters
         ----------
-        ax : matplotlib.axes.Axes, optional
+        ax: matplotlib.axes.Axes, optional
             Axes object to plot on, by default create a new figure and axes.
-        scale : str, optional
+        scale: str, optional
             Scale for the GSHHS coastline feature, one of 'c', 'l', 'i', 'h', 'f',
             by default None which implies no coastlines are plotted.
-        projection : cartopy.crs.Projection, optional
+        projection: cartopy.crs.Projection, optional
             Map projection, by default use a stereographic projection.
-        buffer : float, optional
+        buffer: float, optional
             Buffer around the grid in meters, by default 500.
-        set_extent : bool, optional
+        set_extent: bool, optional
             Set the extent of the axes to the grid bbox and buffer, by default True.
-        set_gridlines : bool, optional
+        set_gridlines: bool, optional
             Add gridlines to the plot, by default True.
-        grid_kwargs : dict, optional
+        grid_kwargs: dict, optional
             Keyword arguments for the grid plot, by default dict(alpha=0.5, zorder=2).
-        figsize : tuple, optional
+        figsize: tuple, optional
             Figure size in inches, by default None.
-        show_mesh : bool, optional
+        show_mesh: bool, optional
             Show the model grid mesh, by default False.
         mesh_step: int, optional
             Step for the mesh plot, by default 1.
-        mesh_kwargs : dict, optional
+        mesh_kwargs: dict, optional
             Keyword arguments for the mesh, by default dict(color="k", linewidth=0.5).
-        show_offshore : bool, optional
+        show_offshore: bool, optional
             Show the offshore boundary, by default True.
+        show_origin: bool, optional
+            Show the origin of the grid, by default True.
 
         Returns
         -------
@@ -302,6 +306,10 @@ class RegularGrid(BaseGrid):
         if show_offshore:
             x, y = self.front
             ax.plot(x, y, color="red", transform=self.transform, label="Front")
+
+        # Add the grid origin
+        if show_origin:
+            ax.plot(self.x0, self.y0, "ro", transform=self.transform, label="Origin")
 
         # Set extent
         if set_extent:
