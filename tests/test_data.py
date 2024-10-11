@@ -110,7 +110,13 @@ def test_xbeach_bathy_extend_seaward_linear(source, tmp_path):
         ny=220,
         crs="28350",
     )
-    data = XBeachBathy(
+    data1 = XBeachBathy(
+        source=source,
+        posdwn=False,
+        left=5,
+        right=5,
+    )
+    data2 = XBeachBathy(
         source=source,
         posdwn=False,
         left=5,
@@ -120,4 +126,5 @@ def test_xbeach_bathy_extend_seaward_linear(source, tmp_path):
             slope=0.05,
         ),
     )
-    xfile, yfile, datafile, grid = data.get(destdir=tmp_path, grid=grid)
+    xfile1, yfile1, datafile1, grid1 = data1.get(destdir=tmp_path, grid=grid)
+    xfile1, yfile2, datafile2, grid2 = data1.get(destdir=tmp_path, grid=grid)

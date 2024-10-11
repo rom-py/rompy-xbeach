@@ -242,7 +242,7 @@ class XBeachDataGrid(DataGrid):
             dset = self.ds.copy()
 
         # Interpolate to the model grid
-        datai = self.interpolator.interpolate(
+        datai = self.interpolator.get(
             x=dset[self.x_dim].values,
             y=dset[self.y_dim].values,
             data=dset.data.values,
@@ -347,7 +347,7 @@ class XBeachBathy(XBeachDataGrid):
             dset = self.ds.copy()
 
         # Interpolate to the model grid
-        data = self.interpolator.interpolate(
+        data = self.interpolator.get(
             x=dset[self.x_dim].values,
             y=dset[self.y_dim].values,
             data=dset.data.values,

@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field
-from typing import List, Tuple, Callable, Any, Literal
+from pydantic import Field
+from typing import Literal, Optional
 from abc import ABC, abstractmethod
 import numpy as np
 
@@ -19,7 +19,7 @@ class BaseInterpolator(ABC, RompyBaseModel):
     )
 
     @abstractmethod
-    def interpolate(
+    def get(
         self,
         x: np.ndarray,
         y: np.ndarray,
@@ -62,7 +62,7 @@ class RegularGridInterpolator(BaseInterpolator):
         description="Model type discriminator"
     )
 
-    def interpolate(self,
+    def get(self,
             x: np.ndarray,
             y: np.ndarray,
             data: np.ndarray,
