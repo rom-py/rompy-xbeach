@@ -277,6 +277,34 @@ class XBeachBathy(XBeachDataGrid):
         description="Method to extend the data seaward",
     )
 
+    def expand_lateral(
+        self,
+        data: Np2DArray,
+        grid: RegularGrid,
+    ) -> tuple[Np2DArray, RegularGrid]:
+        """Extend the data laterally.
+
+        Parameters
+        ----------
+        data: np.ndarray
+            The data grid to extend.
+        grid: rompy_xbeach.grid.RegularGrid
+            The grid associated with the data.
+
+        Returns
+        -------
+        data_ext: np.ndarray
+            The extended data grid.
+        grid_ext: rompy_xbeach.grid.RegularGrid
+            The grid associated with the extended data.
+
+        """
+        grid_ext = grid.expand(left=self.left, right=self.right)
+        right_ext = np.tile(data[0, :], (self.right, 1))
+        left_ext = np.tile(data[-1, :], (self.right, 1))
+        data_ext = np.concatenate((right_ext, data, left_ext), axis=0)
+        return data_ext, grid_ext
+
     def get(
         self,
         destdir: str | Path,
@@ -307,7 +335,7 @@ class XBeachBathy(XBeachDataGrid):
 
         # Reproject to the model grid
         if grid.crs is not None:
-            logger.info(f"Reprojecting {self.source.filename} to {grid.crs}")
+            logger.debug(f"Reprojecting {self.source.filename} to {grid.crs}")
             dset = self.ds.rio.reproject(grid.crs)
         else:
             dset = self.ds.copy()
@@ -323,6 +351,9 @@ class XBeachBathy(XBeachDataGrid):
 
         # Extend offshore boundary
         data, grid = self.extension.get(data, grid, self.posdwn)
+
+        # Extend the lateral boundaries
+        data, grid = self.expand_lateral(data, grid)
 
         # Save to disk
         xfile = Path(destdir) / "xdata.txt"
