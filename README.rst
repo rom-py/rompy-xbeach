@@ -32,6 +32,10 @@ Grid
 * Option to display the offshore boundary and origin
 * Method to expand the grid boundaries
 * Property methods to hold the cartopy stereographic projection and the transform
+* shape property method
+* Method to return Multipolygon geometry of all grid cells
+* Method to save the grid to file
+* Method to load the grid from file
 
 Data
 ~~~~
@@ -50,5 +54,4 @@ Xarray Accessor
 
 Questions
 ---------
-* Support interpolate_na In the data objects?
-    * Existing options in rioxarray: {'linear', 'nearest', 'cubic'}
+* Support interpolate_na in the data objects? before or after interpolating the data?

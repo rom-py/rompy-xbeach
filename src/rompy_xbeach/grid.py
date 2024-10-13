@@ -1,9 +1,12 @@
 """XBEACH Rompy grid."""
 
 import logging
+import ast
 from pathlib import Path
 from typing import Literal, Optional, Union
 from pydantic import Field, field_validator
+from shapely.geometry import Polygon, MultiPolygon
+import geopandas as gpd
 import cartopy
 from cartopy import crs as ccrs
 from cartopy import feature as cfeature
@@ -126,6 +129,28 @@ class RegularGrid(BaseGrid):
     def shape(self) -> tuple[int, int]:
         """Shape of the grid."""
         return self.x.shape
+
+    @cached_property
+    def gdf(self):
+        """Geodataframe representation with multi-polygons for each grid cell."""
+        # Define the multi-polygon geodataframe
+        i, j = np.meshgrid(
+            range(self.shape[0] - 1), range(self.shape[1] - 1), indexing="ij"
+        )
+        corners = np.stack([
+            np.stack((self.x[i, j], self.y[i, j]), axis=-1),
+            np.stack((self.x[i, j+1], self.y[i, j+1]), axis=-1),
+            np.stack((self.x[i+1, j+1], self.y[i+1, j+1]), axis=-1),
+            np.stack((self.x[i+1, j], self.y[i+1, j]), axis=-1)
+        ], axis=-2)
+        corners_2d = corners.reshape(-1, 4, 2)
+        multi_polygon = MultiPolygon([Polygon(cell) for cell in corners_2d])
+        gdf = gpd.GeoDataFrame(geometry=[multi_polygon], crs=self.crs)
+        # Add the grid init args in the Name column
+        gdf["Name"] = [(
+            self.x0, self.y0, self.alfa, self.dx, self.dy, self.nx, self.ny, self.crs.to_epsg(),
+        )]
+        return gdf
 
     @cached_property
     def left(self) -> tuple[np.ndarray, np.ndarray]:
@@ -333,3 +358,35 @@ class RegularGrid(BaseGrid):
             ax.gridlines(crs=self.transform, linewidth=0.5, color="gray", alpha=0.5)
 
         return ax
+
+    def to_file(self, filename, **kwargs):
+        self.gdf.to_file(filename, **kwargs)
+
+    @classmethod
+    def from_file(cls, filename: str, **kwargs) -> "RegularGrid":
+        """Read a grid from a file.
+
+        Parameters
+        ----------
+        filename : str
+            Path to the file.
+        kwargs : dict
+            Additional keyword arguments for the geopandas read_file method.
+
+        Returns
+        -------
+        RegularGrid
+            RegularGrid object.
+
+        """
+        gdf = gpd.read_file(filename, **kwargs)
+        args = ast.literal_eval(gdf["Name"].values[0])
+        return RegularGrid(
+            ori=Ori(x=args[0], y=args[1], crs=args[7]),
+            alfa=args[2],
+            dx=args[3],
+            dy=args[4],
+            nx=args[5],
+            ny=args[6],
+            crs=args[7],
+        )
