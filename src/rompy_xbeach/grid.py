@@ -8,6 +8,7 @@ from pydantic import Field, field_validator, ConfigDict
 from shapely.geometry import Polygon, MultiPolygon
 import geopandas as gpd
 from pyproj import CRS
+import rasterio
 import cartopy
 from cartopy import crs as ccrs
 from cartopy import feature as cfeature
@@ -26,8 +27,10 @@ logger = logging.getLogger(__name__)
 
 HERE = Path(__file__).parent
 
+CRS_TYPES = Union[str, int, CRS, cartopy.crs.CRS, rasterio.crs.CRS]
 
-def validate_crs(crs: Optional[Union[str, int, CRS, cartopy.crs.CRS]]) -> CRS:
+
+def validate_crs(crs: Optional[CRS_TYPES]) -> CRS:
     """Validate the coordinate reference system input."""
     if crs is None:
         return crs
@@ -44,7 +47,7 @@ class Ori(RompyBaseModel):
     y: float = Field(
         description="Y coordinate of the origin",
     )
-    crs: Optional[Union[str, int, CRS, cartopy.crs.CRS]] = Field(
+    crs: Optional[CRS_TYPES] = Field(
         default=None,
         description="Coordinate reference system of the origin",
     )
@@ -99,7 +102,7 @@ class RegularGrid(BaseGrid):
     ny: int = Field(
         description="Number of grid points in the y-direction",
     )
-    crs: Optional[Union[str, int, CRS, cartopy.crs.CRS]] = Field(
+    crs: Optional[CRS_TYPES] = Field(
         default=None,
         description="Coordinate reference system of the grid",
     )

@@ -2,6 +2,7 @@ from pydantic import Field
 from typing import Literal, Optional
 from abc import ABC, abstractmethod
 import numpy as np
+from pydantic_numpy.typing import Np1DArray, Np2DArray
 
 from rompy.core.types import RompyBaseModel
 
@@ -21,12 +22,12 @@ class BaseInterpolator(ABC, RompyBaseModel):
     @abstractmethod
     def get(
         self,
-        x: np.ndarray,
-        y: np.ndarray,
-        data: np.ndarray,
-        xi: np.ndarray,
-        yi: np.ndarray,
-    ) -> np.ndarray:
+        x: Np1DArray,
+        y: Np1DArray,
+        data: Np2DArray,
+        xi: Np2DArray,
+        yi: Np2DArray,
+    ) -> Np2DArray:
         """Perform interpolation.
 
         New classes should implement this which must take the x, y, and data arrays
@@ -34,20 +35,20 @@ class BaseInterpolator(ABC, RompyBaseModel):
 
         Parameters
         ----------
-        x: np.ndarray
-           The x-coordinates of the data.
-        y: np.ndarray
-              The y-coordinates of the data.
-        data : np.ndarray
-                The data to interpolate.
-        xi: np.ndarray
+        x: Np1DArray
+            The x-coordinates of the data.
+        y: Np1DArray
+            The y-coordinates of the data.
+        data : Np2DArray
+            The data to interpolate.
+        xi: Np2DArray
             The x-coordinates of the interpolated data.
-        yi: np.ndarray
+        yi: Np2DArray
             The y-coordinates of the interpolated data.
 
         Returns
         -------
-        datai: np.ndarray
+        datai: Np2DArray
             The interpolated data.
 
         """
@@ -55,38 +56,39 @@ class BaseInterpolator(ABC, RompyBaseModel):
 
 
 class RegularGridInterpolator(BaseInterpolator):
-    """Regular grid interpolator based on scipy.interpolate.RegularGridInterpolator."""
+    """Regular grid interpolator based on scipy's RegularGridInterpolator."""
 
-    model_type: Literal["regular_grid"] = Field(
-        default="regular_grid",
+    model_type: Literal["scipy_regular_grid"] = Field(
+        default="scipy_regular_grid",
         description="Model type discriminator"
     )
 
-    def get(self,
-            x: np.ndarray,
-            y: np.ndarray,
-            data: np.ndarray,
-            xi: np.ndarray,
-            yi: np.ndarray,
-        ) -> np.ndarray:
+    def get(
+        self,
+        x: Np1DArray,
+        y: Np1DArray,
+        data: Np2DArray,
+        xi: Np2DArray,
+        yi: Np2DArray,
+    ) -> Np2DArray:
         """Interpolate the data to the grid.
 
         Parameters
         ----------
-        x: np.ndarray
-           The x-coordinates of the data.
-        y: np.ndarray
-           The y-coordinates of the data.
-        data : np.ndarray
-           The data to interpolate.
-        xi: np.ndarray
-           The x-coordinates of the interpolated data.
-        yi: np.ndarray
-           The y-coordinates of the interpolated data.
+        x: Np1DArray
+            The x-coordinates of the data.
+        y: Np1DArray
+            The y-coordinates of the data.
+        data : Np2DArray
+            The data to interpolate.
+        xi: Np2DArray
+            The x-coordinates of the interpolated data.
+        yi: Np2DArray
+            The y-coordinates of the interpolated data.
 
         Returns
         -------
-        datai: np.ndarray
+        datai: Np2DArray
             The interpolated data.
 
         """

@@ -292,14 +292,14 @@ class XBeachBathy(XBeachDataGrid):
 
         Parameters
         ----------
-        data: np.ndarray
+        data: Np2DArray
             The data grid to extend.
         grid: rompy_xbeach.grid.RegularGrid
             The grid associated with the data.
 
         Returns
         -------
-        data_ext: np.ndarray
+        data_ext: Np2DArray
             The extended data grid.
         grid_ext: rompy_xbeach.grid.RegularGrid
             The grid associated with the extended data.
@@ -374,7 +374,7 @@ class XBeachBathy(XBeachDataGrid):
 
 @xr.register_dataset_accessor("xbeach")
 class XBeach_accessor(object):
-    """XBeach accessor for xarray datasets."""
+    """XBeach accessor for xarray datasets with the model data."""
 
     def __init__(self, xarray_obj):
         self._obj = xarray_obj
@@ -383,12 +383,35 @@ class XBeach_accessor(object):
         self,
         grid: RegularGrid,
         variable: str = "dep",
+        posdwn: bool = True,
         figsize=(15, 12),
         vmin: float = -20,
         vmax: float = 20,
         cmap: str = "terrain",
     ):
-        """Plot the model bathy"""
+        """Plot the model bathy.
+
+        This method plots the bathymetry in real and model coordinates, and the
+        cross-shore profiles and slopes.
+
+        Parameters
+        ----------
+        grid: rompy_xbeach.grid.RegularGrid
+            The grid associated with the data.
+        variable: str
+            The variable to plot.
+        posdwn: bool
+            Bathymetry is positive down if True, positive up if False.
+        figsize: tuple
+            The figure size.
+        vmin: float
+            The minimum value for the colormap.
+        vmax: float
+            The maximum value for the colormap.
+        cmap: str
+            The colormap.
+
+        """
 
         fig = plt.figure(figsize=figsize)
         gs = gridspec.GridSpec(2, 2, height_ratios=[1.5, 1], width_ratios=[1, 1])
@@ -445,6 +468,8 @@ class XBeach_accessor(object):
         ax.plot(x, x*0, "k--")
         ax.set_xlabel("x")
         ax.set_ylabel("z")
+        if posdwn:
+            ax.invert_yaxis()
         ax.set_xlim(xlim)
         ax.set_title("Cross-shore profile")
         # Plot the cross-shore slopes on the right axis
@@ -458,30 +483,24 @@ class XBeach_accessor(object):
         ax2.set_xlim(xlim)
 
     @classmethod
-    def from_xbeach(cls, xfile, yfile, datafile, grid, **kwargs):
-        """
-        Construct GeoDataFrame from dict of array-like or dicts by
-        overriding DataFrame.from_dict method with geometry and crs
+    def from_xbeach(cls, datafile, grid):
+        """Construct an xarray bathy dataset from a XBeach data file.
 
         Parameters
         ----------
-        data : dict
-            Of the form {field : array-like} or {field : dict}.
-        geometry : str or array (optional)
-            If str, column to use as geometry. If array, will be set as 'geometry'
-            column on GeoDataFrame.
-        crs : str or dict (optional)
-            Coordinate reference system to set on the resulting frame.
-        kwargs : key-word arguments
-            These arguments are passed to DataFrame.from_dict
+        datafile : str | Path
+            The path to the XBeach bathy data file.
+        grid : rompy_xbeach.grid.RegularGrid
+            The grid associated with the data.
 
         Returns
         -------
-        GeoDataFrame
+        dset : xr.Dataset
+            The xarray dataset with the bathy data.
 
         """
         dset = xr.Dataset()
-        dset["xc"] = xr.DataArray(np.loadtxt(xfile), dims=("y", "x"))
-        dset["yc"] = xr.DataArray(np.loadtxt(yfile), dims=("y", "x"))
+        dset["xc"] = xr.DataArray(grid.x, dims=("y", "x"))
+        dset["yc"] = xr.DataArray(grid.y, dims=("y", "x"))
         dset["dep"] = xr.DataArray(np.loadtxt(datafile), dims=("y", "x"))
         return dset.rio.write_crs(grid.crs).set_coords(["xc", "yc"])
