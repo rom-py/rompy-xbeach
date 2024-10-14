@@ -4,9 +4,10 @@ import logging
 import ast
 from pathlib import Path
 from typing import Literal, Optional, Union
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, ConfigDict
 from shapely.geometry import Polygon, MultiPolygon
 import geopandas as gpd
+from pyproj import CRS
 import cartopy
 from cartopy import crs as ccrs
 from cartopy import feature as cfeature
@@ -26,32 +27,43 @@ logger = logging.getLogger(__name__)
 HERE = Path(__file__).parent
 
 
-def validate_crs(crs: Optional[Union[str, int]]) -> int:
+def validate_crs(crs: Optional[Union[str, int, CRS, cartopy.crs.CRS]]) -> CRS:
     """Validate the coordinate reference system input."""
     if crs is None:
         return crs
     if isinstance(crs, str):
         crs = crs.split(":")[-1]
-    return ccrs.CRS(str(crs))
+    return CRS.from_user_input(crs)
 
 
 class Ori(RompyBaseModel):
     """Origin of the grid in geographic space."""
-
     x: float = Field(
         description="X coordinate of the origin",
     )
     y: float = Field(
         description="Y coordinate of the origin",
     )
-    crs: Optional[Union[int, str]] = Field(
+    crs: Optional[Union[str, int, CRS, cartopy.crs.CRS]] = Field(
         default=None,
-        description="EPSG code for the coordinate reference system",
+        description="Coordinate reference system of the origin",
     )
     _validate_crs = field_validator("crs")(validate_crs)
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    def model_dump(self, *args, **kwargs):
+        """Dump the model representation of the object taking care of the CRS."""
+        d = super().model_dump(*args, **kwargs)
+        if d["crs"] is not None:
+            d["crs"] = str(self.crs)
+        return d
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(x={self.x}, y={self.y}, crs={self.crs})"
+        epsg = str(self.crs) if self.crs is not None else None
+        return f"{self.__class__.__name__}(x={self.x}, y={self.y}, crs='{epsg}')"
+
+    def __str__(self) -> str:
+        return self.__repr__()
 
     def reproject(self, epsg: int) -> "Ori":
         """Transform the origin to a new coordinate reference system."""
@@ -87,17 +99,31 @@ class RegularGrid(BaseGrid):
     ny: int = Field(
         description="Number of grid points in the y-direction",
     )
-    crs: Optional[Union[str, int]] = Field(
+    crs: Optional[Union[str, int, CRS, cartopy.crs.CRS]] = Field(
         default=None,
-        description="EPSG code for the grid projection",
+        description="Coordinate reference system of the grid",
     )
     _validate_crs = field_validator("crs")(validate_crs)
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def __repr__(self) -> str:
+        epsg = str(self.crs) if self.crs is not None else None
         return (
-            f"{self.__class__.__name__}(x0={self.x0}, y0={self.y0}, alfa={self.alfa}, "
-            f"nx={self.nx}, ny={self.ny}, dx={self.dx}, dy={self.dy}, crs={self.crs})"
+            f"{self.__class__.__name__}(ori={self.ori}, alfa={self.alfa}, "
+            f"dx={self.dx}, dy={self.dy}, nx={self.nx}, ny={self.ny}, crs='{epsg}')"
         )
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def model_dump(self, *args, **kwargs):
+        """Dump the model representation of the object taking care of the CRS."""
+        d = super().model_dump(*args, **kwargs)
+        if d["crs"] is not None:
+            d["crs"] = str(self.crs)
+        if d["ori"]["crs"] is not None:
+            d["ori"]["crs"] = str(self.ori.crs)
+        return d
 
     @cached_property
     def x0(self) -> float:
@@ -146,10 +172,8 @@ class RegularGrid(BaseGrid):
         corners_2d = corners.reshape(-1, 4, 2)
         multi_polygon = MultiPolygon([Polygon(cell) for cell in corners_2d])
         gdf = gpd.GeoDataFrame(geometry=[multi_polygon], crs=self.crs)
-        # Add the grid init args in the Name column
-        gdf["Name"] = [(
-            self.x0, self.y0, self.alfa, self.dx, self.dy, self.nx, self.ny, self.crs.to_epsg(),
-        )]
+        # Add the grid kwargs in the Name column
+        gdf["Name"] = (self.model_dump(),)
         return gdf
 
     @cached_property
@@ -380,13 +404,5 @@ class RegularGrid(BaseGrid):
 
         """
         gdf = gpd.read_file(filename, **kwargs)
-        args = ast.literal_eval(gdf["Name"].values[0])
-        return RegularGrid(
-            ori=Ori(x=args[0], y=args[1], crs=args[7]),
-            alfa=args[2],
-            dx=args[3],
-            dy=args[4],
-            nx=args[5],
-            ny=args[6],
-            crs=args[7],
-        )
+        kwargs = ast.literal_eval(gdf["Name"].values[0])
+        return RegularGrid(**kwargs)
