@@ -44,9 +44,6 @@ class Config(XBeachBaseConfig):
     bathy: XBeachBathy = Field(
         description="The XBeach bathymetry object",
     )
-    depfile: str = Field(
-        description="Name of the input bathymetry file",
-    )
     front: Literal["abs_1d", "abs_2d", "wall", "wlevel", "nonh_1d", "waveflume"] = Field(
         description="Switch for seaward flow boundary",
         default="abs_2d",
@@ -300,9 +297,18 @@ class Config(XBeachBaseConfig):
 
     def __call__(self, runtime) -> dict:
         """Callable where data and config are interfaced and CMD is rendered."""
-        ret = self.model_dump(exclude=["grid", "bathy"])
+        # Model times and staging dir from the ModelRun object
+        period = runtime.period
+        staging_dir = runtime.staging_dir
+
+        # Initial namelist
+        namelist = self.model_dump(exclude=["grid", "bathy"])
+
         # Bathy data interface
-        ret.update(self.bathy.namelist)
-        depfile, grid = self.bathy.get(destdir=runtime, grid=self.grid)
-        ret.update(grid.namelist)
-        ret.update({"depfile": depfile})
+        namelist.update(self.bathy.namelist)
+        __, __, depfile, grid = self.bathy.get(destdir=staging_dir, grid=self.grid)
+
+        namelist.update(grid.namelist)
+        namelist.update({"depfile": depfile})
+
+        return namelist

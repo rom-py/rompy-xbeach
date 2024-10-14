@@ -2,14 +2,14 @@ model_type: xbeach
 grid:
   model_type: regular
   ori:
-    x: 367520
-    y: 6387075
-    crs: EPSG:28350
-  alfa: 344
+    x: 115.594239
+    y: -32.641104
+    crs: EPSG:4326
+  alfa: 347
   dx: 10
-  dy: 20
-  nx: 270
-  ny: 305
+  dy: 15
+  nx: 230
+  ny: 220
   crs: EPSG:28350
 bathy:
   model_type: xbeach_bathy
@@ -21,14 +21,13 @@ bathy:
     model_type: scipy_regular_grid
     kwargs:
       method: linear
-      # fill_value: null
+      fill_value: null
   left: 3
   right: 3
   extension:
     model_type: linear
     depth: 25
     slope: 0.3
-depfile: "bathy.txt"
 front: abs_2d #1
 back: abs_2d #2
 left: neumann #0

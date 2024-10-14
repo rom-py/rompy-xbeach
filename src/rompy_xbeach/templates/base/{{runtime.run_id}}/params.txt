@@ -15,10 +15,8 @@ dy           = {{ config.dy }}
 xori         = {{ config.xori }}
 yori         = {{ config.yori }}
 alfa         = {{ config.alfa }}
-posdwn       = {{ config.posdwn }}
-depfile      = {{ config.depfile }}
-rugdepth     = {{ config.rugdepth }}
 projection   = {{ config.projection }}
+rugdepth     = {{ config.rugdepth }}
 tunits       = {{ config.tunits }}
 thetamin     = {{ config.thetamin }}
 thetamax     = {{ config.thetamax }}
@@ -42,6 +40,13 @@ front        = {{ config.front }}
 back         = {{ config.back }}
 left         = {{ config.left }}
 right        = {{ config.right }}
+
+###########################################################################
+#                               BATHY INPUT                               #
+###########################################################################
+
+depfile      = {{ config.depfile.name }}
+posdwn       = {{ config.posdwn }}
 
 ###########################################################################
 #                               WAVE INPUT                                #

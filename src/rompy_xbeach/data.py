@@ -211,7 +211,7 @@ class XBeachDataGrid(DataGrid):
         destdir: str | Path,
         grid: RegularGrid,
         time: Optional[TimeRange] = None,
-    ) -> Path:
+    ) -> tuple[Path, Path, Path, RegularGrid]:
         """Write the data source to a new location.
 
         Parameters
@@ -225,9 +225,14 @@ class XBeachDataGrid(DataGrid):
 
         Returns
         -------
-        cmd: str
-            The command line string with the INPGRID/READINP commands ready to be
-            written to the SWAN input file.
+        xfile: Path
+            The path to the generated x-coordinate data file.
+        yfile: Path
+            The path to the generated y-coordinate data file.
+        datafile: Path
+            The path to the generated bathymetry data file.
+        grid: rompy_xbeach.grid.RegularGrid
+            The grid associated with the bathymetry data.
 
         """
         if self.crop_data:
@@ -258,7 +263,7 @@ class XBeachDataGrid(DataGrid):
         np.savetxt(yfile, grid.y)
         np.savetxt(datafile, datai)
 
-        return xfile, yfile, datafile
+        return xfile, yfile, datafile, grid
 
 
 class XBeachBathy(XBeachDataGrid):
@@ -286,6 +291,13 @@ class XBeachBathy(XBeachDataGrid):
         description="Method to extend the data seaward",
         discriminator="model_type",
     )
+
+    @property
+    def namelist(self):
+        """Return the namelist representation of the bathy data."""
+        return dict(
+            posdwn=1 if self.posdwn else -1,
+        )
 
     def expand_lateral(
         self,
@@ -320,7 +332,7 @@ class XBeachBathy(XBeachDataGrid):
         destdir: str | Path,
         grid: RegularGrid,
         time: Optional[TimeRange] = None,
-    ) -> Path:
+    ) -> tuple[Path, Path, Path, RegularGrid]:
         """Write the data source to a new location.
 
         Parameters
@@ -334,9 +346,14 @@ class XBeachBathy(XBeachDataGrid):
 
         Returns
         -------
-        cmd: str
-            The command line string with the INPGRID/READINP commands ready to be
-            written to the SWAN input file.
+        xfile: Path
+            The path to the generated x-coordinate data file.
+        yfile: Path
+            The path to the generated y-coordinate data file.
+        depfile: Path
+            The path to the generated bathymetry data file.
+        grid: rompy_xbeach.grid.RegularGrid
+            The grid associated with the bathymetry data.
 
         """
         if self.crop_data:
@@ -368,19 +385,13 @@ class XBeachBathy(XBeachDataGrid):
         # Save to disk
         xfile = Path(destdir) / "xdata.txt"
         yfile = Path(destdir) / "ydata.txt"
-        depfile = Path(destdir) / "data.txt"
+        depfile = Path(destdir) / "bathy.txt"
         np.savetxt(xfile, grid.x)
         np.savetxt(yfile, grid.y)
         np.savetxt(depfile, data)
 
         return xfile, yfile, depfile, grid
 
-    @property
-    def namelist(self):
-        """Return the namelist representation of the bathy data."""
-        return dict(
-            posdwn=1 if self.posdwn else -1,
-        )
 
 @xr.register_dataset_accessor("xbeach")
 class XBeach_accessor(object):
