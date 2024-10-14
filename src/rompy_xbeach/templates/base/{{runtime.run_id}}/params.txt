@@ -32,7 +32,7 @@ tstart       = {{ config.tstart }}
 tstop        = {{ config.tstop }}
 tint         = {{ config.tint }}
 tintm        = {{ config.tintm }}
-CFL          = {{ config.CFL }}
+CFL          = {{ config.cfl }}
 
 ###########################################################################
 #                       FLOW BOUNDARY CONDITIONS                          #
