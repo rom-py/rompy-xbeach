@@ -11,7 +11,23 @@ grid:
   nx: 270
   ny: 305
   crs: EPSG:28350
-posdwn: -1
+bathy:
+  model_type: xbeach_bathy
+  source:
+    model_type: geotiff
+    filename: /source/csiro/rompy-xbeach/tests/data/bathy.tif
+  posdwn: False
+  interpolator:
+    model_type: scipy_regular_grid
+    kwargs:
+      method: linear
+      # fill_value: null
+  left: 3
+  right: 3
+  extension:
+    model_type: linear
+    depth: 25
+    slope: 0.3
 depfile: "bathy.txt"
 front: abs_2d #1
 back: abs_2d #2

@@ -262,7 +262,11 @@ class XBeachDataGrid(DataGrid):
 
 
 class XBeachBathy(XBeachDataGrid):
-
+    """XBeach bathymetry data class."""
+    model_type: Literal["xbeach_bathy"] = Field(
+        default="xbeach_bathy",
+        description="Model type discriminator",
+    )
     posdwn: bool = Field(
         default=True,
         description="Bathymerty is positive down if True, positive up if False",
@@ -364,13 +368,19 @@ class XBeachBathy(XBeachDataGrid):
         # Save to disk
         xfile = Path(destdir) / "xdata.txt"
         yfile = Path(destdir) / "ydata.txt"
-        datafile = Path(destdir) / "data.txt"
+        depfile = Path(destdir) / "data.txt"
         np.savetxt(xfile, grid.x)
         np.savetxt(yfile, grid.y)
-        np.savetxt(datafile, data)
+        np.savetxt(depfile, data)
 
-        return xfile, yfile, datafile, grid
+        return xfile, yfile, depfile, grid
 
+    @property
+    def namelist(self):
+        """Return the namelist representation of the bathy data."""
+        return dict(
+            posdwn=1 if self.posdwn else -1,
+        )
 
 @xr.register_dataset_accessor("xbeach")
 class XBeach_accessor(object):

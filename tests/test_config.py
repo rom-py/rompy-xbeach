@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import yaml
 import pytest
@@ -8,6 +9,8 @@ from rompy_xbeach.config import Config
 
 
 HERE = Path(__file__).parent
+
+os.environ["XBEACH_PATH"] = str(HERE.parent.parent)
 
 
 @pytest.fixture(scope="module")

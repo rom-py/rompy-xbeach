@@ -7,7 +7,7 @@ from pydantic import Field, ConfigDict
 
 from rompy_xbeach.types import XBeachBaseConfig
 from rompy_xbeach.grid import RegularGrid
-
+from rompy_xbeach.data import XBeachBathy
 logger = logging.getLogger(__name__)
 
 HERE = Path(__file__).parent
@@ -41,9 +41,8 @@ class Config(XBeachBaseConfig):
     grid: RegularGrid = Field(
         description="The XBeach grid object",
     )
-    posdwn: Literal[1, -1] = Field(
-        description="Bathymetry is specified positive down (1) or positive up (-1)",
-        default=1,
+    bathy: XBeachBathy = Field(
+        description="The XBeach bathymetry object",
     )
     depfile: str = Field(
         description="Name of the input bathymetry file",
@@ -301,9 +300,9 @@ class Config(XBeachBaseConfig):
 
     def __call__(self, runtime) -> dict:
         """Callable where data and config are interfaced and CMD is rendered."""
-        ret = self.model_dump()
-        # Grid interface
-        ret["grid"] = None
-        ret.update(self.grid.namelist)
-        # Data interface
-        return ret
+        ret = self.model_dump(exclude=["grid", "bathy"])
+        # Bathy data interface
+        ret.update(self.bathy.namelist)
+        depfile, grid = self.bathy.get(destdir=runtime, grid=self.grid)
+        ret.update(grid.namelist)
+        ret.update({"depfile": depfile})
