@@ -1,11 +1,16 @@
 model_type: xbeach
-nx: 100
-ny: 100
-dx: 1.0
-dy: 1.0
-xori: 0
-yori: 0
-alfa: 0.0
+grid:
+  model_type: regular
+  ori:
+    x: 367520
+    y: 6387075
+    crs: EPSG:28350
+  alfa: 344
+  dx: 10
+  dy: 20
+  nx: 270
+  ny: 305
+  crs: EPSG:28350
 posdwn: -1
 depfile: "bathy.txt"
 front: abs_2d #1
@@ -13,7 +18,6 @@ back: abs_2d #2
 left: neumann #0
 right: neumann #0
 rugdepth: 0.011
-projection: proj|stere lon_0|0.0 lat_0|0.0 ellps|wgs84
 tunits: seconds since 1970-01-01 00:00:00.00 +00"
 instat: 41
 breaker: 1
@@ -52,7 +56,7 @@ epsi: 0.001
 tstart: 0
 tint: 3600.0
 tstop: 86400
-CFL: 0.8
+cfl: 0.8
 umin: 0.1
 oldhu: 1
 outputformat: netcdf
