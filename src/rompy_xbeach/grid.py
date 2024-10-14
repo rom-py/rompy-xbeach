@@ -80,8 +80,8 @@ class Ori(RompyBaseModel):
 class RegularGrid(BaseGrid):
     """Xbeach regular grid class."""
 
-    model_type: Literal["xbeach"] = Field(
-        default="xbeach",
+    model_type: Literal["regular"] = Field(
+        default="regular",
         description="Model type discriminator",
     )
     ori: Ori = Field(
@@ -220,7 +220,10 @@ class RegularGrid(BaseGrid):
             ny=self.ny,
             dx=self.dx,
             dy=self.dy,
-            alfa=self.alfa
+            xori=self.x0,
+            yori=self.y0,
+            alfa=self.alfa,
+            projection=self.crs.to_proj4(),
         )
 
     def expand(self, left=0, right=0, back=0, front=0) -> "RegularGrid":

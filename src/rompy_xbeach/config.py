@@ -3,10 +3,10 @@
 import logging
 from pathlib import Path
 from typing import Literal
-from pydantic import Field
+from pydantic import Field, ConfigDict
 
-from rompy.core.config import BaseConfig
-
+from rompy_xbeach.types import XBeachBaseConfig
+from rompy_xbeach.grid import RegularGrid
 
 logger = logging.getLogger(__name__)
 
@@ -28,9 +28,8 @@ HERE = Path(__file__).parent
 # TODO: How to define the projection string?
 
 
-class Config(BaseConfig):
+class Config(XBeachBaseConfig):
     """Xbeach config class."""
-
     model_type: Literal["xbeach"] = Field(
         default="xbeach",
         description="Model type discriminator",
@@ -39,46 +38,8 @@ class Config(BaseConfig):
         default=str(HERE / "templates" / "base"),
         description="The model config template",
     )
-    nx: int = Field(
-        description="Number of computational cell corners in x-direction",
-        ge=2,
-        le=10000,
-        examples=[50],
-
-    )
-    ny: int = Field(
-        description="Number of computational cell corners in y-direction",
-        ge=0,
-        le=10000,
-        examples=[2],
-    )
-    dx: float = Field(
-        description="Regular grid spacing in x-direction (m)",
-        ge=0.0,
-        le=1000000000.0,
-    )
-    dy: float = Field(
-        description="Regular grid spacing in y-direction (m)",
-        ge=0.0,
-        le=1000000000.0,
-    )
-    xori: float = Field(
-        description="X-coordinate of origin of axis (m)",
-        default=0.0,
-        ge=-1000000000.0,
-        le=1000000000.0,
-    )
-    yori: float = Field(
-        description="Y-coordinate of origin of axis",
-        default=0.0,
-        ge=-1000000000.0,
-        le=1000000000.0,
-    )
-    alfa: float = Field(
-        description="Angle of x-axis from east (deg)",
-        default=0.0,
-        ge=0.0,
-        le=360.0,
+    grid: RegularGrid = Field(
+        description="The XBeach grid object",
     )
     posdwn: Literal[1, -1] = Field(
         description="Bathymetry is specified positive down (1) or positive up (-1)",
@@ -107,9 +68,6 @@ class Config(BaseConfig):
         description="To be defined",
         ge=0,
         le=1,
-    )
-    projection: str = Field(
-        description="Projection string",
     )
     tunits: str = Field(
         description=(
@@ -344,6 +302,8 @@ class Config(BaseConfig):
     def __call__(self, runtime) -> dict:
         """Callable where data and config are interfaced and CMD is rendered."""
         ret = self.model_dump()
+        # Grid interface
         ret["grid"] = None
+        ret.update(self.grid.namelist)
         # Data interface
         return ret
