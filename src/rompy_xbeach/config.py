@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 from typing import Literal
 from pydantic import Field, ConfigDict
+from enum import Enum, IntEnum
 
 from rompy_xbeach.types import XBeachBaseConfig
 from rompy_xbeach.grid import RegularGrid
@@ -28,6 +29,44 @@ HERE = Path(__file__).parent
 # TODO: How to define the projection string?
 
 
+class WbcEnum(str, Enum):
+    """Valid options for wbctype.
+
+    Attributes
+    ----------
+    PARAMS: "params"
+        Wave boundary conditions specified as a constant value.
+    JONSTABLE: "jonstable"
+        Wave boundary conditions specified as a time-series of wave parameters.
+    SWAN: "swan"
+        Wave boundary conditions specified as a SWAN 2D spectrum file.
+    VARDENS: "vardens"
+        Wave boundary conditions specified as a general spectrum file.
+    TS_1: "ts_1"
+        Wave boundary conditions specified as a variation in time of wave energy (first-order).
+    TS_2: "ts_2"
+        Wave boundary conditions specified as a variation in time of wave energy (second-order).
+    TS_NONH: "ts_nonh"
+        Wave boundary conditions specified as a variation in time of the horizontal
+        velocity, vertical velocity and the free surface elevation.
+    REUSE: "reuse"
+        Wave boundary conditions specified from a previous run.
+    OFF: "off"
+        No wave boundary conditions.
+
+    """
+
+    PARAMS = "params"
+    JONSTABLE = "jonstable"
+    SWAN = "swan"
+    VARDENS = "vardens"
+    TS_1 = "ts_1"
+    TS_2 = "ts_2"
+    TS_NONH = "ts_nonh"
+    REUSE = "reuse"
+    OFF = "off"
+
+
 class Config(XBeachBaseConfig):
     """Xbeach config class."""
     model_type: Literal["xbeach"] = Field(
@@ -43,6 +82,28 @@ class Config(XBeachBaseConfig):
     )
     bathy: XBeachBathy = Field(
         description="The XBeach bathymetry object",
+    )
+    tstart: float = Field(
+        description="Start time of output, in morphological time (s)",
+        default=0.0,
+        ge=0.0,
+    )
+    tint: float = Field(
+        description="Time interval for output (s)",
+        gt=0.0,
+    )
+    tstop: float = Field(
+        description="Stop time of simulation, in morphological time (s)",
+        default=2000.0,
+        ge=1.0,
+        le=1000000.0,
+    )
+    wbctype: WbcEnum = Field(
+        default="jonstable",
+        description="Wave boundary condition type",
+    )
+    bcfile: str = Field(
+        description="Name of spectrum file",
     )
     front: Literal["abs_1d", "abs_2d", "wall", "wlevel", "nonh_1d", "waveflume"] = Field(
         description="Switch for seaward flow boundary",
@@ -205,9 +266,6 @@ class Config(XBeachBaseConfig):
         ge=0.4,
         le=5.0,
     )
-    bcfile: str = Field(
-        description="Name of spectrum file",
-    )
     sedtrans: Literal[0, 1] = Field(
         description="Turn on sediment transport",
         default=1,
@@ -243,21 +301,6 @@ class Config(XBeachBaseConfig):
         default=-1.0,
         ge=-1.0,
         le=0.2,
-    )
-    tstart: float = Field(
-        description="Start time of output, in morphological time (s)",
-        default=0.0,
-        ge=0.0,
-    )
-    tint: float = Field(
-        description="Time interval for output (s)",
-        gt=0.0,
-    )
-    tstop: float = Field(
-        description="Stop time of simulation, in morphological time (s)",
-        default=2000.0,
-        ge=1.0,
-        le=1000000.0,
     )
     cfl: float = Field(
         description="Maximum courant-friedrichs-lewy number",

@@ -28,6 +28,13 @@ bathy:
     model_type: linear
     depth: 25
     slope: 0.3
+# Model time
+tstart: 0
+tint: 3600.0
+tstop: 86400
+# Wave boundary conditions
+wbctype: jonstable
+bcfile: jonswap.txt
 front: abs_2d #1
 back: abs_2d #2
 left: neumann #0
@@ -60,7 +67,6 @@ beta: 0.1
 roller: 1
 gamma: 0.55
 gammax: 1.0
-bcfile: jonswap.txt
 sedtrans: 0
 morfac: 0.0
 morphology: 0
@@ -68,9 +74,6 @@ cf: 0.01
 paulrevere: 0
 eps: 0.01
 epsi: 0.001
-tstart: 0
-tint: 3600.0
-tstop: 86400
 cfl: 0.8
 umin: 0.1
 oldhu: 1
