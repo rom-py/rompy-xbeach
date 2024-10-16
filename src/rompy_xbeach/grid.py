@@ -97,10 +97,16 @@ class RegularGrid(BaseGrid):
         description="Grid spacing in the y-direction in meters",
     )
     nx: int = Field(
-        description="Number of grid points in the x-direction",
+        description=(
+            "Number of grid points in the x-direction, the 'nx' paramter "
+            "in the XBeach namelist will be one less than this value (nx - 1)"
+        ),
     )
     ny: int = Field(
-        description="Number of grid points in the y-direction",
+        description=(
+            "Number of grid points in the y-direction, the 'ny' paramter "
+            "in the XBeach namelist will be one less than this value (ny - 1)"
+        )
     )
     crs: Optional[CRS_TYPES] = Field(
         default=None,
@@ -216,8 +222,8 @@ class RegularGrid(BaseGrid):
     def namelist(self):
         """Return the namelist representation of the grid."""
         return dict(
-            nx=self.nx,
-            ny=self.ny,
+            nx=self.nx - 1,
+            ny=self.ny - 1,
             dx=self.dx,
             dy=self.dy,
             xori=self.x0,
