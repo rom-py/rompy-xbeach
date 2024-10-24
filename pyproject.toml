@@ -41,6 +41,7 @@ xbeach = "rompy_xbeach.config:Config"
 
 [project.entry-points."xbeach.source"]
 geotiff = "rompy_xbeach.source:SourceGeotiff"
+xyz = "rompy_xbeach.source:SourceXYZ"
 dataset = "rompy_xbeach.source:SourceDataset"
 file = "rompy_xbeach.source:SourceCRSFile"
 intake = "rompy_xbeach.source:SourceIntake"

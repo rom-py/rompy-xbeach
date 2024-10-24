@@ -3,13 +3,16 @@
 import logging
 from pathlib import Path
 from typing import Literal, Union, Optional
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, ConfigDict
 import cartopy.crs as ccrs
-import rioxarray
+import numpy as np
+import pandas as pd
 import xarray as xr
+import rioxarray
+from scipy.interpolate import griddata
 
 from rompy.core.source import SourceBase, SourceDataset, SourceFile, SourceIntake
-
+from rompy_xbeach.grid import CRS_TYPES, validate_crs
 
 logger = logging.getLogger(__name__)
 
@@ -53,10 +56,90 @@ class SourceGeotiff(SourceBase):
         return xds
 
 
-class SourceMixin:
-    """Mixin class for crs aware source objects."""
+class SourceXYZ(SourceBase):
+    """XYZ source class."""
+
+    model_type: Literal["xyz"] = Field(
+        default="xyz",
+        description="Model type discriminator",
+    )
+    filename: str | Path = Field(description="Path to the xyz dataset")
     crs: Union[int, str] = Field(
         description="EPSG code for the coordinate reference system",
+    )
+    res: float = Field(
+        description="Resolution of the regular grid to interpolate onto",
+    )
+    xcol: str = Field(
+        default="x",
+        description="Name of the column containing the x data",
+    )
+    ycol: str = Field(
+        default="y",
+        description="Name of the column containing the y data",
+    )
+    zcol: str = Field(
+        default="z",
+        description="Name of the column containing the z data",
+    )
+    read_csv_kwargs: dict = Field(
+        default={},
+        description="Keyword arguments to pass to pandas.read_csv",
+    )
+    griddata_kwargs: dict = Field(
+        default={"method": "linear"},
+        description="Keyword arguments to pass to scipy.interpolate.griddata",
+    )
+
+    def _open_dataframe(self) -> pd.DataFrame:
+        """Read the xyz data from the file."""
+        df = pd.read_csv(self.filename, **self.read_csv_kwargs)
+        try:
+            df = df[[self.xcol, self.ycol, self.zcol]]
+        except KeyError as e:
+            raise ValueError(
+                f"Columns ({self.xcol}, {self.ycol}, {self.zcol}) must be present in "
+                f"the dataframe, got ({list(df.columns)}), make sure xcol, ycol and "
+                "zcol fields are correctly specified and the headers can be correctly "
+                f"parsed from read_csv_kwargs ({self.read_csv_kwargs})"
+            ) from e
+        df.columns = ["x", "y", "z"]
+        return df
+
+    def _open(self) -> xr.Dataset:
+        """Interpolate the xyz data onto a regular grid."""
+        df = self._open_dataframe()
+
+        # Define the grid
+        xgrid = np.unique(np.arange(df.x.min(), df.x.max() + self.res, self.res))
+        ygrid = np.unique(np.arange(df.y.min(), df.y.max() + self.res, self.res))
+        if xgrid.size < 3:
+            raise ValueError(
+                "The resolution is too high for the provided data, the grid must have "
+                f"at least 3 points in each dimension, got xgrid={xgrid}, ygrid={ygrid}"
+            )
+        logger.info(f"Interpolating onto a grid of shape ({len(ygrid)}, {len(xgrid)})")
+
+        # Interpolate the data
+        zgrid = griddata(
+            points=(df.x, df.y),
+            values=df.z,
+            xi=np.meshgrid(xgrid, ygrid),
+            **self.griddata_kwargs,
+        )
+
+        # Create the dataset
+        ds = xr.Dataset(
+            data_vars={"z": (["y", "x"], zgrid)},
+            coords={"y": ygrid, "x": xgrid}
+        )
+        return ds.rio.write_crs(self.crs)
+
+
+class SourceMixin:
+    """Mixin class for crs aware source objects."""
+    crs: CRS_TYPES = Field(
+        description="Coordinate reference system",
     )
     x_dim: str = Field(
         default="x",
@@ -66,14 +149,8 @@ class SourceMixin:
         default="y",
         description="Name of the y dimension",
     )
-
-    @field_validator("crs")
-    @classmethod
-    def validate_crs(cls, v):
-        """Validate the coordinate reference system input."""
-        if isinstance(v, str):
-            v = v.split(":")[-1]
-        return ccrs.CRS(str(v))
+    _validate_crs = field_validator("crs")(validate_crs)
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     def _open(self):
         """Return a CRS aware dataset."""
