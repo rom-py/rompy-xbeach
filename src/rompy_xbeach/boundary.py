@@ -4,6 +4,9 @@ from typing import Literal, Union, Optional
 from pydantic import BaseModel, Field
 
 
+# TODO: Add support for time/space varying boundary with FILELIST and LOCLIST
+
+
 class WaveBoundaryBase():
     """Base class for wave boundary conditions."""
     model_type: Literal["base"] = Field(
@@ -77,7 +80,74 @@ class WaveBoundarySpectral(WaveBoundaryBase, ABC):
         description="Switch to enable hm0 correction (XBeach default: 1)",
     )
     dthetas_xb: Optional[float] = Field(
-        description="The (counter-clockwise) angle in the degrees needed to rotate from the x-axis in swan to the x-axis pointing east",
+        default=None,
+        description=(
+            "The (counter-clockwise) angle in the degrees needed to rotate from the "
+            "x-axis in swan to the x-axis pointing east (XBeach default: 0.0)",
+        ),
+        ge=-360.0,
+        le=360.0,
+    )
+    fcutoff: Optional[float] = Field(
+        default=None,
+        description=(
+            "Low-freq cutoff frequency in Hz for jons, swan or vardens boundary "
+            "conditions (XBeach default: 0.0)"
+        ),
+        ge=0.0,
+        le=40.0,
+    )
+    nonhspectrum: Optional[Literal[0, 1]] = Field(
+        default=None,
+        description=(
+            "Spectrum format for wave action balance of nonhydrostatic waves "
+            "(XBeach default: 0)"
+        ),
+    )
+    nspectrumloc: Optional[int] = Field(
+        default=None,
+        description=(
+            "Number of input spectrum locations (XBeach default: 1)"
+        ),
+        ge=1,
+    )
+    nspr: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Switch to enable long wave direction forced into centres of short wave "
+            "bins (XBeach default: 0)",
+        ),
+    )
+    random: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Switch to enable random seed for jons, swan or vardens boundary "
+            "conditions (XBeach default: 1)",
+        ),
+    )
+    sprdthr: Optional[float] = Field(
+        default=None,
+        description=(
+            "Threshold ratio to maximum value of s above which spectrum densities "
+            "are read in (XBeach default: 0.08)"
+        ),
+        ge=0.0,
+        le=1.0,
+    )
+    trepfac: Optional[float] = Field(
+        default=None,
+        description=(
+            "Compute mean wave period over energy band: par%trepfac*maxval(sf) for "
+            "jons, swan or vardens; converges to tm01 for trepfac = 0.0 "
+            "(XBeach default: 0.01)",
+        ),
+        ge=0.0,
+        le=1.0
+    )
+    wbcversion: Optional[Literal[1, 2, 3]] = Field(
+        default=None,
+        description="Version of wave boundary conditions (XBeach default: 3)",
+
     )
 
 
