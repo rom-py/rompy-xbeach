@@ -40,7 +40,6 @@
 
 %%% Model physics %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-{{ 'instat = ' + config.instat|string if config.instat is not none }}
 {{ 'break = ' + config.breaker|string if config.breaker is not none }}
 {{ 'scheme = ' + config.scheme|string if config.scheme is not none }}
 {{ 'order = ' + config.order|string if config.order is not none }}
