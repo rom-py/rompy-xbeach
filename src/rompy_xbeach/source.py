@@ -65,7 +65,7 @@ class SourceXYZ(SourceBase):
     )
     filename: str | Path = Field(description="Path to the xyz dataset")
     crs: Union[int, str] = Field(
-        description="EPSG code for the coordinate reference system",
+        description="Coordinate reference system of the source data",
     )
     res: float = Field(
         description="Resolution of the regular grid to interpolate onto",
@@ -139,7 +139,7 @@ class SourceXYZ(SourceBase):
 class SourceMixin:
     """Mixin class for crs aware source objects."""
     crs: CRS_TYPES = Field(
-        description="Coordinate reference system",
+        description="Coordinate reference system of the source data",
     )
     x_dim: str = Field(
         default="x",
