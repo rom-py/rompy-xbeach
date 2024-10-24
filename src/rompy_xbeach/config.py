@@ -6,7 +6,7 @@ from typing import Literal
 from pydantic import Field, ConfigDict
 from enum import Enum, IntEnum
 
-from rompy_xbeach.types import XBeachBaseConfig
+from rompy_xbeach.types import XBeachBaseConfig, WbcEnum
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.data import XBeachBathy
 logger = logging.getLogger(__name__)
