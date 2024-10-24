@@ -4,7 +4,6 @@ import logging
 from pathlib import Path
 from typing import Literal
 from pydantic import Field, ConfigDict
-from enum import Enum, IntEnum
 
 from rompy_xbeach.types import XBeachBaseConfig, WbcEnum
 from rompy_xbeach.grid import RegularGrid
@@ -26,45 +25,6 @@ HERE = Path(__file__).parent
 # TODO: cf: not in manual
 # TODO: paulrevere: example says 0, manual says land, sea
 # TODO: tint: not in manual, available ones are tintc, ting, tintm, tintp
-# TODO: How to define the projection string?
-
-
-class WbcEnum(str, Enum):
-    """Valid options for wbctype.
-
-    Attributes
-    ----------
-    PARAMS: "params"
-        Wave boundary conditions specified as a constant value.
-    JONSTABLE: "jonstable"
-        Wave boundary conditions specified as a time-series of wave parameters.
-    SWAN: "swan"
-        Wave boundary conditions specified as a SWAN 2D spectrum file.
-    VARDENS: "vardens"
-        Wave boundary conditions specified as a general spectrum file.
-    TS_1: "ts_1"
-        Wave boundary conditions specified as a variation in time of wave energy (first-order).
-    TS_2: "ts_2"
-        Wave boundary conditions specified as a variation in time of wave energy (second-order).
-    TS_NONH: "ts_nonh"
-        Wave boundary conditions specified as a variation in time of the horizontal
-        velocity, vertical velocity and the free surface elevation.
-    REUSE: "reuse"
-        Wave boundary conditions specified from a previous run.
-    OFF: "off"
-        No wave boundary conditions.
-
-    """
-
-    PARAMS = "params"
-    JONSTABLE = "jonstable"
-    SWAN = "swan"
-    VARDENS = "vardens"
-    TS_1 = "ts_1"
-    TS_2 = "ts_2"
-    TS_NONH = "ts_nonh"
-    REUSE = "reuse"
-    OFF = "off"
 
 
 class Config(XBeachBaseConfig):
@@ -131,9 +91,6 @@ class Config(XBeachBaseConfig):
             "Time units in udunits format (seconds since 1970-01-01 00:00:00.00 +1:00)"
         ),
         default="s",
-    )
-    instat: int = Field(
-        description="Old wave boundary condition type",
     )
     breaker: int = Field(
         description="Type of breaker formulation",

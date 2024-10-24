@@ -43,6 +43,7 @@ Data
 * Interpolator interface
 * Modified source objects to support crs (rioxarray based)
 * New custom Geotiff specific source
+* New custom XYZ source supporting interpolation
 * Seaward extension framework
 * Lateral extension capability
 
