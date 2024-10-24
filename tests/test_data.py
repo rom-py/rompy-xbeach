@@ -3,7 +3,7 @@ import pytest
 import xarray as xr
 
 from rompy_xbeach.data import XBeachDataGrid, XBeachBathy, SeawardExtensionLinear
-from rompy_xbeach.source import SourceGeotiff, SourceCRSDataset, SourceCRSFile
+from rompy_xbeach.source import SourceGeotiff, SourceXYZ, SourceCRSDataset, SourceCRSFile, SourceCRSIntake
 from rompy_xbeach.grid import Ori, RegularGrid
 
 
@@ -20,6 +20,23 @@ def source():
     yield SourceGeotiff(filename=HERE / "data/bathy.tif")
 
 
+def test_source_xyz():
+    source = SourceXYZ(
+        filename=HERE / "data/bathy_xyz.zip",
+        read_csv_kwargs=dict(sep="\t"),
+        xcol="easting",
+        ycol="northing",
+        zcol="elevation",
+        crs=4326,
+        res=0.0005,
+    )
+    self = source
+    ds = source._open()
+    assert ds.rio.crs == 4326
+    assert ds.rio.x_dim == "x"
+    assert ds.rio.y_dim == "y"
+
+
 def test_source_crs_dataset(tif_path):
     ds = xr.open_dataset(tif_path, engine="rasterio", band_as_variable=True)
     ds = ds.rio.reproject("epsg:28350").rename(x="easting", y="northing")
@@ -30,6 +47,18 @@ def test_source_crs_dataset(tif_path):
     assert ds.rio.y_dim == "northing"
 
 
+def test_source_crs_intake(tif_path):
+    source = SourceCRSIntake(
+        catalog_uri=tif_path.parent/"catalog.yaml",
+        dataset_id="bathy_netcdf",
+        crs=4326,
+    )
+    ds = source._open()
+    assert ds.rio.crs == 4326
+    assert ds.rio.x_dim == "x"
+    assert ds.rio.y_dim == "y"
+
+
 def test_source_crs_file(tif_path):
     source = SourceCRSFile(uri=tif_path, crs=4326)
     ds = source._open()
@@ -38,14 +67,14 @@ def test_source_crs_file(tif_path):
     assert ds.rio.y_dim == "y"
 
 
-def test_source_rasterio(tif_path):
+def test_geotiff(tif_path):
     source = SourceGeotiff(filename=tif_path)
     dset = source._open()
     assert list(dset.data_vars.keys()) == ["data"]
     assert dset.rio.crs == 4326
 
 
-def test_source_rasterio_band_index(tif_path):
+def test_geotiff_band_index(tif_path):
     source = SourceGeotiff(filename=tif_path, band=1)
     assert "data" in source._open()
     with pytest.raises(KeyError):
@@ -53,13 +82,13 @@ def test_source_rasterio_band_index(tif_path):
         source._open()
 
 
-def test_source_rasterio_kwargs(tif_path):
+def test_geotiff_kwargs(tif_path):
     source = SourceGeotiff(filename=tif_path, kwargs={"chunks": {"x": 100, "y": 100}})
     dset = source._open()
     assert dset.data.chunks is not None
 
 
-def test_source_rasterio_not_exposed_kwargs(tif_path):
+def test_geotiff_not_exposed_kwargs(tif_path):
     source = SourceGeotiff(
         filename=tif_path,
         kwargs={"band_as_variable": True, "default_name": "dummy"},
