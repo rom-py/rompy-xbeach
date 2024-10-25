@@ -277,7 +277,7 @@ class XBeachBathy(XBeachDataGrid):
         default="xbeach_bathy",
         description="Model type discriminator",
     )
-    variable: str = Field(
+    variables: Union[str, list] = Field(
         default="data",
         description="The variable name in the source dataset",
     )
@@ -302,21 +302,13 @@ class XBeachBathy(XBeachDataGrid):
     )
 
     @model_validator(mode="after")
-    def validate_source_variables(self) -> "XBeachBathy":
-        """Handle variable definition."""
+    def single_variable(self) -> "XBeachBathy":
+        """Ensure a single variable is provided."""
         if len(self.variables) > 1:
             raise ValueError(
                 "XBeachBathy only supports one single variable but multiple "
                 f"variables {list(self.variables)} have been prescribed"
             )
-        if self.variables and self.variables != [self.variable]:
-            raise ValueError(
-                "The 'variable' and 'variables' fields have both been defined and "
-                f"with different values {self.variables} {self.variable} please "
-                "prescribe only one (preferably 'variable') or make sure their "
-                "values match"
-            )
-        self.variables = [self.variable]
         return self
 
     @property
