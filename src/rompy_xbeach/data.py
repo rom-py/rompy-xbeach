@@ -363,7 +363,7 @@ class XBeachBathy(XBeachDataGrid):
         # Reproject to the model grid
         if grid.crs is not None:
             logger.debug(f"Reprojecting data to {grid.crs}")
-            dset = self.ds.rio.reproject(grid.crs)
+            dset = self.ds.rio.reproject(grid.crs).rename(x=self.x_dim, y=self.y_dim)
         else:
             dset = self.ds.copy()
 
