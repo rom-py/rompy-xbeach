@@ -13,7 +13,7 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 
-from pydantic import Field, field_validator, ConfigDict
+from pydantic import Field, model_validator, ConfigDict
 from pydantic_numpy.typing import Np2DArray
 
 from rompy.core.types import RompyBaseModel
@@ -211,7 +211,7 @@ class XBeachDataGrid(DataGrid):
         destdir: str | Path,
         grid: RegularGrid,
         time: Optional[TimeRange] = None,
-    ) -> tuple[Path, Path, Path, RegularGrid]:
+    ) -> tuple[Path, Path, list[Path], RegularGrid]:
         """Write the data source to a new location.
 
         Parameters
@@ -229,8 +229,8 @@ class XBeachDataGrid(DataGrid):
             The path to the generated x-coordinate data file.
         yfile: Path
             The path to the generated y-coordinate data file.
-        datafile: Path
-            The path to the generated bathymetry data file.
+        datafiles: list[Path]
+            The paths to the generated data file for each variable.
         grid: rompy_xbeach.grid.RegularGrid
             The grid associated with the bathymetry data.
 
@@ -247,23 +247,28 @@ class XBeachDataGrid(DataGrid):
             dset = self.ds.copy()
 
         # Interpolate to the model grid
-        datai = self.interpolator.get(
-            x=dset[self.x_dim].values,
-            y=dset[self.y_dim].values,
-            data=dset.data.values,
-            xi=grid.x,
-            yi=grid.y,
-        )
+        datai = {}
+        for variable in self.variables:
+            datai[variable] = self.interpolator.get(
+                x=dset[self.x_dim].values,
+                y=dset[self.y_dim].values,
+                data=dset[variable].values,
+                xi=grid.x,
+                yi=grid.y,
+            )
 
         # Save to disk
         xfile = Path(destdir) / "xdata.txt"
         yfile = Path(destdir) / "ydata.txt"
-        datafile = Path(destdir) / "data.txt"
         np.savetxt(xfile, grid.x)
         np.savetxt(yfile, grid.y)
-        np.savetxt(datafile, datai)
+        datafiles = []
+        for variable, data in datai.items():
+            datafile = Path(destdir) / f"data-{variable}.txt"
+            np.savetxt(datafile, data)
+            datafiles.append(datafile)
 
-        return xfile, yfile, datafile, grid
+        return xfile, yfile, datafiles, grid
 
 
 class XBeachBathy(XBeachDataGrid):
@@ -271,6 +276,10 @@ class XBeachBathy(XBeachDataGrid):
     model_type: Literal["xbeach_bathy"] = Field(
         default="xbeach_bathy",
         description="Model type discriminator",
+    )
+    variable: str = Field(
+        default="data",
+        description="The variable name in the source dataset",
     )
     posdwn: bool = Field(
         default=True,
@@ -291,6 +300,24 @@ class XBeachBathy(XBeachDataGrid):
         description="Method to extend the data seaward",
         discriminator="model_type",
     )
+
+    @model_validator(mode="after")
+    def validate_source_variables(self) -> "XBeachBathy":
+        """Handle variable definition."""
+        if len(self.variables) > 1:
+            raise ValueError(
+                "XBeachBathy only supports one single variable but multiple "
+                f"variables {list(self.variables)} have been prescribed"
+            )
+        if self.variables and self.variables != [self.variable]:
+            raise ValueError(
+                "The 'variable' and 'variables' fields have both been defined and "
+                f"with different values {self.variables} {self.variable} please "
+                "prescribe only one (preferably 'variable') or make sure their "
+                "values match"
+            )
+        self.variables = [self.variable]
+        return self
 
     @property
     def namelist(self):
@@ -371,7 +398,7 @@ class XBeachBathy(XBeachDataGrid):
         data = self.interpolator.get(
             x=dset[self.x_dim].values,
             y=dset[self.y_dim].values,
-            data=dset.data.values,
+            data=dset[self.variable].values,
             xi=grid.x,
             yi=grid.y,
         )
