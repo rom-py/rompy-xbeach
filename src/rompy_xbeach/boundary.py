@@ -1,13 +1,30 @@
 """XBeach wave boundary conditions."""
 from abc import ABC, abstractmethod
 from typing import Literal, Union, Optional
-from pydantic import BaseModel, Field
+from pathlib import Path
+import logging
+from pydantic import BaseModel, Field, model_validator
 
+from rompy.core.time import TimeRange
+from rompy_xbeach.types import XBeachBaseModel
+from rompy_xbeach.grid import RegularGrid
+
+
+logger = logging.getLogger(__name__)
+
+JONS_MAPPING = dict(
+    hm0="Hm0",
+    tp="Tp",
+    mainang="mainang",
+    gammajsp="gammajsp",
+    s="s",
+    fnyq="fnyq"
+)
 
 # TODO: Add support for time/space varying boundary with FILELIST and LOCLIST
 
 
-class WaveBoundaryBase():
+class WaveBoundaryBase(XBeachBaseModel, ABC):
     """Base class for wave boundary conditions."""
     model_type: Literal["base"] = Field(
         default="base",
@@ -30,6 +47,22 @@ class WaveBoundaryBase():
     #     description="Wave boundary condition parameters"
     # )
 
+    @abstractmethod
+    def write(self, destdir: str | Path) -> str:
+        """Write the boundary data to the bcfile file.
+
+        Parameters
+        ----------
+        destdir : str | Path
+            Destination directory for the netcdf file.
+
+        Returns
+        -------
+        bcfile : Path
+            Path to the bcfile.
+
+        """
+        pass
 
 # Spectral
 class WaveBoundarySpectral(WaveBoundaryBase, ABC):
@@ -151,9 +184,110 @@ class WaveBoundarySpectral(WaveBoundaryBase, ABC):
     )
 
 
-class WaveBoundarySpectralParametric(WaveBoundarySpectral):
-    """"""
+class WaveBoundarySpectralJons(WaveBoundarySpectral):
+    """Wave boundary conditions specified as a single Jonswap spectrum."""
+    model_type: Literal["jons"] = Field(
+        default="jons",
+        description="Model type discriminator",
+    )
+    hm0: Optional[float] = Field(
+        default=None,
+        description=(
+            "Hm0 of the wave spectrum, significant wave height [m] "
+            "(XBeach default: 0.0)"
+        ),
+        ge=0.0,
+        le=5.0,
+    )
+    tp: Optional[float] = Field(
+        default=None,
+        description="Peak period of the wave spectrum [s] (XBeach default: 12.5)",
+        ge=0.0,
+        le=25.0,
+    )
+    gammajsp: Optional[float] = Field(
+        default=None,
+        description=(
+            "Peak enhancement factor in the JONSWAP expression (XBeach default: 3.3)"
+        ),
+        ge=1.0,
+        le=5.0
+    )
+    s: Optional[float] = Field(
+        default=None,
+        description=(
+            "Directional spreading coefficient, {cos}^{2s} law [-] "
+            "(XBeach default: 10.0)"
+        ),
+        ge=1.0,
+        le=1000.0
+    )
+    mainang: Optional[float] = Field(
+        default=None,
+        description=(
+            "Main wave angle (nautical convention) [degrees] (XBeach default: 270.0)"
+        ),
+        ge=180.0,
+        le=360.0
+    )
+    fnyq: Optional[float] = Field(
+        default=None,
+        description=(
+            "Highest frequency used to create JONSWAP spectrum [Hz] "
+            "(XBeach default: 0.3)"
+        ),
+        ge=0.2,
+        le=1.0
+    )
+    dfj: Optional[float] = Field(
+        default=None,
+        description=(
+            "Step size frequency used to create JONSWAP spectrum [Hz] within the "
+            "range fnyq/1000 - fnyq/20 (XBeach default: fnyq/200)"
+        )
+    )
 
+    @model_validator(mode="after")
+    def validate_dfj(self) -> "WaveBoundarySpectralJons":
+        if self.dfj is not None:
+            logger.warning(
+                "It is advised not to specify the keyword dfj and allow XBeach "
+                "to calculate the default value"
+            )
+            if not (self.dfj / 1000 <= self.dfj <= self.fnyq / 20):
+                raise ValueError("dfj must be in the range fnyq/1000 to fnyq/20")
+        return self
+
+    def write(self, destdir: Path) -> str:
+        """Write the boundary data to the bcfile file.
+
+        Parameters
+        ----------
+        destdir : Path
+            Destination directory for the netcdf file.
+
+        Returns
+        -------
+        bcfile : Path
+            Path to the bcfile.
+
+        """
+        bcfile = Path(destdir) / self.bcfile
+        params = self.model_fields_set - {"bcfile"}
+        with bcfile.open("w") as f:
+            for param in params:
+                f.write(f"{JONS_MAPPING[param]} = {getattr(self, param)}\n")
+        return bcfile
+
+
+class WaveBoundarySpectralJonstable(WaveBoundarySpectral):
+    """Wave boundary conditions specified as a time-varying Jonswap spectrum.
+
+    .. code-block:: text
+
+        <Hm0> <Tp> <mainang> <gammajsp> <s> <duration> <dtbc>
+
+    """
 
 class WaveBoundarySpectralSWAN(WaveBoundarySpectral):
     pass
