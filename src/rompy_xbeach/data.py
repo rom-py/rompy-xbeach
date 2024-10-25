@@ -361,7 +361,7 @@ class XBeachBathy(XBeachDataGrid):
                 self._filter_time(time)
 
         # Reproject to the model grid
-        if grid.crs is not None:
+        if grid.crs is not None and grid.crs.to_epsg() != self.crs.to_epsg():
             logger.debug(f"Reprojecting data to {grid.crs}")
             dset = self.ds.rio.reproject(grid.crs).rename(x=self.x_dim, y=self.y_dim)
         else:
