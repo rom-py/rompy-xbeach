@@ -197,13 +197,19 @@ class RegularGrid(BaseGrid):
 
     @cached_property
     def back(self) -> tuple[np.ndarray, np.ndarray]:
-        """Coordinates of the back (offshore) boundary of the grid."""
+        """Coordinates of the back (land) boundary of the grid."""
         return self.x[:, -1], self.y[:, -1]
 
     @cached_property
     def front(self) -> tuple[np.ndarray, np.ndarray]:
-        """Coordinates of the front (land) boundary of the grid."""
+        """Coordinates of the front (offshore) boundary of the grid."""
         return self.x[:, 0], self.y[:, 0]
+
+    @cached_property
+    def offshore(self) -> tuple[float, float]:
+        """Coordinates at the centre of the offshore boundary."""
+        x, y = self.front
+        return float(x.mean()), float(y.mean())
 
     @cached_property
     def transform(self):
