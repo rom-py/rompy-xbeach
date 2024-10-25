@@ -304,6 +304,8 @@ class XBeachBathy(XBeachDataGrid):
     @model_validator(mode="after")
     def single_variable(self) -> "XBeachBathy":
         """Ensure a single variable is provided."""
+        if isinstance(self.variables, str):
+            self.variables = [self.variables]
         if len(self.variables) > 1:
             raise ValueError(
                 "XBeachBathy only supports one single variable but multiple "
@@ -387,10 +389,11 @@ class XBeachBathy(XBeachDataGrid):
             dset = self.ds.copy()
 
         # Interpolate to the model grid
+        variable = self.variables[0]
         data = self.interpolator.get(
             x=dset[self.x_dim].values,
             y=dset[self.y_dim].values,
-            data=dset[self.variable].values,
+            data=dset[variable].values,
             xi=grid.x,
             yi=grid.y,
         )
