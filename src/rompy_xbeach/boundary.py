@@ -205,6 +205,14 @@ class WaveBoundarySpectralJons(WaveBoundarySpectral):
         ge=0.0,
         le=25.0,
     )
+    mainang: Optional[float] = Field(
+        default=None,
+        description=(
+            "Main wave angle (nautical convention) [degrees] (XBeach default: 270.0)"
+        ),
+        ge=180.0,
+        le=360.0
+    )
     gammajsp: Optional[float] = Field(
         default=None,
         description=(
@@ -221,14 +229,6 @@ class WaveBoundarySpectralJons(WaveBoundarySpectral):
         ),
         ge=1.0,
         le=1000.0
-    )
-    mainang: Optional[float] = Field(
-        default=None,
-        description=(
-            "Main wave angle (nautical convention) [degrees] (XBeach default: 270.0)"
-        ),
-        ge=180.0,
-        le=360.0
     )
     fnyq: Optional[float] = Field(
         default=None,
@@ -279,7 +279,7 @@ class WaveBoundarySpectralJons(WaveBoundarySpectral):
                 f.write(f"{JONS_MAPPING[param]} = {getattr(self, param)}\n")
         return bcfile
 
-
+from typing import Annotated
 class WaveBoundarySpectralJonstable(WaveBoundarySpectral):
     """Wave boundary conditions specified as a time-varying Jonswap spectrum.
 
@@ -287,7 +287,87 @@ class WaveBoundarySpectralJonstable(WaveBoundarySpectral):
 
         <Hm0> <Tp> <mainang> <gammajsp> <s> <duration> <dtbc>
 
+    Each line in the spectrum definition file contains a parametric definition of a
+    spectrum, like in a regular JONSWAP definition file, plus the duration for which
+    that spectrum is used during the simulation and the timestep.
+
     """
+    model_type: Literal["jonstable"] = Field(
+        default="jonstable",
+        description="Model type discriminator",
+    )
+    hm0: list[Annotated[float, Field(ge=0.0, le=5.0)]] = Field(
+        description="Hm0 of the wave spectrum, significant wave height [m]",
+    )
+    tp: list[Annotated[float, Field(ge=0.0, le=25.0)]] = Field(
+        description="Peak period of the wave spectrum [s]",
+    )
+    mainang: list[Annotated[float, Field(ge=180.0, le=360.0)]] = Field(
+        description="Main wave angle (nautical convention) [degrees]",
+    )
+    gammajsp: list[Annotated[float, Field(ge=1.0, le=5.0)]] = Field(
+        description="Peak enhancement factor in the JONSWAP expression",
+    )
+    s: list[Annotated[float, Field(ge=1.0, le=1000.0)]] = Field(
+        description="Directional spreading coefficient, {cos}^{2s} law [-]",
+    )
+    duration: list[Annotated[float, Field(ge=0.0)]] = Field(
+        description=(
+            "Duration for which that spectrum is used during the simulation, XBeach "
+            "does not reuse time-varying spectrum files, therefore the total duration "
+            "of all spectra should at least match the duration of the simulation"
+        ),
+    )
+    dtbc: list[Annotated[float, Field(ge=0.0)]] = Field(
+        description="Boundary condition time step",
+    )
+
+    @model_validator(mode="after")
+    def lists_are_the_same_sizes(self):
+        for param in ["tp", "mainang", "gammajsp", "s", "duration", "dtbc"]:
+            param_size = len(getattr(self, param))
+            if param_size != self.size:
+                raise ValueError(
+                    f"All jonswap parameters must be the same size but size(hm0)="
+                    f"{self.size} size({param})={param_size}"
+                )
+
+    @property
+    def size(self):
+        return len(self.hm0)
+
+    @property
+    def zipped(self):
+        return zip(
+            self.hm0,
+            self.tp,
+            self.mainang,
+            self.gammajsp,
+            self.s,
+            self.duration,
+            self.dtbc,
+        )
+
+    def write(self, destdir: Path) -> str:
+        """Write the boundary data to the bcfile file.
+
+        Parameters
+        ----------
+        destdir : Path
+            Destination directory for the netcdf file.
+
+        Returns
+        -------
+        bcfile : Path
+            Path to the bcfile.
+
+        """
+        bcfile = Path(destdir) / self.bcfile
+        with bcfile.open("w") as f:
+            for params in self.zipped:
+                f.write(f"{' '.join(str(x) for x in params)}\n")
+        return bcfile
+
 
 class WaveBoundarySpectralSWAN(WaveBoundarySpectral):
     pass
