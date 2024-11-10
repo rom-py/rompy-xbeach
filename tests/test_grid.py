@@ -51,6 +51,6 @@ def test_regular_grid():
     assert grid.nx == 10
     assert grid.ny == 10
     assert grid.crs == 2193
-    assert grid.model_type == "xbeach"
+    assert grid.model_type == "regular"
     assert grid.x0 == pytest.approx(1725195.9271650459)
     assert grid.y0 == pytest.approx(5404649.736336306)

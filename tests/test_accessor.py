@@ -32,7 +32,8 @@ def xbeach_bathy_files(tmp_path, grid):
 
 
 def test_data(xbeach_bathy_files):
-    dset = xr.Dataset.xbeach.from_xbeach(*xbeach_bathy_files)
+    xfile, yfile, depfile, grid = xbeach_bathy_files
+    dset = xr.Dataset.xbeach.from_xbeach(depfile, grid)
     assert "xc" in dset.coords
     assert "yc" in dset.coords
     assert "dep" in dset.data_vars
