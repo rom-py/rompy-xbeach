@@ -1,6 +1,7 @@
 """XBeach wave boundary conditions."""
+
 from abc import ABC, abstractmethod
-from typing import Literal, Union, Optional
+from typing import Literal, Union, Optional, Annotated
 from pathlib import Path
 import logging
 from pydantic import BaseModel, Field, model_validator
@@ -13,12 +14,7 @@ from rompy_xbeach.grid import RegularGrid
 logger = logging.getLogger(__name__)
 
 JONS_MAPPING = dict(
-    hm0="Hm0",
-    tp="Tp",
-    mainang="mainang",
-    gammajsp="gammajsp",
-    s="s",
-    fnyq="fnyq"
+    hm0="Hm0", tp="Tp", mainang="mainang", gammajsp="gammajsp", s="s", fnyq="fnyq"
 )
 
 # TODO: Add support for time/space varying boundary with FILELIST and LOCLIST
@@ -26,9 +22,9 @@ JONS_MAPPING = dict(
 
 class WaveBoundaryBase(XBeachBaseModel, ABC):
     """Base class for wave boundary conditions."""
+
     model_type: Literal["base"] = Field(
-        default="base",
-        description="Model type discriminator"
+        default="base", description="Model type discriminator"
     )
     # wbctype: Literal[
     #     "params",
@@ -64,6 +60,7 @@ class WaveBoundaryBase(XBeachBaseModel, ABC):
         """
         pass
 
+
 # Spectral
 class WaveBoundarySpectral(WaveBoundaryBase, ABC):
     """Base class for spectral wave boundary conditions.
@@ -75,9 +72,9 @@ class WaveBoundarySpectral(WaveBoundaryBase, ABC):
     long wave, but need not be as small as the time step used in XBeach.
 
     """
+
     model_type: Literal["spectral_base"] = Field(
-        default="spectral_base",
-        description="Model type discriminator"
+        default="spectral_base", description="Model type discriminator"
     )
     bcfile: Optional[str] = Field(
         default="spectrum.txt",
@@ -139,9 +136,7 @@ class WaveBoundarySpectral(WaveBoundaryBase, ABC):
     )
     nspectrumloc: Optional[int] = Field(
         default=None,
-        description=(
-            "Number of input spectrum locations (XBeach default: 1)"
-        ),
+        description=("Number of input spectrum locations (XBeach default: 1)"),
         ge=1,
     )
     nspr: Optional[bool] = Field(
@@ -175,17 +170,17 @@ class WaveBoundarySpectral(WaveBoundaryBase, ABC):
             "(XBeach default: 0.01)",
         ),
         ge=0.0,
-        le=1.0
+        le=1.0,
     )
     wbcversion: Optional[Literal[1, 2, 3]] = Field(
         default=None,
         description="Version of wave boundary conditions (XBeach default: 3)",
-
     )
 
 
 class WaveBoundarySpectralJons(WaveBoundarySpectral):
     """Wave boundary conditions specified as a single Jonswap spectrum."""
+
     model_type: Literal["jons"] = Field(
         default="jons",
         description="Model type discriminator",
@@ -211,7 +206,7 @@ class WaveBoundarySpectralJons(WaveBoundarySpectral):
             "Main wave angle (nautical convention) [degrees] (XBeach default: 270.0)"
         ),
         ge=180.0,
-        le=360.0
+        le=360.0,
     )
     gammajsp: Optional[float] = Field(
         default=None,
@@ -219,7 +214,7 @@ class WaveBoundarySpectralJons(WaveBoundarySpectral):
             "Peak enhancement factor in the JONSWAP expression (XBeach default: 3.3)"
         ),
         ge=1.0,
-        le=5.0
+        le=5.0,
     )
     s: Optional[float] = Field(
         default=None,
@@ -228,7 +223,7 @@ class WaveBoundarySpectralJons(WaveBoundarySpectral):
             "(XBeach default: 10.0)"
         ),
         ge=1.0,
-        le=1000.0
+        le=1000.0,
     )
     fnyq: Optional[float] = Field(
         default=None,
@@ -237,14 +232,14 @@ class WaveBoundarySpectralJons(WaveBoundarySpectral):
             "(XBeach default: 0.3)"
         ),
         ge=0.2,
-        le=1.0
+        le=1.0,
     )
     dfj: Optional[float] = Field(
         default=None,
         description=(
             "Step size frequency used to create JONSWAP spectrum [Hz] within the "
             "range fnyq/1000 - fnyq/20 (XBeach default: fnyq/200)"
-        )
+        ),
     )
 
     @model_validator(mode="after")
@@ -279,7 +274,7 @@ class WaveBoundarySpectralJons(WaveBoundarySpectral):
                 f.write(f"{JONS_MAPPING[param]} = {getattr(self, param)}\n")
         return bcfile
 
-from typing import Annotated
+
 class WaveBoundarySpectralJonstable(WaveBoundarySpectral):
     """Wave boundary conditions specified as a time-varying Jonswap spectrum.
 
@@ -292,6 +287,7 @@ class WaveBoundarySpectralJonstable(WaveBoundarySpectral):
     that spectrum is used during the simulation and the timestep.
 
     """
+
     model_type: Literal["jonstable"] = Field(
         default="jonstable",
         description="Model type discriminator",
@@ -326,18 +322,13 @@ class WaveBoundarySpectralJonstable(WaveBoundarySpectral):
     def lists_are_the_same_sizes(self):
         for param in ["tp", "mainang", "gammajsp", "s", "duration", "dtbc"]:
             param_size = len(getattr(self, param))
-            if param_size != self.size:
+            if param_size != len(self):
                 raise ValueError(
                     f"All jonswap parameters must be the same size but size(hm0)="
-                    f"{self.size} size({param})={param_size}"
+                    f"{len(self)} size({param})={param_size}"
                 )
 
-    @property
-    def size(self):
-        return len(self.hm0)
-
-    @property
-    def zipped(self):
+    def __iter__(self):
         return zip(
             self.hm0,
             self.tp,
@@ -347,6 +338,9 @@ class WaveBoundarySpectralJonstable(WaveBoundarySpectral):
             self.duration,
             self.dtbc,
         )
+
+    def __len__(self):
+        return len(self.hm0)
 
     def write(self, destdir: Path) -> str:
         """Write the boundary data to the bcfile file.
@@ -364,7 +358,7 @@ class WaveBoundarySpectralJonstable(WaveBoundarySpectral):
         """
         bcfile = Path(destdir) / self.bcfile
         with bcfile.open("w") as f:
-            for params in self.zipped:
+            for params in self:
                 f.write(f"{' '.join(str(x) for x in params)}\n")
         return bcfile
 
@@ -401,5 +395,3 @@ class WaveBoundaryOff(WaveBoundaryBase):
 
 class WaveBoundaryReuse(WaveBoundaryBase):
     pass
-
-
