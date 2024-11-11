@@ -155,7 +155,12 @@ class SourceMixin:
     def _open(self):
         """Return a CRS aware dataset."""
         ds = super()._open()
-        return ds.rio.set_spatial_dims(self.x_dim, self.y_dim).rio.write_crs(self.crs)
+        # Set spatial dims, wavespectra won't have the dims so we allow it to pass
+        if self.x_dim in ds.dims and self.y_dim in ds.dims:
+            ds = ds.rio.set_spatial_dims(self.x_dim, self.y_dim)
+        else:
+            logger.debug(f"Spatial dims ({self.x_dim}, {self.y_dim}) not available")
+        return ds.rio.write_crs(self.crs)
 
 
 class SourceCRSDataset(SourceMixin, SourceDataset):
