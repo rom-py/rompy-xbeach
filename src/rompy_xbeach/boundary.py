@@ -4,14 +4,19 @@ from abc import ABC, abstractmethod
 from typing import Literal, Union, Optional, Annotated
 from pathlib import Path
 import logging
+import numpy as np
 from pydantic import BaseModel, Field, model_validator
 
 from rompy.core.time import TimeRange
+from rompy.core.boundary import BoundaryWaveStation
+
 from rompy_xbeach.types import XBeachBaseModel
-from rompy_xbeach.grid import RegularGrid
+from rompy_xbeach.source import SourceCRSFile, SourceCRSIntake, SourceCRSDataset
+from rompy_xbeach.grid import RegularGrid, Ori
 
 
 logger = logging.getLogger(__name__)
+
 
 JONS_MAPPING = dict(
     hm0="Hm0", tp="Tp", mainang="mainang", gammajsp="gammajsp", s="s", fnyq="fnyq"
@@ -61,7 +66,7 @@ class WaveBoundaryBase(XBeachBaseModel, ABC):
         pass
 
 
-# Spectral
+# Spectral: values jons, swan, vardens or jons_table
 class WaveBoundarySpectral(WaveBoundaryBase, ABC):
     """Base class for spectral wave boundary conditions.
 
@@ -85,7 +90,7 @@ class WaveBoundarySpectral(WaveBoundaryBase, ABC):
         default=None,
         description=(
             "Duration (s) of wave spectrum at offshore boundary, in morphological "
-            "time (XBeach default: min(3600.d0, par\%tstop))"
+            "time (XBeach default: min(3600.d0, tstop))"
         ),
         ge=1200.0,
         le=7200.0,
@@ -108,15 +113,6 @@ class WaveBoundarySpectral(WaveBoundaryBase, ABC):
     correcthm0: Optional[bool] = Field(
         default=None,
         description="Switch to enable hm0 correction (XBeach default: 1)",
-    )
-    dthetas_xb: Optional[float] = Field(
-        default=None,
-        description=(
-            "The (counter-clockwise) angle in the degrees needed to rotate from the "
-            "x-axis in swan to the x-axis pointing east (XBeach default: 0.0)",
-        ),
-        ge=-360.0,
-        le=360.0,
     )
     fcutoff: Optional[float] = Field(
         default=None,
@@ -268,10 +264,12 @@ class WaveBoundarySpectralJons(WaveBoundarySpectral):
 
         """
         bcfile = Path(destdir) / self.bcfile
-        params = self.model_fields_set - {"bcfile"}
+        params = {"hm0", "tp", "mainang", "gammajsp", "s", "fnyq", "dfj"}
         with bcfile.open("w") as f:
             for param in params:
-                f.write(f"{JONS_MAPPING[param]} = {getattr(self, param)}\n")
+                if param not in self.model_fields_set:
+                    continue
+                f.write(f"{JONS_MAPPING[param]} = {getattr(self, param):g}\n")
         return bcfile
 
 
@@ -319,7 +317,7 @@ class WaveBoundarySpectralJonstable(WaveBoundarySpectral):
     )
 
     @model_validator(mode="after")
-    def lists_are_the_same_sizes(self):
+    def lists_are_the_same_sizes(self) -> "WaveBoundarySpectralJonstable":
         for param in ["tp", "mainang", "gammajsp", "s", "duration", "dtbc"]:
             param_size = len(getattr(self, param))
             if param_size != len(self):
@@ -327,6 +325,7 @@ class WaveBoundarySpectralJonstable(WaveBoundarySpectral):
                     f"All jonswap parameters must be the same size but size(hm0)="
                     f"{len(self)} size({param})={param_size}"
                 )
+        return self
 
     def __iter__(self):
         return zip(
@@ -364,7 +363,21 @@ class WaveBoundarySpectralJonstable(WaveBoundarySpectral):
 
 
 class WaveBoundarySpectralSWAN(WaveBoundarySpectral):
-    pass
+    """Wave boundary conditions specified as a SWAN spectrum."""
+    
+    model_type: Literal["swan"] = Field(
+        default="swan",
+        description="Model type discriminator",
+    )
+    dthetas_xb: Optional[float] = Field(
+        default=None,
+        description=(
+            "The (counter-clockwise) angle in the degrees needed to rotate from the "
+            "x-axis in swan to the x-axis pointing east (XBeach default: 0.0)",
+        ),
+        ge=-360.0,
+        le=360.0,
+    )
 
 
 class WaveBoundarySpectralGeneral(WaveBoundarySpectral):
@@ -395,3 +408,93 @@ class WaveBoundaryOff(WaveBoundaryBase):
 
 class WaveBoundaryReuse(WaveBoundaryBase):
     pass
+
+
+class XBeachBoundaryWaveStation(BoundaryWaveStation):
+    """Wave boundary conditions for XBeach."""
+
+    model_type: Literal["xbeach"] = Field(
+        default="xbeach",
+        description="Model type discriminator",
+    )
+    source: Union[SourceCRSFile, SourceCRSIntake, SourceCRSDataset] = Field(
+        description=(
+            "Dataset source reader, must support CRS and return a wavespectra-enabled "
+            "xarray dataset in the open method"
+        ),
+        discriminator="model_type",
+    )
+    kind: Literal["jons", "jonstable", "swan"] = Field(
+        description="XBeach wave boundary type",
+    )
+
+    def _validate_time(self, time):
+        if self.coords.t not in self.source.coordinates:
+            raise ValueError(f"Time coordinate {self.coords.t} not in source")
+        t0, t1 = self.ds.time.to_index().to_pydatetime()[[0, -1]]
+        if time.start < t0 or time.end > t1:
+            raise ValueError(f"Times {time} outside of source time range {t0} - {t1}")
+
+    def _dspr_to_s(self, dspr: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+        """Calculate the Jonswap spreading coefficient from the directional spread."""
+        return (2 / np.radians(dspr)**2) - 1
+
+    def get(
+        self, destdir: str | Path, grid: RegularGrid, time: Optional[TimeRange] = None
+    ) -> str:
+        """Write the selected boundary data to file.
+
+        Parameters
+        ----------
+        destdir : str | Path
+            Destination directory for the netcdf file.
+        grid : RegularGrid
+            Grid instance to use for selecting the boundary points.
+        time: TimeRange, optional
+            The times to filter the data to, only used if `self.crop_data` is True.
+
+        Returns
+        -------
+        outfile : Path
+            Path to the netcdf file.
+
+        """
+        # Interpolate at times
+        self._validate_time(time)
+        logger.debug(f"Interpolating boundary data to times {time.date_range}")        
+        ds = self.ds.interp({self.coords.t: time.date_range})
+        # Interpolate the the centre of the offshore boundary using wavespectra
+        bnd = Ori(x=grid.offshore[0], y=grid.offshore[1], crs=grid.crs).reproject(4326)
+        ds = ds.spec.sel(
+            lons=[bnd.x],
+            lats=[bnd.y],
+            method=self.sel_method,
+            **self.sel_method_kwargs,
+        )
+        # outfile = Path(destdir) / f"{self.id}.nc"
+        # ds.spec.to_netcdf(outfile)
+        # return outfile
+
+        if self.kind in ["jons"]:
+            stats = ds.spec.stats(["hs", "tp", "dpm", "gamma", "dspr"])
+            stats["s"] = self._dspr_to_s(stats.dspr)
+
+            filelist = []
+            for time in stats.time.to_index().to_pydatetime():
+                if stats.time.size > 1:
+                    bcfilename = f"jonswap-{time:%Y%m%dT%H%M%S}.txt"
+                else:
+                    bcfilename = "jonswap.txt"
+                data = stats.sel(time=time)
+                wb = WaveBoundarySpectralJons(
+                    bcfile=bcfilename,
+                    hm0=float(data.hs),
+                    tp=float(data.tp),
+                    mainang=float(data.dpm),
+                    gammajsp=float(data.gamma),
+                    s=float(data.s),
+                    fnyq=0.3,
+                )
+                bcfile = wb.write(destdir)
+                filelist.append(bcfile)
+        return filelist

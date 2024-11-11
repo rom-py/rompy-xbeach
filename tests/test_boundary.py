@@ -2,7 +2,12 @@ from pathlib import Path
 import pytest
 import xarray as xr
 
+from rompy.core.time import TimeRange
+
+from rompy_xbeach.grid import RegularGrid
+from rompy_xbeach.source import SourceCRSFile
 from rompy_xbeach.boundary import (
+    XBeachBoundaryWaveStation,
     WaveBoundaryBase,
     WaveBoundarySpectralJons,
     WaveBoundarySpectralJonstable,
@@ -13,8 +18,32 @@ HERE = Path(__file__).parent
 
 
 @pytest.fixture(scope="module")
-def tif_path():
-    yield HERE / "data/bathy.tif"
+def time():
+    yield TimeRange(start="2023-01-01T00", end="2023-01-01T12", interval="1h")
+
+
+@pytest.fixture(scope="module")
+def grid():
+    yield RegularGrid(
+        ori=dict(x=115.594239, y=-32.641104, crs="epsg:4326"),
+        alfa=347.0,
+        dx=10,
+        dy=15,
+        nx=230,
+        ny=220,
+        crs="28350",
+    )
+
+
+@pytest.fixture(scope="module")
+def source():
+    yield SourceCRSFile(
+        uri=HERE / "data/aus-20230101.nc",
+        kwargs=dict(engine="netcdf4"),
+        crs=4326,
+        x_dim="lon",
+        y_dim="lat",
+    )
 
 
 def test_wave_boundary_base():
@@ -29,7 +58,6 @@ def test_wave_boundary_spectral_defaults():
     assert wb.dbtc is None
     assert wb.tm01switch is None
     assert wb.correcthm0 is None
-    assert wb.dthetas_xb is None
     assert wb.fcutoff is None
     assert wb.nonhspectrum is None
     assert wb.nspectrumloc is None
@@ -77,6 +105,7 @@ def test_wave_boundary_spectral_jonstable_same_sizes():
             dtbc=[1.0, 1.0],
         )
 
+
 def test_wave_boundary_spectral_jonstable_valid_ranges():
     with pytest.raises(ValueError):
         WaveBoundarySpectralJonstable(
@@ -88,6 +117,7 @@ def test_wave_boundary_spectral_jonstable_valid_ranges():
             duration=[1800, 1800],
             dtbc=[1.0, 1.0],
         )
+
 
 def test_wave_boundary_spectral_jonstable_write(tmp_path):
     wb = WaveBoundarySpectralJonstable(
@@ -102,3 +132,11 @@ def test_wave_boundary_spectral_jonstable_write(tmp_path):
     bcfile = wb.write(tmp_path)
     assert bcfile.is_file()
 
+
+def test_xbeach_wave_station(tmp_path, source, grid, time):
+    # kind = WaveBoundarySpectralJons(hm0=1.5, tp=12.0)
+    wb = XBeachBoundaryWaveStation(id="test", source=source, kind="jons")
+
+    filelist = wb.get(destdir=tmp_path, grid=grid, time=time)
+
+    import ipdb; ipdb.set_trace()
