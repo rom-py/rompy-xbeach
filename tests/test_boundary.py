@@ -6,8 +6,8 @@ from rompy.core.time import TimeRange
 
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.source import SourceCRSFile
-from rompy_xbeach.boundary import (
-    XBeachBoundaryWaveStation,
+from rompy_xbeach.boundary import XBeachSpectraStationSingle
+from rompy_xbeach.components.boundary import (
     WaveBoundaryBase,
     WaveBoundarySpectralJons,
     WaveBoundarySpectralJonstable,
@@ -135,8 +135,7 @@ def test_wave_boundary_spectral_jonstable_write(tmp_path):
 
 def test_xbeach_wave_station(tmp_path, source, grid, time):
     # kind = WaveBoundarySpectralJons(hm0=1.5, tp=12.0)
-    wb = XBeachBoundaryWaveStation(id="test", source=source, kind="jons")
-
-    filelist = wb.get(destdir=tmp_path, grid=grid, time=time)
-
-    import ipdb; ipdb.set_trace()
+    wb = XBeachSpectraStationSingle(id="test", source=source, kind="jons")
+    bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
+    assert bcfile.is_file()
+    # import ipdb; ipdb.set_trace()
