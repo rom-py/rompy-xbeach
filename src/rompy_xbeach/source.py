@@ -11,8 +11,9 @@ import xarray as xr
 import rioxarray
 from scipy.interpolate import griddata
 
-from rompy.core.source import SourceBase, SourceDataset, SourceFile, SourceIntake
+from rompy.core.source import SourceBase, SourceDataset, SourceFile, SourceIntake, SourceWavespectra
 from rompy_xbeach.grid import CRS_TYPES, validate_crs
+
 
 logger = logging.getLogger(__name__)
 
@@ -173,3 +174,26 @@ class SourceCRSFile(SourceMixin, SourceFile):
 
 class SourceCRSIntake(SourceMixin, SourceIntake):
     """Source dataset with CRS support from intake catalog."""
+
+
+class SourceCRSWavespectra(SourceMixin, SourceWavespectra):
+    """Source dataset with CRS support from wavespectra reader.
+
+    Note
+    ----
+    Default values are provided for crs, x_dim and y_dim fields as they are common
+    to most wavespectra datasets.
+
+    """
+    crs: CRS_TYPES = Field(
+        default=4326,
+        description="Coordinate reference system of the source data",
+    )
+    x_dim: str = Field(
+        default="lon",
+        description="Name of the x dimension",
+    )
+    y_dim: str = Field(
+        default="lat",
+        description="Name of the y dimension",
+    )

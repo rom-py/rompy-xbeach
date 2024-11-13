@@ -42,9 +42,9 @@ xbeach = "rompy_xbeach.config:Config"
 [project.entry-points."xbeach.source"]
 geotiff = "rompy_xbeach.source:SourceGeotiff"
 xyz = "rompy_xbeach.source:SourceXYZ"
-dataset = "rompy_xbeach.source:SourceDataset"
+dataset = "rompy_xbeach.source:SourceCRSDataset"
 file = "rompy_xbeach.source:SourceCRSFile"
-intake = "rompy_xbeach.source:SourceIntake"
+intake = "rompy_xbeach.source:SourceCRSIntake"
 
 [project.entry-points."xbeach.interpolator"]
 regular_grid = "rompy_xbeach.interpolate:RegularGridInterpolator"

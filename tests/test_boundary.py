@@ -5,8 +5,8 @@ import xarray as xr
 from rompy.core.time import TimeRange
 
 from rompy_xbeach.grid import RegularGrid
-from rompy_xbeach.source import SourceCRSFile
-from rompy_xbeach.boundary import XBeachSpectraStationSingle
+from rompy_xbeach.source import SourceCRSFile, SourceCRSWavespectra
+from rompy_xbeach.boundary import BoundaryStation, BoundaryStationSpectra
 from rompy_xbeach.components.boundary import (
     WaveBoundaryBase,
     WaveBoundarySpectralJons,
@@ -19,7 +19,7 @@ HERE = Path(__file__).parent
 
 @pytest.fixture(scope="module")
 def time():
-    yield TimeRange(start="2023-01-01T00", end="2023-01-01T12", interval="1h")
+    yield TimeRange(start="2001-01-01T00", end="2001-01-01T12", interval="1h")
 
 
 @pytest.fixture(scope="module")
@@ -36,14 +36,19 @@ def grid():
 
 
 @pytest.fixture(scope="module")
-def source():
+def source_crs_file():
     yield SourceCRSFile(
-        uri=HERE / "data/aus-20230101.nc",
+        uri=HERE / "data/smc-params.nc",
         kwargs=dict(engine="netcdf4"),
         crs=4326,
         x_dim="lon",
         y_dim="lat",
     )
+
+
+@pytest.fixture(scope="module")
+def source_crs_wavespectra():
+    yield SourceCRSWavespectra(uri=HERE / "data/aus-20230101.nc", reader="read_ww3")
 
 
 def test_wave_boundary_base():
@@ -133,9 +138,27 @@ def test_wave_boundary_spectral_jonstable_write(tmp_path):
     assert bcfile.is_file()
 
 
-def test_xbeach_wave_station(tmp_path, source, grid, time):
-    # kind = WaveBoundarySpectralJons(hm0=1.5, tp=12.0)
-    wb = XBeachSpectraStationSingle(id="test", source=source, kind="jons")
-    bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert bcfile.is_file()
-    # import ipdb; ipdb.set_trace()
+def test_boundary_station(tmp_path, source_crs_file, grid, time):
+    wb = BoundaryStation(
+        id="test",
+        source=source_crs_file,
+        coords=dict(x="longitude", y="latitude", s="seapoint")
+    )
+    ds = wb.get(destdir=tmp_path, grid=grid, time=time)
+    assert ds[wb.coords.s].size == 1
+    tstart, tend = ds.time.to_index().to_pydatetime()[[0, -1]]
+    assert time.start >= tstart and time.end <= tend
+
+
+# def test_boundary_station_spectra(tmp_path, source_crs_file, grid, time):
+#     wb = BoundaryStation(id="test", source=source_crs_file, kind="jons")
+#     ds = wb.get(destdir=tmp_path, grid=grid, time=time)
+#     import ipdb; ipdb.set_trace()
+
+
+# def test_xbeach_wave_station(tmp_path, source, grid, time):
+#     # kind = WaveBoundarySpectralJons(hm0=1.5, tp=12.0)
+#     wb = XBeachSpectraStationSingle(id="test", source=source, kind="jons")
+#     bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
+#     assert bcfile.is_file()
+#     # import ipdb; ipdb.set_trace()
