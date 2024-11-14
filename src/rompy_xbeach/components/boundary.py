@@ -8,10 +8,10 @@ import numpy as np
 import xarray as xr
 from pydantic import BaseModel, Field, model_validator
 
+from rompy.core.types import RompyBaseModel
 from rompy.core.time import TimeRange
 from rompy.core.boundary import BoundaryWaveStation
 
-from rompy_xbeach.types import XBeachBaseModel
 from rompy_xbeach.source import SourceCRSFile, SourceCRSIntake, SourceCRSDataset
 from rompy_xbeach.grid import RegularGrid, Ori
 
@@ -24,7 +24,7 @@ JONS_MAPPING = dict(
 )
 
 
-class WaveBoundaryBase(XBeachBaseModel, ABC):
+class WaveBoundaryBase(RompyBaseModel, ABC):
     """Base class for wave boundary conditions."""
 
     model_type: Literal["base"] = Field(
