@@ -6,7 +6,7 @@ from rompy.core.time import TimeRange
 
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.source import SourceCRSFile, SourceCRSWavespectra
-from rompy_xbeach.boundary import BoundaryStation, BoundaryStationSpectraJons
+from rompy_xbeach.boundary import BoundaryBaseStation, BoundaryStationSpectraJons
 from rompy_xbeach.components.boundary import (
     WaveBoundaryBase,
     WaveBoundaryJons,
@@ -139,7 +139,7 @@ def test_wave_boundary_spectral_jonstable_write(tmp_path):
 
 
 def test_boundary_station(tmp_path, source_crs_file, grid, time):
-    wb = BoundaryStation(
+    wb = BoundaryBaseStation(
         id="test",
         source=source_crs_file,
         coords=dict(x="longitude", y="latitude", s="seapoint")
