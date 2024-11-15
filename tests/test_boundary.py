@@ -6,11 +6,11 @@ from rompy.core.time import TimeRange
 
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.source import SourceCRSFile, SourceCRSWavespectra
-from rompy_xbeach.boundary import BoundaryStation, BoundaryStationSpectra
+from rompy_xbeach.boundary import BoundaryStation, BoundaryStationSpectraJons
 from rompy_xbeach.components.boundary import (
     WaveBoundaryBase,
-    WaveBoundarySpectralJons,
-    WaveBoundarySpectralJonstable,
+    WaveBoundaryJons,
+    WaveBoundaryJonstable,
 )
 
 
@@ -19,7 +19,7 @@ HERE = Path(__file__).parent
 
 @pytest.fixture(scope="module")
 def time():
-    yield TimeRange(start="2001-01-01T00", end="2001-01-01T12", interval="1h")
+    yield TimeRange(start="2023-01-01T00", end="2023-01-01T12", interval="1h")
 
 
 @pytest.fixture(scope="module")
@@ -38,7 +38,7 @@ def grid():
 @pytest.fixture(scope="module")
 def source_crs_file():
     yield SourceCRSFile(
-        uri=HERE / "data/smc-params.nc",
+        uri=HERE / "data/smc-params-20230101.nc",
         kwargs=dict(engine="netcdf4"),
         crs=4326,
         x_dim="lon",
@@ -57,7 +57,7 @@ def test_wave_boundary_base():
 
 
 def test_wave_boundary_spectral_defaults():
-    wb = WaveBoundarySpectralJons()
+    wb = WaveBoundaryJons()
     assert wb.bcfile == "spectrum.txt"
     assert wb.rt is None
     assert wb.dbtc is None
@@ -75,32 +75,32 @@ def test_wave_boundary_spectral_defaults():
 
 def test_wave_boundary_spectral_valid_ranges():
     with pytest.raises(ValueError):
-        WaveBoundarySpectralJons(rt=1000)
-        WaveBoundarySpectralJons(dbtc=2.1)
-        WaveBoundarySpectralJons(dthetas_xb=-361)
-        WaveBoundarySpectralJons(fcutoff=41.0)
-        WaveBoundarySpectralJons(nspectrumloc=0)
-        WaveBoundarySpectralJons(sprdthr=1.1)
-        WaveBoundarySpectralJons(trepfac=-0.1)
-        WaveBoundarySpectralJons(wbcversion=4)
-        WaveBoundarySpectralJons(fnyq=1.0, dfj=0.01)
+        WaveBoundaryJons(rt=1000)
+        WaveBoundaryJons(dbtc=2.1)
+        WaveBoundaryJons(dthetas_xb=-361)
+        WaveBoundaryJons(fcutoff=41.0)
+        WaveBoundaryJons(nspectrumloc=0)
+        WaveBoundaryJons(sprdthr=1.1)
+        WaveBoundaryJons(trepfac=-0.1)
+        WaveBoundaryJons(wbcversion=4)
+        WaveBoundaryJons(fnyq=1.0, dfj=0.01)
 
 
 def test_wave_boundary_spectral_jons_valid_ranges():
     with pytest.raises(ValueError):
-        WaveBoundarySpectralJons(fnyq=1.0, dfj=0.00099)
-        WaveBoundarySpectralJons(fnyq=1.0, dfj=0.051)
+        WaveBoundaryJons(fnyq=1.0, dfj=0.00099)
+        WaveBoundaryJons(fnyq=1.0, dfj=0.051)
 
 
 def test_wave_boundary_spectral_jons_write(tmp_path):
-    wb = WaveBoundarySpectralJons(hm0=1.0, tp=12.0, bcfile="jons.txt")
+    wb = WaveBoundaryJons(hm0=1.0, tp=12.0, bcfile="jons.txt")
     bcfile = wb.write(tmp_path)
     assert bcfile.is_file()
 
 
 def test_wave_boundary_spectral_jonstable_same_sizes():
     with pytest.raises(ValueError):
-        WaveBoundarySpectralJonstable(
+        WaveBoundaryJonstable(
             hm0=[1.0, 2.0],
             tp=[10.0, 10.0],
             mainang=[180, 180],
@@ -113,7 +113,7 @@ def test_wave_boundary_spectral_jonstable_same_sizes():
 
 def test_wave_boundary_spectral_jonstable_valid_ranges():
     with pytest.raises(ValueError):
-        WaveBoundarySpectralJonstable(
+        WaveBoundaryJonstable(
             hm0=[1.0, 5000.0],
             tp=[10.0, 10.0],
             mainang=[180, 180],
@@ -125,7 +125,7 @@ def test_wave_boundary_spectral_jonstable_valid_ranges():
 
 
 def test_wave_boundary_spectral_jonstable_write(tmp_path):
-    wb = WaveBoundarySpectralJonstable(
+    wb = WaveBoundaryJonstable(
         hm0=[1.0, 2.0],
         tp=[10.0, 10.0],
         mainang=[180, 180],
@@ -150,14 +150,17 @@ def test_boundary_station(tmp_path, source_crs_file, grid, time):
     assert time.start >= tstart and time.end <= tend
 
 
-# def test_boundary_station_spectra(tmp_path, source_crs_file, grid, time):
-#     wb = BoundaryStation(id="test", source=source_crs_file, kind="jons")
-#     ds = wb.get(destdir=tmp_path, grid=grid, time=time)
-#     import ipdb; ipdb.set_trace()
+def test_boundary_station_spectra_jons(tmp_path, source_crs_wavespectra, grid, time):
+    wb = BoundaryStationSpectraJons(
+        id="test",
+        source=source_crs_wavespectra,
+    )
+    bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
+    # import ipdb; ipdb.set_trace()
 
 
 # def test_xbeach_wave_station(tmp_path, source, grid, time):
-#     # kind = WaveBoundarySpectralJons(hm0=1.5, tp=12.0)
+#     # kind = WaveBoundaryJons(hm0=1.5, tp=12.0)
 #     wb = XBeachSpectraStationSingle(id="test", source=source, kind="jons")
 #     bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
 #     assert bcfile.is_file()

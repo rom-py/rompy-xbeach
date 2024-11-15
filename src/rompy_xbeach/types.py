@@ -1,7 +1,6 @@
 from enum import Enum, IntEnum
 from pydantic import ConfigDict
 
-from rompy.core.types import RompyBaseModel
 from rompy.core.config import BaseConfig
 
 

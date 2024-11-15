@@ -20,7 +20,13 @@ logger = logging.getLogger(__name__)
 
 
 JONS_MAPPING = dict(
-    hm0="Hm0", tp="Tp", mainang="mainang", gammajsp="gammajsp", s="s", fnyq="fnyq"
+    hm0="Hm0",
+    tp="Tp",
+    mainang="mainang",
+    gammajsp="gammajsp",
+    s="s",
+    fnyq="fnyq",
+    dfj="dfj",
 )
 
 
@@ -173,7 +179,7 @@ class WaveBoundarySpectral(WaveBoundaryBase, ABC):
     )
 
 
-class WaveBoundarySpectralJons(WaveBoundarySpectral):
+class WaveBoundaryJons(WaveBoundarySpectral):
     """Wave boundary conditions specified as a single Jonswap spectrum."""
 
     model_type: Literal["jons"] = Field(
@@ -200,7 +206,7 @@ class WaveBoundarySpectralJons(WaveBoundarySpectral):
         description=(
             "Main wave angle (nautical convention) [degrees] (XBeach default: 270.0)"
         ),
-        ge=180.0,
+        ge=-180.0,
         le=360.0,
     )
     gammajsp: Optional[float] = Field(
@@ -238,7 +244,7 @@ class WaveBoundarySpectralJons(WaveBoundarySpectral):
     )
 
     @model_validator(mode="after")
-    def validate_dfj(self) -> "WaveBoundarySpectralJons":
+    def validate_dfj(self) -> "WaveBoundaryJons":
         if self.dfj is not None:
             logger.warning(
                 "It is advised not to specify the keyword dfj and allow XBeach "
@@ -266,13 +272,13 @@ class WaveBoundarySpectralJons(WaveBoundarySpectral):
         params = {"hm0", "tp", "mainang", "gammajsp", "s", "fnyq", "dfj"}
         with bcfile.open("w") as f:
             for param in params:
-                if param not in self.model_fields_set:
+                if param not in self.model_fields_set or getattr(self, param) is None:
                     continue
                 f.write(f"{JONS_MAPPING[param]} = {getattr(self, param):g}\n")
         return bcfile
 
 
-class WaveBoundarySpectralJonstable(WaveBoundarySpectral):
+class WaveBoundaryJonstable(WaveBoundarySpectral):
     """Wave boundary conditions specified as a time-varying Jonswap spectrum.
 
     .. code-block:: text
@@ -316,7 +322,7 @@ class WaveBoundarySpectralJonstable(WaveBoundarySpectral):
     )
 
     @model_validator(mode="after")
-    def lists_are_the_same_sizes(self) -> "WaveBoundarySpectralJonstable":
+    def lists_are_the_same_sizes(self) -> "WaveBoundaryJonstable":
         for param in ["tp", "mainang", "gammajsp", "s", "duration", "dtbc"]:
             param_size = len(getattr(self, param))
             if param_size != len(self):
@@ -361,7 +367,7 @@ class WaveBoundarySpectralJonstable(WaveBoundarySpectral):
         return bcfile
 
 
-class WaveBoundarySpectralSWAN(WaveBoundarySpectral):
+class WaveBoundarySWAN(WaveBoundarySpectral):
     """Wave boundary conditions specified as a SWAN spectrum."""
     
     model_type: Literal["swan"] = Field(
@@ -379,7 +385,7 @@ class WaveBoundarySpectralSWAN(WaveBoundarySpectral):
     )
 
 
-class WaveBoundarySpectralGeneral(WaveBoundarySpectral):
+class WaveBoundaryGeneral(WaveBoundarySpectral):
     pass
 
 
