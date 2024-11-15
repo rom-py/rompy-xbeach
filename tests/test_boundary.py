@@ -150,18 +150,47 @@ def test_boundary_station(tmp_path, source_crs_file, grid, time):
     assert time.start >= tstart and time.end <= tend
 
 
-def test_boundary_station_spectra_jons(tmp_path, source_crs_wavespectra, grid, time):
+def test_boundary_station_spectra_jons_bcfile(
+    tmp_path, source_crs_wavespectra, grid, time
+):
+    """Test single (bcfile) jons spectral boundary from spectra source."""
+    wb = BoundaryStationSpectraJons(
+        id="test",
+        source=source_crs_wavespectra,
+        filelist=False,
+    )
+    bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
+    # Assert filelist and not bcfile
+    assert "bcfile" in bcfile and "filelist" not in bcfile
+    filename = tmp_path / bcfile["bcfile"]
+    assert filename.is_file()
+    # Assert parameters defined in bcfile
+    bcdata = filename.read_text()
+    for keys in ["Hm0", "Tp", "mainang", "gammajsp", "s"]:
+        assert keys in bcdata
+
+
+def test_boundary_station_spectra_jons_filelist(
+    tmp_path, source_crs_wavespectra, grid, time
+):
+    """Test multiple (filelist) jons spectral boundary from spectra source."""
     wb = BoundaryStationSpectraJons(
         id="test",
         source=source_crs_wavespectra,
     )
     bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
-    # import ipdb; ipdb.set_trace()
+    # Assert filelist and not bcfile
+    assert "filelist" in bcfile and "bcfile" not in bcfile
+    filelist = tmp_path / bcfile["filelist"]
+    lines = filelist.read_text().split("\n")
+    for line in lines[1:]:
+        if not line:
+            continue
+        # Assert bcfile created
+        filename = tmp_path / line.split()[-1]
+        assert filename.is_file()
+        # Assert parameters defined in bcfile
+        bcdata = filename.read_text()
+        for keys in ["Hm0", "Tp", "mainang", "gammajsp", "s"]:
+            assert keys in bcdata
 
-
-# def test_xbeach_wave_station(tmp_path, source, grid, time):
-#     # kind = WaveBoundaryJons(hm0=1.5, tp=12.0)
-#     wb = XBeachSpectraStationSingle(id="test", source=source, kind="jons")
-#     bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
-#     assert bcfile.is_file()
-#     # import ipdb; ipdb.set_trace()
