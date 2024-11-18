@@ -164,7 +164,7 @@ def test_boundary_station_param_jons_bcfile(tmp_path, source_file, grid, time):
         dspr="pspr1",
     )
     bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
-    # Assert filelist and not bcfile
+    # Assert bcfile and not filelist
     assert "bcfile" in bcfile and "filelist" not in bcfile
     filename = tmp_path / bcfile["bcfile"]
     assert filename.is_file()
@@ -211,7 +211,7 @@ def test_boundary_station_spectra_jons_bcfile(tmp_path, source_wavespectra, grid
         filelist=False,
     )
     bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
-    # Assert filelist and not bcfile
+    # Assert bcfile and not filelist
     assert "bcfile" in bcfile and "filelist" not in bcfile
     filename = tmp_path / bcfile["bcfile"]
     assert filename.is_file()
