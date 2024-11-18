@@ -342,7 +342,7 @@ class BoundaryStationJons(BoundaryBaseStation, ABC):
         kwargs = {}
         for param in ["hm0", "tp", "mainang", "gammajsp", "s"]:
             if param in data and not np.isnan(data[param]):
-                kwargs[param] = float(data[param])
+                kwargs[param] = float(data[param].squeeze())
             elif param in data and np.isnan(data[param]):
                 raise ValueError(f"Parameter {param} is NaN for {data.time}")
         bcfile = f"jons-{t:%Y%m%dT%H%M%S}.txt"
@@ -457,7 +457,6 @@ class BoundaryStationSpectraJons(BoundaryStationJons):
 
 
 # TODO: How to deal with Tp if only Fp is available?
-# TODO: How to deal with NaN values in the source data?
 class BoundaryStationParamJons(BoundaryStationJons):
     """Wave boundary conditions from station type parameters dataset such as SMC."""
 
@@ -515,6 +514,12 @@ class BoundaryStationParamJons(BoundaryStationJons):
             Dataset containing the boundary spectral data.
 
         """
+        # # Drop times where any of the parameters are NaN
+        # for param in ["hm0", "tp", "mainang", "gammajsp", "dspr"]:
+        #     if isinstance(getattr(self, param), str):
+        #         if ds[getattr(self, param)].isnull().any():
+        #             logger.warning(f"Dropping NaN values in source data for {param}")
+        #             ds = ds.dropna(dim=self.coords.t, subset=[getattr(self, param)])
         stats = xr.Dataset()
         for param in ["hm0", "tp", "mainang", "gammajsp"]:
             if isinstance(getattr(self, param), str):
