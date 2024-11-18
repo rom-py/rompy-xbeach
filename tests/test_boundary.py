@@ -6,7 +6,7 @@ from rompy.core.time import TimeRange
 
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.source import SourceCRSFile, SourceCRSWavespectra
-from rompy_xbeach.boundary import BoundaryBaseStation, BoundaryStationSpectraJons
+from rompy_xbeach.boundary import BoundaryBaseStation, BoundaryStationSpectraJons, BoundaryStationParamJons
 from rompy_xbeach.components.boundary import (
     WaveBoundaryBase,
     WaveBoundaryJons,
@@ -36,7 +36,7 @@ def grid():
 
 
 @pytest.fixture(scope="module")
-def source_crs_file():
+def source_file():
     yield SourceCRSFile(
         uri=HERE / "data/smc-params-20230101.nc",
         kwargs=dict(engine="netcdf4"),
@@ -47,7 +47,7 @@ def source_crs_file():
 
 
 @pytest.fixture(scope="module")
-def source_crs_wavespectra():
+def source_wavespectra():
     yield SourceCRSWavespectra(uri=HERE / "data/aus-20230101.nc", reader="read_ww3")
 
 
@@ -138,10 +138,10 @@ def test_wave_boundary_spectral_jonstable_write(tmp_path):
     assert bcfile.is_file()
 
 
-def test_boundary_station(tmp_path, source_crs_file, grid, time):
+def test_boundary_station(tmp_path, source_file, grid, time):
     wb = BoundaryBaseStation(
         id="test",
-        source=source_crs_file,
+        source=source_file,
         coords=dict(x="longitude", y="latitude", s="seapoint")
     )
     ds = wb.get(destdir=tmp_path, grid=grid, time=time)
@@ -150,13 +150,64 @@ def test_boundary_station(tmp_path, source_crs_file, grid, time):
     assert time.start >= tstart and time.end <= tend
 
 
-def test_boundary_station_spectra_jons_bcfile(
-    tmp_path, source_crs_wavespectra, grid, time
-):
+def test_boundary_station_param_jons_bcfile(tmp_path, source_file, grid, time):
+    """Test single (bcfile) jons spectral boundary from param source."""
+    wb = BoundaryStationParamJons(
+        id="test",
+        source=source_file,
+        coords=dict(s="seapoint", x="longitude", y="latitude", t="time"),
+        filelist=False,
+        hm0="phs1",
+        tp="ptp1",
+        mainang="pdp1",
+        gammajsp="ppe1",
+        dspr="pspr1",
+    )
+    bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
+    # Assert filelist and not bcfile
+    assert "bcfile" in bcfile and "filelist" not in bcfile
+    filename = tmp_path / bcfile["bcfile"]
+    assert filename.is_file()
+    # Assert parameters defined in bcfile
+    bcdata = filename.read_text()
+    for keys in ["Hm0", "Tp", "mainang", "gammajsp", "s"]:
+        assert keys in bcdata
+
+
+def test_boundary_station_param_jons_filelist(tmp_path, source_file, grid, time):
+    """Test multiple (filelist) jons spectral boundary from param source."""
+    wb = BoundaryStationParamJons(
+        id="test",
+        source=source_file,
+        coords=dict(s="seapoint"),
+        hm0="phs1",
+        tp="ptp1",
+        mainang="pdp1",
+        gammajsp="ppe1",
+        dspr="pspr1",
+    )
+    bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
+    # Assert filelist and not bcfile
+    assert "filelist" in bcfile and "bcfile" not in bcfile
+    filelist = tmp_path / bcfile["filelist"]
+    lines = filelist.read_text().split("\n")
+    for line in lines[1:]:
+        if not line:
+            continue
+        # Assert bcfile created
+        filename = tmp_path / line.split()[-1]
+        assert filename.is_file()
+        # Assert parameters defined in bcfile
+        bcdata = filename.read_text()
+        for keys in ["Hm0", "Tp", "mainang", "gammajsp", "s"]:
+            assert keys in bcdata
+
+
+def test_boundary_station_spectra_jons_bcfile(tmp_path, source_wavespectra, grid, time):
     """Test single (bcfile) jons spectral boundary from spectra source."""
     wb = BoundaryStationSpectraJons(
         id="test",
-        source=source_crs_wavespectra,
+        source=source_wavespectra,
         filelist=False,
     )
     bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
@@ -170,13 +221,11 @@ def test_boundary_station_spectra_jons_bcfile(
         assert keys in bcdata
 
 
-def test_boundary_station_spectra_jons_filelist(
-    tmp_path, source_crs_wavespectra, grid, time
-):
+def test_boundary_station_spectra_jons_filelist(tmp_path, source_wavespectra, grid, time):
     """Test multiple (filelist) jons spectral boundary from spectra source."""
     wb = BoundaryStationSpectraJons(
         id="test",
-        source=source_crs_wavespectra,
+        source=source_wavespectra,
     )
     bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
     # Assert filelist and not bcfile
