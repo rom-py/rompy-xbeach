@@ -19,7 +19,7 @@ HERE = Path(__file__).parent
 
 @pytest.fixture(scope="module")
 def time():
-    yield TimeRange(start="2023-01-01T00", end="2023-01-01T12", interval="1h")
+    yield TimeRange(start="2023-01-01T00", end="2023-01-01T04", interval="1h")
 
 
 @pytest.fixture(scope="module")
