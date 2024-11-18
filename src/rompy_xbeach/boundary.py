@@ -341,7 +341,9 @@ class BoundaryStationJons(BoundaryBaseStation, ABC):
         logger.debug(f"Creating boundary for time {t}")
         kwargs = {}
         for param in ["hm0", "tp", "mainang", "gammajsp", "s"]:
-            if param in data and not np.isnan(data[param]):
+            if hasattr(self, param) and getattr(self, param) is None:
+                continue
+            elif param in data and not np.isnan(data[param]):
                 kwargs[param] = float(data[param].squeeze())
             elif param in data and np.isnan(data[param]):
                 raise ValueError(f"Parameter {param} is NaN for {data.time}")
