@@ -302,19 +302,6 @@ class BoundaryStationJons(BoundaryBaseStation, ABC):
         examples=[1.0],
     )
 
-    def _calculate_stats(self, ds: xr.Dataset) -> xr.Dataset:
-        """Calculate the wave statistics from the spectral data.
-
-        Parameters
-        ----------
-        ds : xr.Dataset
-            Dataset containing the boundary spectral data.
-
-        """
-        stats = ds.spec.stats(["hs", "tp", "dpm", "gamma", "dspr"])
-        stats["s"] = dspr_to_s(stats.dspr)
-        return stats
-
     def _write_filelist(self, destdir: Path, bcfiles: list[str], durations: list[float]) -> Path:
         """Write a filelist with the bcfiles.
 
@@ -339,29 +326,6 @@ class BoundaryStationJons(BoundaryBaseStation, ABC):
             for bcfile, duration in zip(bcfiles, durations):
                 f.write(f"{duration:g} {self.dbtc:g} {bcfile.name}\n")
         return filename
-
-    def _instantiate_boundary(self, data: xr.Dataset) -> WaveBoundaryJons:
-        """Instantiate the boundary object.
-
-        Parameters
-        ----------
-        data : xr.Dataset
-            Dataset containing single time for the boundary spectral data.
-
-        """
-        assert data.time.size == 1
-        t = data.time.to_index().to_pydatetime()[0]
-        logger.debug(f"Creating boundary for time {t}")
-        return WaveBoundaryJons(
-            bcfile=f"jons-{t:%Y%m%dT%H%M%S}.txt",
-            hm0=float(data.hs),
-            tp=float(data.tp),
-            mainang=float(data.dpm),
-            gammajsp=float(data.gamma),
-            s=float(data.s),
-            fnyq=self.fnyq,
-            dfj=self.dfj,
-        )
 
     def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryStationJons":
         """Instantiate the boundary object.
@@ -493,6 +457,7 @@ class BoundaryStationSpectraJons(BoundaryStationJons):
 
 
 # TODO: How to deal with Tp if only Fp is available?
+# TODO: How to deal with NaN values in the source data?
 class BoundaryStationParamJons(BoundaryStationJons):
     """Wave boundary conditions from station type parameters dataset such as SMC."""
 
