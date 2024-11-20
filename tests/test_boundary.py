@@ -6,7 +6,13 @@ from rompy.core.time import TimeRange
 
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.source import SourceCRSFile, SourceCRSWavespectra
-from rompy_xbeach.boundary import BoundaryBaseStation, BoundaryStationSpectraJons, BoundaryStationParamJons
+from rompy_xbeach.boundary import (
+    BoundaryBaseStation,
+    BoundaryStationParamJons,
+    BoundaryStationSpectraJons,
+    # BoundaryStationSpectraJonstable,
+    BoundaryStationParamJonstable,
+)
 from rompy_xbeach.components.boundary import (
     WaveBoundaryBase,
     WaveBoundaryJons,
@@ -19,7 +25,7 @@ HERE = Path(__file__).parent
 
 @pytest.fixture(scope="module")
 def time():
-    yield TimeRange(start="2023-01-01T00", end="2023-01-01T04", interval="1h")
+    yield TimeRange(start="2023-01-01T00", end="2023-01-01T03", interval="1h")
 
 
 @pytest.fixture(scope="module")
@@ -150,6 +156,9 @@ def test_boundary_station(tmp_path, source_file, grid, time):
     assert time.start >= tstart and time.end <= tend
 
 
+# =====================================================================================
+# JONS BCFILE
+# =====================================================================================
 def test_boundary_station_param_jons_bcfile(tmp_path, source_file, grid, time):
     """Test single (bcfile) jons spectral boundary from param source."""
     wb = BoundaryStationParamJons(
@@ -272,3 +281,30 @@ def test_boundary_station_spectra_jons_filelist(tmp_path, source_wavespectra, gr
         for keys in ["Hm0", "Tp", "mainang", "gammajsp", "s"]:
             assert keys in bcdata
 
+
+# =====================================================================================
+# JONSTABLE BCFILE
+# =====================================================================================
+def test_boundary_station_param_jonstable(tmp_path, source_file, grid, time):
+    """Test multiple (filelist) jons spectral boundary from param source."""
+    wb = BoundaryStationParamJonstable(
+        id="test",
+        source=source_file,
+        coords=dict(s="seapoint"),
+        hm0="phs1",
+        tp="ptp1",
+        mainang="pdp1",
+        gammajsp="ppe1",
+        dspr="pspr1",
+    )
+    bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
+    # Assert bcfile
+    assert "bcfile" in bcfile
+    bcfile = tmp_path / bcfile["bcfile"]
+    lines = bcfile.read_text().split("\n")
+    for line in lines[1:]:
+        if not line:
+            continue
+        # Assert all parameters defined in bcfile
+        params = line.split()
+        assert len(params) == 7

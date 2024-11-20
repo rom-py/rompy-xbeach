@@ -363,7 +363,7 @@ class WaveBoundaryJonstable(WaveBoundarySpectral):
         bcfile = Path(destdir) / self.bcfile
         with bcfile.open("w") as f:
             for params in self:
-                f.write(f"{' '.join(str(x) for x in params)}\n")
+                f.write(f"{' '.join(f'{x:g}' for x in params)}\n")
         return bcfile
 
 

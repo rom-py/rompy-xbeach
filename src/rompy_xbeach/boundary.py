@@ -15,9 +15,14 @@ from rompy.core.time import TimeRange
 from rompy.core.boundary import BoundaryWaveStation
 from rompy.core.data import DataGrid
 
-from rompy_xbeach.source import SourceCRSFile, SourceCRSIntake, SourceCRSDataset, SourceCRSWavespectra
+from rompy_xbeach.source import (
+    SourceCRSFile,
+    SourceCRSIntake,
+    SourceCRSDataset,
+    SourceCRSWavespectra,
+)
 from rompy_xbeach.grid import RegularGrid, Ori
-from rompy_xbeach.components.boundary import WaveBoundaryJons
+from rompy_xbeach.components.boundary import WaveBoundaryJons, WaveBoundaryJonstable
 
 
 logger = logging.getLogger(__name__)
@@ -38,20 +43,37 @@ SOURCE_SPECTRA_TYPES = Union[
 
 
 def dspr_to_s(dspr: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
-        """Calculate the Jonswap spreading coefficient from the directional spread.
+    """Calculate the Jonswap spreading coefficient from the directional spread.
 
-        Parameters
-        ----------
-        dspr: float | np.ndarray
-            The directional spread in degrees.
+    Parameters
+    ----------
+    dspr: float | np.ndarray
+        The directional spread in degrees.
 
-        Returns
-        -------
-        s : float | np.ndarray
-            The Jonswap spreading coefficient.
+    Returns
+    -------
+    s : float | np.ndarray
+        The Jonswap spreading coefficient.
 
-        """
-        return (2 / np.radians(dspr)**2) - 1
+    """
+    return (2 / np.radians(dspr) ** 2) - 1
+
+
+def s_to_dspr(s: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+    """Calculate the directional spread from the Jonswap spreading coefficient.
+
+    Parameters
+    ----------
+    s: float | np.ndarray
+        The Jonswap spreading coefficient.
+
+    Returns
+    -------
+    dspr : float | np.ndarray
+        The directional spread in degrees.
+
+    """
+    return np.degrees(np.sqrt(2 / (s + 1)))
 
 
 class BCFile(RompyBaseModel):
@@ -99,10 +121,6 @@ class BCFile(RompyBaseModel):
 
 class BoundaryBase(DataGrid, ABC):
     """Base class for wave boundary interfaces."""
-    model_type: Literal["boundary"] = Field(
-        default="xbeach",
-        description="Model type discriminator",
-    )
 
     def _adjust_time(self, ds: xr.Dataset, time: TimeRange) -> xr.Dataset:
         """Modify the dataset so the start and end times are included.
@@ -146,10 +164,6 @@ class BoundaryBaseStation(BoundaryBase, ABC):
 
     """
 
-    model_type: Literal["station"] = Field(
-        default="xbeach",
-        description="Model type discriminator",
-    )
     source: SOURCE_SPECTRA_TYPES = Field(
         description="Dataset source reader, must support CRS",
         discriminator="model_type",
@@ -163,8 +177,7 @@ class BoundaryBaseStation(BoundaryBase, ABC):
         ),
     )
     sel_method_kwargs: dict = Field(
-        default={},
-        description="Keyword arguments for sel_method"
+        default={}, description="Keyword arguments for sel_method"
     )
     time_buffer: list[int] = Field(
         default=[1, 1],
@@ -260,13 +273,113 @@ class BoundaryBaseStation(BoundaryBase, ABC):
         return self._sel_boundary(grid)
 
 
-class BoundaryStationJons(BoundaryBaseStation, ABC):
-    """Base class for wave boundary from station type dataset such as SMC."""
+class SpectraMixin:
+    """Mixin class to calculate wave statistics from spectral data."""
 
-    model_type: Literal["station_jons"] = Field(
-        default="xbeach",
-        description="Model type discriminator",
+    source: SOURCE_SPECTRA_TYPES = Field(
+        description=(
+            "Dataset source reader, must support CRS and have wavespectra accessor "
+        ),
+        discriminator="model_type",
     )
+    coords: DatasetCoords = Field(
+        default=DatasetCoords(x="lon", y="lat", t="time", s="site"),
+        description="Names of the coordinates in the dataset",
+    )
+
+    @field_validator("source")
+    def _validate_source_wavespectra(cls, source, values):
+        if not hasattr(source.open(), "spec"):
+            raise ValueError("source must have wavespectra accessor")
+        return source
+
+    def _calculate_stats(self, ds: xr.Dataset) -> xr.Dataset:
+        """Calculate the wave statistics from the spectral data.
+
+        Parameters
+        ----------
+        ds : xr.Dataset
+            Dataset containing the boundary spectral data.
+
+        """
+        stats = ds.spec.stats(["hs", "tp", "dpm", "gamma", "dspr"])
+        stats["s"] = dspr_to_s(stats.dspr)
+        return stats.rename(hs="hm0", dpm="mainang", gamma="gammajsp")
+
+
+class ParamMixin:
+    """Mixin class to get Jonswap statistics from parameter data."""
+
+    source: SOURCE_PARAM_TYPES = Field(
+        description="Dataset source reader, must support CRS",
+        discriminator="model_type",
+    )
+    hm0: Union[str, float] = Field(
+        # default="hs",
+        description=(
+            "Variable name of the significant wave height Hm0 in the source data, "
+            "or alternatively a constant value to use for all times"
+        ),
+    )
+    tp: Union[str, float] = Field(
+        # default="tp",
+        description=(
+            "Variable name of the peak period Tp in the source data, "
+            "or alternatively a constant value to use for all times"
+        ),
+    )
+    mainang: Union[str, float] = Field(
+        # default="dpm",
+        description=(
+            "Variable name of the main wave direction in the source data, "
+            "or alternatively a constant  value to use for all times"
+        ),
+    )
+    gammajsp: Optional[Union[str, float]] = Field(
+        default=None,
+        description=(
+            "Variable name of the gamma parameter in the source data, "
+            "or alternatively a constant value to use for all times"
+        ),
+    )
+    dspr: Optional[Union[str, float]] = Field(
+        default=None,
+        description=(
+            "Variable name of the directional spreading in the source data, used to "
+            "calculate the Jonswap spreading coefficient, "
+            "or alternatively a constant value to use for all times"
+        ),
+    )
+
+    def _calculate_stats(self, ds: xr.Dataset) -> xr.Dataset:
+        """Calculate the wave statistics from the spectral data.
+
+        Parameters
+        ----------
+        ds : xr.Dataset
+            Dataset containing the boundary spectral data.
+
+        """
+        stats = xr.Dataset()
+        for param in ["hm0", "tp", "mainang", "gammajsp"]:
+            if isinstance(getattr(self, param), str):
+                stats[param] = ds[getattr(self, param)]
+            elif isinstance(getattr(self, param), float):
+                stats[param] = xr.DataArray(getattr(self, param), coords=stats.coords)
+        if self.dspr is not None:
+            if isinstance(self.dspr, str):
+                stats["s"] = dspr_to_s(ds[self.dspr])
+            elif isinstance(self.dspr, float):
+                stats["s"] = dspr_to_s([self.dspr] * ds.time.size)
+        return stats
+
+
+# =====================================================================================
+# JONS bctype
+# =====================================================================================
+class BoundaryStationJons(BoundaryBaseStation, ABC):
+    """Base class for JONS wave boundary from station type dataset such as SMC."""
+
     fnyq: Optional[float] = Field(
         default=None,
         description=(
@@ -289,7 +402,7 @@ class BoundaryStationJons(BoundaryBaseStation, ABC):
             "If True, create one bcfile for each timestep in the filtered dataset and "
             "return a FILELIST.txt file with the list of bcfiles, otherwise return a "
             "single bcfile with the wave parameters interpolated at time.start"
-        )
+        ),
     )
     dbtc: Optional[float] = Field(
         default=1.0,
@@ -302,7 +415,9 @@ class BoundaryStationJons(BoundaryBaseStation, ABC):
         examples=[1.0],
     )
 
-    def _write_filelist(self, destdir: Path, bcfiles: list[str], durations: list[float]) -> Path:
+    def _write_filelist(
+        self, destdir: Path, bcfiles: list[str], durations: list[float]
+    ) -> Path:
         """Write a filelist with the bcfiles.
 
         Parameters
@@ -395,135 +510,150 @@ class BoundaryStationJons(BoundaryBaseStation, ABC):
         return bcfile.namelist
 
 
-class BoundaryStationSpectraJons(BoundaryStationJons):
+class BoundaryStationSpectraJons(SpectraMixin, BoundaryStationJons):
     """Wave boundary conditions from station type spectra dataset such as SMC."""
 
     model_type: Literal["station_spectra_jons"] = Field(
         default="xbeach",
         description="Model type discriminator",
     )
-    source: SOURCE_SPECTRA_TYPES = Field(
+
+
+class BoundaryStationParamJons(ParamMixin, BoundaryStationJons):
+    """Wave boundary conditions from station type parameters dataset such as SMC."""
+
+    model_type: Literal["station_param_jons"] = Field(
+        default="station_param_jons",
+        description="Model type discriminator",
+    )
+
+
+# =====================================================================================
+# JONSTABLE bctype
+# =====================================================================================
+class BoundaryStationJonstable(BoundaryBaseStation, ABC):
+    """Base class for JONSTABLE wave boundary from station type dataset such as SMC."""
+
+    dbtc: Optional[float] = Field(
+        default=1.0,
         description=(
-            "Dataset source reader, must support CRS and have wavespectra accessor "
+            "Timestep (s) used to describe time series of wave energy and long wave "
+            "flux at offshore boundary"
         ),
-        discriminator="model_type",
-    )
-    coords: DatasetCoords = Field(
-        default=DatasetCoords(x="lon", y="lat", t="time", s="site"),
-        description="Names of the coordinates in the dataset",
+        ge=0.1,
+        le=2.0,
+        examples=[1.0],
     )
 
-    @field_validator("source")
-    def _validate_source_wavespectra(cls, source, values):
-        if not hasattr(source.open(), "spec"):
-            raise ValueError("source must have wavespectra accessor")
-        return source
-
-    def _calculate_stats(self, ds: xr.Dataset) -> xr.Dataset:
-        """Calculate the wave statistics from the spectral data.
+    def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryStationJons":
+        """Instantiate the boundary object.
 
         Parameters
         ----------
-        ds : xr.Dataset
-            Dataset containing the boundary spectral data.
+        data : xr.Dataset
+            Dataset containing single time for the boundary spectral data.
 
         """
-        stats = ds.spec.stats(["hs", "tp", "dpm", "gamma", "dspr"])
-        stats["s"] = dspr_to_s(stats.dspr)
-        return stats.rename(hs="hm0", dpm="mainang", gamma="gammajsp")
+        times = data.time.to_index().to_pydatetime()
+        logger.debug(f"Creating jonstable boundary for times {times}")
+        dts = [dt.total_seconds() for dt in np.diff(times)]
+        bcfile = f"jons-{times[0]:%Y%m%dT%H%M%S}-{times[-1]:%Y%m%dT%H%M%S}.txt"
+        kwargs = dict(
+            hm0=data.hm0.squeeze().values,
+            tp=data.tp.squeeze().values,
+            mainang=data.mainang.squeeze().values,
+            gammajsp=data.gammajsp.squeeze().values,
+            s=data.s.squeeze().values,
+            duration=dts + [dts[-1]],
+            dtbc=[self.dbtc] * len(times),
+        )
+        for key, val in kwargs.items():
+            if any(np.isnan(val)):
+                raise ValueError(
+                    f"Parameter {key} has NaN for one or more times ({list(zip(times, val))})"
+                )
+        return WaveBoundaryJonstable(bcfile=bcfile, **kwargs)
 
-    def _write_filelist(self, destdir: Path, bcfiles: list[str], durations: list[float]) -> Path:
-        """Write a filelist with the bcfiles.
+    def get(
+        self, destdir: str | Path, grid: RegularGrid, time: Optional[TimeRange] = None
+    ) -> dict:
+        """Write the selected boundary data to file.
 
         Parameters
         ----------
-        destdir : Path
-            Destination directory for the filelist.
-        bcfiles : list[Path]
-            List of bcfiles to include in the filelist.
-        durations : list[float]
-            List of durations for each bcfile.
+        destdir : str | Path
+            Destination directory for the netcdf file.
+        grid : RegularGrid
+            Grid instance to use for selecting the boundary points.
+        time: TimeRange, optional
+            The times to filter the data to, only used if `self.crop_data` is True.
 
         Returns
         -------
-        filename : Path
-            Path to the filelist file.
+        outfile : Path
+            Path to the boundary bcfile data.
 
         """
-        filename = destdir / "filelist.txt"
-        with open(filename, "w") as f:
-            f.write("FILELIST\n")
-            for bcfile, duration in zip(bcfiles, durations):
-                f.write(f"{duration:g} {self.dbtc:g} {bcfile.name}\n")
-        return filename
+        ds = super().get(destdir, grid, time)
+        ds = self._adjust_time(ds, time)
+        data = self._calculate_stats(ds)
+        wb = self._instantiate_boundary(data)
+        bcfile = BCFile(bcfile=wb.write(destdir))
+        return bcfile.namelist
 
 
-class BoundaryStationParamJons(BoundaryStationJons):
+class BoundaryStationParamJonstable(ParamMixin, BoundaryStationJonstable):
     """Wave boundary conditions from station type parameters dataset such as SMC."""
 
-    model_type: Literal["grid_param_jons"] = Field(
-        default="grid_param_jons",
+    model_type: Literal["station_param_jonstable"] = Field(
+        default="station_param_jonstable",
         description="Model type discriminator",
     )
-    source: SOURCE_PARAM_TYPES = Field(
-        description="Dataset source reader, must support CRS",
-        discriminator="model_type",
-    )
-    hm0: Union[str, float] = Field(
-        default="hs",
-        description=(
-            "Variable name of the significant wave height Hm0 in the source data, "
-            "or alternatively a constant value to use for all times"
-        )
-    )
-    tp: Union[str, float] = Field(
-        default="tp",
-        description=(
-            "Variable name of the peak period Tp in the source data, "
-            "or alternatively a constant value to use for all times"
-        )
-    )
-    mainang: Union[str, float] = Field(
-        default="dpm",
-        description=(
-            "Variable name of the main wave direction in the source data, "
-            "or alternatively a constant  value to use for all times"
-        )
-    )
-    gammajsp: Optional[Union[str, float]] = Field(
-        default=None,
-        description=(
-            "Variable name of the gamma parameter in the source data, "
-            "or alternatively a constant value to use for all times"
-        )
-    )
-    dspr: Optional[Union[str, float]] = Field(
-        default=None,
-        description=(
-            "Variable name of the directional spreading in the source data, used to "
-            "calculate the Jonswap spreading coefficient, "
-            "or alternatively a constant value to use for all times"
-        )
-    )
 
-    def _calculate_stats(self, ds: xr.Dataset) -> xr.Dataset:
-        """Calculate the wave statistics from the spectral data.
+    @model_validator(mode="after")
+    def default_params(self) -> "BoundaryStationParamJonstable":
+        if self.gammajsp is None:
+            logger.debug("Setting default value for gammajsp of 3.3")
+            self.gammajsp = 3.3
+        if self.dspr is None:
+            logger.debug("Setting default value for dspr of 24.431 (s=10.0)")
+            self.dspr = 24.43100247268452
+        return self
 
-        Parameters
-        ----------
-        ds : xr.Dataset
-            Dataset containing the boundary spectral data.
 
-        """
-        stats = xr.Dataset()
-        for param in ["hm0", "tp", "mainang", "gammajsp"]:
-            if isinstance(getattr(self, param), str):
-                stats[param] = ds[getattr(self, param)]
-            elif isinstance(getattr(self, param), float):
-                stats[param] = xr.DataArray(getattr(self, param), coords=stats.coords)
-        if self.dspr is not None:
-            if isinstance(self.dspr, str):
-                stats["s"] = dspr_to_s(ds[self.dspr])
-            elif isinstance(self.dspr, float):
-                stats["s"] = dspr_to_s([self.dspr] * ds.time.size)
-        return stats
+# class BoundaryStationSpectraJons(BoundaryStationJons):
+#     """Wave boundary conditions from station type spectra dataset such as SMC."""
+
+#     model_type: Literal["station_spectra_jons"] = Field(
+#         default="xbeach",
+#         description="Model type discriminator",
+#     )
+#     source: SOURCE_SPECTRA_TYPES = Field(
+#         description=(
+#             "Dataset source reader, must support CRS and have wavespectra accessor "
+#         ),
+#         discriminator="model_type",
+#     )
+#     coords: DatasetCoords = Field(
+#         default=DatasetCoords(x="lon", y="lat", t="time", s="site"),
+#         description="Names of the coordinates in the dataset",
+#     )
+
+#     @field_validator("source")
+#     def _validate_source_wavespectra(cls, source, values):
+#         if not hasattr(source.open(), "spec"):
+#             raise ValueError("source must have wavespectra accessor")
+#         return source
+
+#     def _calculate_stats(self, ds: xr.Dataset) -> xr.Dataset:
+#         """Calculate the wave statistics from the spectral data.
+
+#         Parameters
+#         ----------
+#         ds : xr.Dataset
+#             Dataset containing the boundary spectral data.
+
+#         """
+#         stats = ds.spec.stats(["hs", "tp", "dpm", "gamma", "dspr"])
+#         stats["s"] = dspr_to_s(stats.dspr)
+#         return stats.rename(hs="hm0", dpm="mainang", gamma="gammajsp")
