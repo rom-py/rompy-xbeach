@@ -301,7 +301,7 @@ class WaveBoundaryJonstable(WaveBoundarySpectral):
     tp: list[Annotated[float, Field(ge=0.0, le=25.0)]] = Field(
         description="Peak period of the wave spectrum [s]",
     )
-    mainang: list[Annotated[float, Field(ge=180.0, le=360.0)]] = Field(
+    mainang: list[Annotated[float, Field(ge=-180.0, le=360.0)]] = Field(
         description="Main wave angle (nautical convention) [degrees]",
     )
     gammajsp: list[Annotated[float, Field(ge=1.0, le=5.0)]] = Field(

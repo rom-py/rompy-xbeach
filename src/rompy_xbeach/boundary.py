@@ -602,6 +602,15 @@ class BoundaryStationJonstable(BoundaryBaseStation, ABC):
         return bcfile.namelist
 
 
+class BoundaryStationSpectraJonstable(SpectraMixin, BoundaryStationJonstable):
+    """Wave boundary conditions from station type parameters dataset such as SMC."""
+
+    model_type: Literal["station_spectra_jonstable"] = Field(
+        default="station_spectra_jonstable",
+        description="Model type discriminator",
+    )
+
+
 class BoundaryStationParamJonstable(ParamMixin, BoundaryStationJonstable):
     """Wave boundary conditions from station type parameters dataset such as SMC."""
 
@@ -621,39 +630,3 @@ class BoundaryStationParamJonstable(ParamMixin, BoundaryStationJonstable):
         return self
 
 
-# class BoundaryStationSpectraJons(BoundaryStationJons):
-#     """Wave boundary conditions from station type spectra dataset such as SMC."""
-
-#     model_type: Literal["station_spectra_jons"] = Field(
-#         default="xbeach",
-#         description="Model type discriminator",
-#     )
-#     source: SOURCE_SPECTRA_TYPES = Field(
-#         description=(
-#             "Dataset source reader, must support CRS and have wavespectra accessor "
-#         ),
-#         discriminator="model_type",
-#     )
-#     coords: DatasetCoords = Field(
-#         default=DatasetCoords(x="lon", y="lat", t="time", s="site"),
-#         description="Names of the coordinates in the dataset",
-#     )
-
-#     @field_validator("source")
-#     def _validate_source_wavespectra(cls, source, values):
-#         if not hasattr(source.open(), "spec"):
-#             raise ValueError("source must have wavespectra accessor")
-#         return source
-
-#     def _calculate_stats(self, ds: xr.Dataset) -> xr.Dataset:
-#         """Calculate the wave statistics from the spectral data.
-
-#         Parameters
-#         ----------
-#         ds : xr.Dataset
-#             Dataset containing the boundary spectral data.
-
-#         """
-#         stats = ds.spec.stats(["hs", "tp", "dpm", "gamma", "dspr"])
-#         stats["s"] = dspr_to_s(stats.dspr)
-#         return stats.rename(hs="hm0", dpm="mainang", gamma="gammajsp")

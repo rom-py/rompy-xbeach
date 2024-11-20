@@ -10,7 +10,7 @@ from rompy_xbeach.boundary import (
     BoundaryBaseStation,
     BoundaryStationParamJons,
     BoundaryStationSpectraJons,
-    # BoundaryStationSpectraJonstable,
+    BoundaryStationSpectraJonstable,
     BoundaryStationParamJonstable,
 )
 from rompy_xbeach.components.boundary import (
@@ -301,10 +301,31 @@ def test_boundary_station_param_jonstable(tmp_path, source_file, grid, time):
     # Assert bcfile
     assert "bcfile" in bcfile
     bcfile = tmp_path / bcfile["bcfile"]
-    lines = bcfile.read_text().split("\n")
-    for line in lines[1:]:
+    bcdata = bcfile.read_text().split("\n")
+    for line in bcdata[1:]:
         if not line:
             continue
         # Assert all parameters defined in bcfile
         params = line.split()
         assert len(params) == 7
+
+
+def test_boundary_station_spectra_jonstable(tmp_path, source_wavespectra, grid, time):
+    """Test single (bcfile) jons spectral boundary from spectra source."""
+    wb = BoundaryStationSpectraJonstable(
+        id="test",
+        source=source_wavespectra,
+    )
+    bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
+    # Assert bcfile
+    assert "bcfile" in bcfile and "filelist" not in bcfile
+    filename = tmp_path / bcfile["bcfile"]
+    assert filename.is_file()
+    # Assert all parameters defined in bcfile
+    bcdata = filename.read_text().split("\n")
+    for line in bcdata[1:]:
+        if not line:
+            continue
+        params = line.split()
+        assert len(params) == 7
+
