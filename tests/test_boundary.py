@@ -203,6 +203,35 @@ def test_boundary_station_param_jons_filelist(tmp_path, source_file, grid, time)
             assert keys in bcdata
 
 
+def test_boundary_station_param_jons_filelist_float(tmp_path, source_file, grid, time):
+    """Test multiple jons spectral boundary with one param defined as a float."""
+    wb = BoundaryStationParamJons(
+        id="test",
+        source=source_file,
+        coords=dict(s="seapoint"),
+        hm0="phs1",
+        tp="ptp1",
+        mainang="pdp1",
+        gammajsp=3.3,
+        dspr="pspr1",
+    )
+    bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
+    # Assert filelist and not bcfile
+    assert "filelist" in bcfile and "bcfile" not in bcfile
+    filelist = tmp_path / bcfile["filelist"]
+    lines = filelist.read_text().split("\n")
+    for line in lines[1:]:
+        if not line:
+            continue
+        # Assert bcfile created
+        filename = tmp_path / line.split()[-1]
+        assert filename.is_file()
+        # Assert parameters defined in bcfile
+        bcdata = filename.read_text()
+        for keys in ["Hm0", "Tp", "mainang", "gammajsp", "s"]:
+            assert keys in bcdata
+
+
 def test_boundary_station_spectra_jons_bcfile(tmp_path, source_wavespectra, grid, time):
     """Test single (bcfile) jons spectral boundary from spectra source."""
     wb = BoundaryStationSpectraJons(

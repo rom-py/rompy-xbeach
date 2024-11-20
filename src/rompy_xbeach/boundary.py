@@ -458,7 +458,6 @@ class BoundaryStationSpectraJons(BoundaryStationJons):
         return filename
 
 
-# TODO: How to deal with Tp if only Fp is available?
 class BoundaryStationParamJons(BoundaryStationJons):
     """Wave boundary conditions from station type parameters dataset such as SMC."""
 
@@ -516,18 +515,12 @@ class BoundaryStationParamJons(BoundaryStationJons):
             Dataset containing the boundary spectral data.
 
         """
-        # # Drop times where any of the parameters are NaN
-        # for param in ["hm0", "tp", "mainang", "gammajsp", "dspr"]:
-        #     if isinstance(getattr(self, param), str):
-        #         if ds[getattr(self, param)].isnull().any():
-        #             logger.warning(f"Dropping NaN values in source data for {param}")
-        #             ds = ds.dropna(dim=self.coords.t, subset=[getattr(self, param)])
         stats = xr.Dataset()
         for param in ["hm0", "tp", "mainang", "gammajsp"]:
             if isinstance(getattr(self, param), str):
                 stats[param] = ds[getattr(self, param)]
-            elif isinstance:
-                stats[param] = [getattr(self, param)] * ds.time.size
+            elif isinstance(getattr(self, param), float):
+                stats[param] = xr.DataArray(getattr(self, param), coords=stats.coords)
         if self.dspr is not None:
             if isinstance(self.dspr, str):
                 stats["s"] = dspr_to_s(ds[self.dspr])
