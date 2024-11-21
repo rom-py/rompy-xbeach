@@ -212,6 +212,11 @@ class RegularGrid(BaseGrid):
         return float(x.mean()), float(y.mean())
 
     @cached_property
+    def centre(self) -> tuple[float, float]:
+        """Coordinates at the centre of the grid."""
+        return float(self.x.mean()), float(self.y.mean())
+
+    @cached_property
     def transform(self):
         """Cartopy transformation for the grid."""
         return ccrs.epsg(self.crs.to_epsg())
