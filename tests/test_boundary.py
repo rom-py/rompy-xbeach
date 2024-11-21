@@ -59,7 +59,10 @@ def source_wavespectra():
     yield SourceCRSWavespectra(uri=HERE / "data/aus-20230101.nc", reader="read_ww3")
 
 
-def test_wave_boundary_base():
+# =====================================================================================
+# Boundary Components
+# =====================================================================================
+def test_wave_boundary_base_abstract():
     with pytest.raises(TypeError):
         WaveBoundaryBase()
 
@@ -146,16 +149,16 @@ def test_wave_boundary_spectral_jonstable_write(tmp_path):
     assert bcfile.is_file()
 
 
-def test_boundary_station(tmp_path, source_file, grid, time):
-    wb = BoundaryBaseStation(
-        id="test",
-        source=source_file,
-        coords=dict(x="longitude", y="latitude", s="seapoint")
-    )
-    ds = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert ds[wb.coords.s].size == 1
-    tstart, tend = ds.time.to_index().to_pydatetime()[[0, -1]]
-    assert time.start >= tstart and time.end <= tend
+# =====================================================================================
+# Base Boundary
+# =====================================================================================
+def test_boundary_station_abstract(source_file):
+    with pytest.raises(TypeError):
+        BoundaryBaseStation(
+            id="test",
+            source=source_file,
+            coords=dict(x="longitude", y="latitude", s="seapoint")
+        )
 
 
 # =====================================================================================

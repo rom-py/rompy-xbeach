@@ -1,7 +1,7 @@
 """XBEACH Rompy data."""
 
 import logging
-from abc import ABC
+from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Literal, Union, Optional
 from functools import cached_property
@@ -16,10 +16,12 @@ from matplotlib import gridspec
 from pydantic import Field, model_validator, ConfigDict
 from pydantic_numpy.typing import Np2DArray
 
+from wavespectra.core import select
+
 from rompy.core.types import RompyBaseModel
 from rompy.core.data import DataGrid
 from rompy.core.time import TimeRange
-from rompy_xbeach.grid import RegularGrid
+from rompy_xbeach.grid import RegularGrid, Ori
 
 
 logger = logging.getLogger(__name__)
@@ -169,6 +171,119 @@ class SeawardExtensionLinear(SeawardExtensionBase):
         data_ext = -data_ext if not posdwn else data_ext
 
         return data_ext, grid_ext
+
+
+class BaseDataStation(DataGrid, ABC):
+    """Base class to construct XBeach data from stations type data."""
+
+    source: Sources = Field(
+        description="Dataset source reader, must support CRS",
+        discriminator="model_type",
+    )
+    sel_method: Literal["idw", "nearest"] = Field(
+        default="idw",
+        description=(
+            "Defines which function from wavespectra.core.select to use for data "
+            "selection: 'idw' uses sel_idw() for inverse distance weighting, "
+            "'nearest' uses sel_nearest() for nearest neighbor selection"
+        ),
+    )
+    sel_method_kwargs: dict = Field(
+        default={}, description="Keyword arguments for sel_method"
+    )
+    time_buffer: list[int] = Field(
+        default=[1, 1],
+        description=(
+            "Number of source data timesteps to buffer the time range "
+            "if `filter_time` is True"
+        ),
+    )
+
+    @model_validator(mode="after")
+    def validate_coords(self) -> "BaseDataStation":
+        ds = self.ds.copy()
+        for coord in [self.coords.t, self.coords.s]:
+            if coord not in ds.dims:
+                raise ValueError(
+                    f"Coordinate '{coord}' not in source dataset, available "
+                    f"coordinates are {dict(ds.sizes)} - is this a gridded source?"
+                )
+        for coord in [self.coords.x, self.coords.y]:
+            if coord in ds.dims:
+                raise ValueError(
+                    f"'{coord}' must not be a dimension in the stations source "
+                    f"dataset, but it is: {dict(ds.sizes)} - is this a gridded source?"
+                )
+            if coord not in ds.data_vars:
+                raise ValueError(
+                    f"'{coord}' must be a variable in the stations source dataset "
+                    f"but available variables are {list(ds.data_vars)}"
+                )
+        return self
+
+    def _locations(self, grid: RegularGrid) -> tuple[list[float], list[float]]:
+        """Return the x, y locations to generate the data in the source crs."""
+        xoff, yoff = grid.centre
+        bnd = Ori(x=xoff, y=yoff, crs=grid.crs).reproject(self.source.crs)
+        return [bnd.x], [bnd.y]
+
+    def _sel_locations(self, grid) -> xr.Dataset:
+        """Select the offshore boundary point from the stations source dataset."""
+        xbnd, ybnd = self._locations(grid=grid)
+        ds = getattr(select, f"sel_{self.sel_method}")(
+            self.ds,
+            lons=xbnd,
+            lats=ybnd,
+            sitename=self.coords.s,
+            lonname=self.coords.x,
+            latname=self.coords.y,
+            **self.sel_method_kwargs,
+        )
+        return ds
+
+    def _validate_time(self, time):
+        if self.coords.t not in self.source.coordinates:
+            raise ValueError(f"Time coordinate {self.coords.t} not in source")
+        t0, t1 = self.ds.time.to_index().to_pydatetime()[[0, -1]]
+        if time.start < t0 or time.end > t1:
+            raise ValueError(
+                f"time range {time} outside of source time range {t0} - {t1}"
+            )
+
+    @abstractmethod
+    def get(
+        self, destdir: str | Path, grid: RegularGrid, time: Optional[TimeRange] = None
+    ) -> xr.Dataset:
+        """Return a dataset with the selected data.
+
+        Parameters
+        ----------
+        destdir : str | Path
+            Placeholder for the destination directory for saving the boundary data.
+        grid: RegularGrid
+            Grid instance to use for selecting the data points.
+        time: TimeRange, optional
+            The times to filter the data to, only used if `self.crop_data` is True.
+
+        Returns
+        -------
+        ds: xr.Dataset
+            The dataset selected from the grid and times. This method is abstract and
+            must be implemented by the subclass to generate the expected bcfile output.
+
+        Notes
+        -----
+        The `destdir` parameter is a placeholder for the output directory, but is not
+        used in this method. The method is designed to return the dataset for further
+        processing.
+
+        """
+        # Slice the times
+        if self.crop_data and time is not None:
+            self._validate_time(time)
+            self._filter_time(time)
+        # Select the boundary point
+        return self._sel_locations(grid)
 
 
 class XBeachDataGrid(DataGrid):

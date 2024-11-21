@@ -14,6 +14,7 @@ from rompy.core.types import DatasetCoords, RompyBaseModel
 from rompy.core.time import TimeRange
 from rompy.core.boundary import BoundaryWaveStation
 from rompy.core.data import DataGrid
+from rompy_xbeach.data import BaseDataStation
 
 from rompy_xbeach.source import (
     SourceCRSFile,
@@ -119,7 +120,10 @@ class BCFile(RompyBaseModel):
         raise NotImplementedError
 
 
-class BoundaryBase(DataGrid, ABC):
+# =====================================================================================
+# Base and Mixin classes
+# =====================================================================================
+class BoundaryBase:
     """Base class for wave boundary interfaces."""
 
     dbtc: Optional[float] = Field(
@@ -161,7 +165,7 @@ class BoundaryBase(DataGrid, ABC):
         return dsout
 
 
-class BoundaryBaseStation(BoundaryBase, ABC):
+class BoundaryBaseStation(BaseDataStation, BoundaryBase):
     """Base class to construct XBeach wave boundary from stations type data.
 
     This object provides similar functionality to the `BoundaryWaveStation` object in
@@ -175,113 +179,11 @@ class BoundaryBaseStation(BoundaryBase, ABC):
 
     """
 
-    source: SOURCE_SPECTRA_TYPES = Field(
-        description="Dataset source reader, must support CRS",
-        discriminator="model_type",
-    )
-    sel_method: Literal["idw", "nearest"] = Field(
-        default="idw",
-        description=(
-            "Defines which function from wavespectra.core.select to use for data "
-            "selection: 'idw' uses sel_idw() for inverse distance weighting, "
-            "'nearest' uses sel_nearest() for nearest neighbor selection"
-        ),
-    )
-    sel_method_kwargs: dict = Field(
-        default={}, description="Keyword arguments for sel_method"
-    )
-    time_buffer: list[int] = Field(
-        default=[1, 1],
-        description=(
-            "Number of source data timesteps to buffer the time range "
-            "if `filter_time` is True"
-        ),
-    )
-
-    @model_validator(mode="after")
-    def validate_coords(self) -> "BoundaryBaseStation":
-        ds = self.ds.copy()
-        for coord in [self.coords.t, self.coords.s]:
-            if coord not in ds.dims:
-                raise ValueError(
-                    f"Coordinate '{coord}' not in source dataset, "
-                    f"available coordinates are {dict(ds.sizes)}"
-                )
-        for coord in [self.coords.x, self.coords.y]:
-            if coord in ds.dims:
-                raise ValueError(
-                    f"'{coord}' must not be a dimension in the stations source "
-                    f"dataset, but it is: {dict(ds.sizes)} - is this a gridded source?"
-                )
-            if coord not in ds.data_vars:
-                raise ValueError(
-                    f"'{coord}' must be a variable in the stations source dataset "
-                    f"but available variables are {list(ds.data_vars)}"
-                )
-        return self
-
-    def _boundary_points(self, grid: RegularGrid) -> Ori:
-        """Return the x, y point of the offshore boundary in the source crs."""
+    def _locations(self, grid: RegularGrid) -> tuple[list[float], list[float]]:
+        """Return the x, y locations at the offshore boundary in the source crs."""
         xoff, yoff = grid.offshore
         bnd = Ori(x=xoff, y=yoff, crs=grid.crs).reproject(self.source.crs)
-        return bnd.x, bnd.y
-
-    def _sel_boundary(self, grid) -> xr.Dataset:
-        """Select the offshore boundary point from the source dataset."""
-        xbnd, ybnd = self._boundary_points(grid=grid)
-        ds = getattr(select, f"sel_{self.sel_method}")(
-            self.ds,
-            lons=xbnd,
-            lats=ybnd,
-            sitename=self.coords.s,
-            lonname=self.coords.x,
-            latname=self.coords.y,
-            **self.sel_method_kwargs,
-        )
-        return ds
-
-    def _validate_time(self, time):
-        if self.coords.t not in self.source.coordinates:
-            raise ValueError(f"Time coordinate {self.coords.t} not in source")
-        t0, t1 = self.ds.time.to_index().to_pydatetime()[[0, -1]]
-        if time.start < t0 or time.end > t1:
-            raise ValueError(
-                f"time range {time} outside of source time range {t0} - {t1}"
-            )
-
-    def get(
-        self, destdir: str | Path, grid: RegularGrid, time: Optional[TimeRange] = None
-    ) -> xr.Dataset:
-        """Return a dataset with the boundary data.
-
-        Parameters
-        ----------
-        destdir : str | Path
-            Placeholder for the destination directory for saving the boundary data.
-        grid: RegularGrid
-            Grid instance to use for selecting the boundary points.
-        time: TimeRange, optional
-            The times to filter the data to, only used if `self.crop_data` is True.
-
-        Returns
-        -------
-        ds: xr.Dataset
-            The boundary dataset selected from the source. This method is abstract and
-            must be implemented by the subclass to generate the expected bcfile output.
-
-        Notes
-        -----
-        The `destdir` parameter is a placeholder for the output directory, but is not
-        used in this method. The method is designed to return the dataset for further
-        processing.
-
-        """
-        # Slice the times
-        if self.crop_data and time is not None:
-            self._validate_time(time)
-            self._filter_time(time)
-        # Select the boundary point
-        return self._sel_boundary(grid)
+        return [bnd.x], [bnd.y]
 
 
 class SpectraMixin:
@@ -425,9 +327,6 @@ class FilelistMixin:
         return filename
 
 
-# =====================================================================================
-# JONS bctype
-# =====================================================================================
 class BoundaryStationJons(FilelistMixin, BoundaryBaseStation, ABC):
     """Base class for JONS wave boundary from station type dataset such as SMC."""
 
@@ -526,27 +425,6 @@ class BoundaryStationJons(FilelistMixin, BoundaryBaseStation, ABC):
         return bcfile.namelist
 
 
-class BoundaryStationSpectraJons(SpectraMixin, BoundaryStationJons):
-    """Wave boundary conditions from station type spectra dataset such as SMC."""
-
-    model_type: Literal["station_spectra_jons"] = Field(
-        default="xbeach",
-        description="Model type discriminator",
-    )
-
-
-class BoundaryStationParamJons(ParamMixin, BoundaryStationJons):
-    """Wave boundary conditions from station type parameters dataset such as SMC."""
-
-    model_type: Literal["station_param_jons"] = Field(
-        default="station_param_jons",
-        description="Model type discriminator",
-    )
-
-
-# =====================================================================================
-# JONSTABLE bctype
-# =====================================================================================
 class BoundaryStationJonstable(BoundaryBaseStation, ABC):
     """Base class for JONSTABLE wave boundary from station type dataset such as SMC."""
 
@@ -607,6 +485,30 @@ class BoundaryStationJonstable(BoundaryBaseStation, ABC):
         return bcfile.namelist
 
 
+# =====================================================================================
+# JONS bctype
+# =====================================================================================
+class BoundaryStationSpectraJons(SpectraMixin, BoundaryStationJons):
+    """Wave boundary conditions from station type spectra dataset such as SMC."""
+
+    model_type: Literal["station_spectra_jons"] = Field(
+        default="xbeach",
+        description="Model type discriminator",
+    )
+
+
+class BoundaryStationParamJons(ParamMixin, BoundaryStationJons):
+    """Wave boundary conditions from station type parameters dataset such as SMC."""
+
+    model_type: Literal["station_param_jons"] = Field(
+        default="station_param_jons",
+        description="Model type discriminator",
+    )
+
+
+# =====================================================================================
+# JONSTABLE bctype
+# =====================================================================================
 class BoundaryStationSpectraJonstable(SpectraMixin, BoundaryStationJonstable):
     """Wave boundary conditions from station type parameters dataset such as SMC."""
 
