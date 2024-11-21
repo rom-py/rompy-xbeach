@@ -22,7 +22,7 @@ from rompy_xbeach.source import (
     SourceCRSWavespectra,
 )
 from rompy_xbeach.grid import RegularGrid, Ori
-from rompy_xbeach.components.boundary import WaveBoundaryJons, WaveBoundaryJonstable
+from rompy_xbeach.components.boundary import WaveBoundaryJons, WaveBoundaryJonstable, WaveBoundarySWAN
 
 
 logger = logging.getLogger(__name__)
@@ -374,28 +374,9 @@ class ParamMixin:
         return stats
 
 
-# =====================================================================================
-# JONS bctype
-# =====================================================================================
-class BoundaryStationJons(BoundaryBaseStation, ABC):
-    """Base class for JONS wave boundary from station type dataset such as SMC."""
+class FilelistMixin:
+    """Mixin class to write a filelist for multiple boundary files."""
 
-    fnyq: Optional[float] = Field(
-        default=None,
-        description=(
-            "Highest frequency used to create JONSWAP spectrum [Hz] "
-            "(XBeach default: 0.3)"
-        ),
-        ge=0.2,
-        le=1.0,
-    )
-    dfj: Optional[float] = Field(
-        default=None,
-        description=(
-            "Step size frequency used to create JONSWAP spectrum [Hz] within the "
-            "range fnyq/1000 - fnyq/20 (XBeach default: fnyq/200)"
-        ),
-    )
     filelist: Optional[bool] = Field(
         default=True,
         description=(
@@ -403,16 +384,6 @@ class BoundaryStationJons(BoundaryBaseStation, ABC):
             "return a FILELIST.txt file with the list of bcfiles, otherwise return a "
             "single bcfile with the wave parameters interpolated at time.start"
         ),
-    )
-    dbtc: Optional[float] = Field(
-        default=1.0,
-        description=(
-            "Timestep (s) used to describe time series of wave energy and long wave "
-            "flux at offshore boundary"
-        ),
-        ge=0.1,
-        le=2.0,
-        examples=[1.0],
     )
 
     def _write_filelist(
@@ -441,6 +412,40 @@ class BoundaryStationJons(BoundaryBaseStation, ABC):
             for bcfile, duration in zip(bcfiles, durations):
                 f.write(f"{duration:g} {self.dbtc:g} {bcfile.name}\n")
         return filename
+
+
+# =====================================================================================
+# JONS bctype
+# =====================================================================================
+class BoundaryStationJons(FilelistMixin, BoundaryBaseStation, ABC):
+    """Base class for JONS wave boundary from station type dataset such as SMC."""
+
+    fnyq: Optional[float] = Field(
+        default=None,
+        description=(
+            "Highest frequency used to create JONSWAP spectrum [Hz] "
+            "(XBeach default: 0.3)"
+        ),
+        ge=0.2,
+        le=1.0,
+    )
+    dfj: Optional[float] = Field(
+        default=None,
+        description=(
+            "Step size frequency used to create JONSWAP spectrum [Hz] within the "
+            "range fnyq/1000 - fnyq/20 (XBeach default: fnyq/200)"
+        ),
+    )
+    dbtc: Optional[float] = Field(
+        default=1.0,
+        description=(
+            "Timestep (s) used to describe time series of wave energy and long wave "
+            "flux at offshore boundary"
+        ),
+        ge=0.1,
+        le=2.0,
+        examples=[1.0],
+    )
 
     def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryStationJons":
         """Instantiate the boundary object.
@@ -557,7 +562,7 @@ class BoundaryStationJonstable(BoundaryBaseStation, ABC):
         times = data.time.to_index().to_pydatetime()
         logger.debug(f"Creating jonstable boundary for times {times}")
         dts = [dt.total_seconds() for dt in np.diff(times)]
-        bcfile = f"jons-{times[0]:%Y%m%dT%H%M%S}-{times[-1]:%Y%m%dT%H%M%S}.txt"
+        bcfile = f"jonstable-{times[0]:%Y%m%dT%H%M%S}-{times[-1]:%Y%m%dT%H%M%S}.txt"
         kwargs = dict(
             hm0=data.hm0.squeeze().values,
             tp=data.tp.squeeze().values,
@@ -630,3 +635,72 @@ class BoundaryStationParamJonstable(ParamMixin, BoundaryStationJonstable):
         return self
 
 
+# =====================================================================================
+# SWAN bctype
+# =====================================================================================
+class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStation):
+    """Base class for SWAN wave boundary from station type dataset such as SMC."""
+
+    def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryStationJons":
+        """Instantiate the boundary object.
+
+        Parameters
+        ----------
+        data : xr.Dataset
+            Dataset containing single time for the boundary spectral data.
+
+        """
+        assert data.time.size == 1
+        t = data.time.to_index().to_pydatetime()[0]
+        logger.debug(f"Creating boundary for time {t}")
+        bcfile = f"swan-{t:%Y%m%dT%H%M%S}.txt"
+        return WaveBoundarySWAN(
+            bcfile=bcfile,
+            freq=data.freq.squeeze().values,
+            dir=data.dir.squeeze().values,
+            efth=data.efth.squeeze().values,
+            lon=float(data.lon.values),
+            lat=float(data.lat.values),
+        )
+
+    def get(
+        self, destdir: str | Path, grid: RegularGrid, time: Optional[TimeRange] = None
+    ) -> dict:
+        """Write the selected boundary data to file.
+
+        Parameters
+        ----------
+        destdir : str | Path
+            Destination directory for the netcdf file.
+        grid : RegularGrid
+            Grid instance to use for selecting the boundary points.
+        time: TimeRange, optional
+            The times to filter the data to, only used if `self.crop_data` is True.
+
+        Returns
+        -------
+        outfile : Path
+            Path to the boundary bcfile data.
+
+        """
+        ds = super().get(destdir, grid, time)
+        if not self.filelist:
+            # Write a single bcfile at the timerange start
+            ds = ds.interp({self.coords.t: [time.start]})
+            wb = self._instantiate_boundary(ds)
+            bcfile = BCFile(bcfile=wb.write(destdir))
+        else:
+            # Write a bcfile for each timestep in the timerange
+            ds = self._adjust_time(ds, time)
+            times = ds.time.to_index().to_pydatetime()
+            bcfiles = []
+            durations = []
+            for t0, t1 in zip(times[:-1], times[1:]):
+                # Boundary data
+                data = ds.sel(time=[t0])
+                wb = self._instantiate_boundary(data)
+                bcfiles.append(wb.write(destdir))
+                # Boundary duration
+                durations.append((t1 - t0).total_seconds())
+            bcfile = BCFile(filelist=self._write_filelist(destdir, bcfiles, durations))
+        return bcfile.namelist

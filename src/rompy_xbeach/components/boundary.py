@@ -6,7 +6,9 @@ from pathlib import Path
 import logging
 import numpy as np
 import xarray as xr
-from pydantic import BaseModel, Field, model_validator
+import wavespectra
+from pydantic import ConfigDict, Field, model_validator
+from pydantic_numpy.typing import Np1DArray, Np2DArray
 
 from rompy.core.types import RompyBaseModel
 from rompy.core.time import TimeRange
@@ -374,6 +376,23 @@ class WaveBoundarySWAN(WaveBoundarySpectral):
         default="swan",
         description="Model type discriminator",
     )
+    freq: Np1DArray = Field(
+        description="Wave frequency [Hz]",
+    )
+    dir: Np1DArray = Field(
+        description="Wave direction [degrees]",
+    )
+    efth: Np2DArray = Field(
+        description="Energy density [m^2/Hz]",
+    )
+    lon: Optional[float] = Field(
+        default=0.0,
+        description="Longitude of the spectral data",
+    )
+    lat: Optional[float] = Field(
+        default=0.0,
+        description="Latitude of the spectral data",
+    )
     dthetas_xb: Optional[float] = Field(
         default=None,
         description=(
@@ -383,6 +402,36 @@ class WaveBoundarySWAN(WaveBoundarySpectral):
         ge=-360.0,
         le=360.0,
     )
+
+    @property
+    def ds(self) -> xr.DataArray:
+        """Return the SWAN spectrum as an xarray DataArray."""
+        dset = xr.DataArray(
+            np.expand_dims(self.efth, 0),
+            coords={"site": [0.0], "freq": self.freq, "dir": self.dir},
+            dims=["site", "freq", "dir"],
+        ).to_dataset(name="efth")
+        dset["lon"] = [self.lon]
+        dset["lat"] = [self.lat]
+        return dset
+
+    def write(self, destdir: Path) -> str:
+        """Write the boundary data to the bcfile file.
+
+        Parameters
+        ----------
+        destdir : Path
+            Destination directory for the netcdf file.
+
+        Returns
+        -------
+        bcfile : Path
+            Path to the bcfile.
+
+        """
+        bcfile = Path(destdir) / self.bcfile
+        self.ds.spec.to_swan(bcfile)
+        return bcfile
 
 
 class WaveBoundaryGeneral(WaveBoundarySpectral):
