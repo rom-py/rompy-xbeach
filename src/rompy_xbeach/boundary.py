@@ -122,6 +122,17 @@ class BCFile(RompyBaseModel):
 class BoundaryBase(DataGrid, ABC):
     """Base class for wave boundary interfaces."""
 
+    dbtc: Optional[float] = Field(
+        default=1.0,
+        description=(
+            "Timestep (s) used to describe time series of wave energy and long wave "
+            "flux at offshore boundary"
+        ),
+        ge=0.1,
+        le=2.0,
+        examples=[1.0],
+    )
+
     def _adjust_time(self, ds: xr.Dataset, time: TimeRange) -> xr.Dataset:
         """Modify the dataset so the start and end times are included.
 
@@ -538,17 +549,6 @@ class BoundaryStationParamJons(ParamMixin, BoundaryStationJons):
 # =====================================================================================
 class BoundaryStationJonstable(BoundaryBaseStation, ABC):
     """Base class for JONSTABLE wave boundary from station type dataset such as SMC."""
-
-    dbtc: Optional[float] = Field(
-        default=1.0,
-        description=(
-            "Timestep (s) used to describe time series of wave energy and long wave "
-            "flux at offshore boundary"
-        ),
-        ge=0.1,
-        le=2.0,
-        examples=[1.0],
-    )
 
     def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryStationJons":
         """Instantiate the boundary object.

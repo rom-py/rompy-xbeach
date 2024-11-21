@@ -352,24 +352,23 @@ def test_boundary_station_spectra_swan_bcfile(tmp_path, source_wavespectra, grid
     assert hasattr(ds, "spec")
 
 
-# def test_boundary_station_spectra_swan_filelist(tmp_path, source_wavespectra, grid, time):
-#     """Test multiple (filelist) jons spectral boundary from param source."""
-#     wb = BoundaryStationSpectraSwan(
-#         id="test",
-#         source=source_wavespectra,
-#     )
-#     bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
-#     # Assert filelist and not bcfile
-#     assert "filelist" in bcfile and "bcfile" not in bcfile
-#     filelist = tmp_path / bcfile["filelist"]
-#     lines = filelist.read_text().split("\n")
-#     for line in lines[1:]:
-#         if not line:
-#             continue
-#         # Assert bcfile created
-#         filename = tmp_path / line.split()[-1]
-#         assert filename.is_file()
-#         # Assert parameters defined in bcfile
-#         bcdata = filename.read_text()
-#         for keys in ["Hm0", "Tp", "mainang", "gammajsp", "s"]:
-#             assert keys in bcdata
+def test_boundary_station_spectra_swan_filelist(tmp_path, source_wavespectra, grid, time):
+    """Test multiple (filelist) jons spectral boundary from param source."""
+    wb = BoundaryStationSpectraSwan(
+        id="test",
+        source=source_wavespectra,
+    )
+    bcfile = wb.get(destdir=tmp_path, grid=grid, time=time)
+    # Assert filelist and not bcfile
+    assert "filelist" in bcfile and "bcfile" not in bcfile
+    filelist = tmp_path / bcfile["filelist"]
+    lines = filelist.read_text().split("\n")
+    for line in lines[1:]:
+        if not line:
+            continue
+        # Assert bcfile created
+        filename = tmp_path / line.split()[-1]
+        assert filename.is_file()
+        # Assert swan file defined in bcfile
+        ds = read_swan(filename)
+        assert hasattr(ds, "spec")
