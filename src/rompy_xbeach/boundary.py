@@ -1,19 +1,16 @@
 """XBeach wave boundary conditions."""
 
 from abc import ABC, abstractmethod
-from typing import Literal, Union, Optional, Annotated
+from typing import Literal, Union, Optional
 from pathlib import Path
 import logging
 import numpy as np
 import xarray as xr
-from pydantic import BaseModel, Field, model_validator, field_validator
+from pydantic import Field, model_validator, field_validator
 
-from wavespectra.core import select
 
 from rompy.core.types import DatasetCoords, RompyBaseModel
 from rompy.core.time import TimeRange
-from rompy.core.boundary import BoundaryWaveStation
-from rompy.core.data import DataGrid
 from rompy_xbeach.data import BaseDataStation
 
 from rompy_xbeach.source import (
@@ -357,6 +354,18 @@ class BoundaryStationJons(FilelistMixin, BoundaryBaseStation, ABC):
         examples=[1.0],
     )
 
+    @abstractmethod
+    def _calculate_stats(self, ds: xr.Dataset) -> xr.Dataset:
+        """Calculate the Jonswap parameters from the data.
+
+        Parameters
+        ----------
+        ds : xr.Dataset
+            Dataset containing the boundary spectral data.
+
+        """
+        pass
+
     def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryStationJons":
         """Instantiate the boundary object.
 
@@ -456,6 +465,18 @@ class BoundaryStationJonstable(BoundaryBaseStation, ABC):
                     f"Parameter {key} has NaN for one or more times ({list(zip(times, val))})"
                 )
         return WaveBoundaryJonstable(bcfile=bcfile, **kwargs)
+
+    @abstractmethod
+    def _calculate_stats(self, ds: xr.Dataset) -> xr.Dataset:
+        """Calculate the Jonswap parameters from the data.
+
+        Parameters
+        ----------
+        ds : xr.Dataset
+            Dataset containing the boundary spectral data.
+
+        """
+        pass
 
     def get(
         self, destdir: str | Path, grid: RegularGrid, time: Optional[TimeRange] = None
