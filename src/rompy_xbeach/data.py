@@ -182,6 +182,14 @@ class BaseData(DataGrid, ABC):
         ),
         discriminator="model_type",
     )
+    location: Literal["centre", "offshore", "grid"] = Field(
+        default="centre",
+        description=(
+            "Location to extract the data from the source dataset: 'centre' extracts "
+            "the data at the centre of the grid, 'offshore' extracts the data at the "
+            "middle of the offshore grid boundary, 'grid' at all grid points"
+        ),
+    )
     time_buffer: list[int] = Field(
         default=[1, 1],
         description=(
@@ -195,16 +203,6 @@ class BaseData(DataGrid, ABC):
         """Return the coordinate reference system of the data source."""
         return self.ds.rio.crs
 
-    @cached_property
-    def x_dim(self):
-        """Return the x dimension name."""
-        return self.ds.rio.x_dim
-
-    @cached_property
-    def y_dim(self):
-        """Return the y dimension name."""
-        return self.ds.rio.y_dim
-
     def _validate_time(self, time):
         if self.coords.t not in self.source.coordinates:
             raise ValueError(f"Time coordinate {self.coords.t} not in source")
@@ -216,8 +214,6 @@ class BaseData(DataGrid, ABC):
 
     def _adjust_time(self, ds: xr.Dataset, time: TimeRange) -> xr.Dataset:
         """Modify the dataset so the start and end times are included.
-
-        TODO: Ensure there are initial or end times close to the requested time range.
 
         Parameters
         ----------
@@ -242,6 +238,16 @@ class BaseData(DataGrid, ABC):
             ds_end = ds.interp({self.coords.t: [time.end]}, kwargs=kwargs)
             dsout = xr.concat([dsout, ds_end], dim=self.coords.t)
         return dsout
+
+    def _locations(self, grid: RegularGrid) -> tuple[list[float], list[float]]:
+        """Return the x, y locations to generate the data in the source crs."""
+        if self.location == "grid":
+            # return self.grid.x, self.grid.y
+            raise NotImplementedError("Location 'grid' not implemented")
+        else:
+            x, y = getattr(grid, self.location)
+            bnd = Ori(x=x, y=y, crs=grid.crs).reproject(self.crs)
+            return [bnd.x], [bnd.y]
 
     @abstractmethod
     def _sel_locations(self, grid) -> xr.Dataset:
@@ -279,9 +285,10 @@ class BaseData(DataGrid, ABC):
             self._filter_time(time)
         # Select the boundary point
         ds = self._sel_locations(grid)
-        # Ensure time exist at the boundaries
+        # Ensure time exist at the time boundaries
         ds = self._adjust_time(ds, time)
         return ds
+
 
 class BaseDataStation(BaseData):
     """Base class to construct XBeach input from stations type data."""
@@ -321,12 +328,6 @@ class BaseDataStation(BaseData):
                 )
         return self
 
-    def _locations(self, grid: RegularGrid) -> tuple[list[float], list[float]]:
-        """Return the x, y locations to generate the data in the source crs."""
-        xoff, yoff = grid.centre
-        bnd = Ori(x=xoff, y=yoff, crs=grid.crs).reproject(self.source.crs)
-        return [bnd.x], [bnd.y]
-
     def _sel_locations(self, grid) -> xr.Dataset:
         """Select the offshore boundary point from the stations source dataset."""
         xbnd, ybnd = self._locations(grid=grid)
@@ -356,24 +357,16 @@ class BaseDataGrid(BaseData):
         default={},
         description="Keyword arguments for sel_method"
     )
-    location: Literal["centre", "offshore", "grid"] = Field(
-        default="centre",
-        description=(
-            "Location to extract the data from the source dataset: 'centre' extracts "
-            "the data at the centre of the grid, 'offshore' extracts the data at the "
-            "middle of the offshore grid boundary, 'grid' at all grid points"
-        ),
-    )
 
-    def _locations(self, grid: RegularGrid) -> tuple[list[float], list[float]]:
-        """Return the x, y locations to generate the data in the source crs."""
-        if self.location == "grid":
-            # return self.grid.x, self.grid.y
-            raise NotImplementedError("Location 'grid' not implemented")
-        else:
-            x, y = getattr(grid, self.location)
-            bnd = Ori(x=x, y=y, crs=grid.crs).reproject(self.crs)
-            return [bnd.x], [bnd.y]
+    @cached_property
+    def x_dim(self):
+        """Return the x dimension name."""
+        return self.ds.rio.x_dim
+
+    @cached_property
+    def y_dim(self):
+        """Return the y dimension name."""
+        return self.ds.rio.y_dim
 
     def _sel_locations(self, grid) -> xr.Dataset:
         """Select the offshore boundary point from the stations source dataset."""
