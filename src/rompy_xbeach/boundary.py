@@ -133,54 +133,14 @@ class BoundaryBase:
         le=2.0,
         examples=[1.0],
     )
-
-    def _adjust_time(self, ds: xr.Dataset, time: TimeRange) -> xr.Dataset:
-        """Modify the dataset so the start and end times are included.
-
-        Parameters
-        ----------
-        ds : xr.Dataset
-            Dataset containing the boundary data to adjust.
-        time : TimeRange
-            The time range to adjust the dataset to.
-
-        Returns
-        -------
-        dsout : xr.Dataset
-            Dataset with the adjusted time range.
-
-        """
-        dsout = ds.sel(time=slice(time.start, time.end))
-        kwargs = {"fill_value": "extrapolate"}
-        times = ds.time.to_index().to_pydatetime()
-        if time.start not in times:
-            ds_start = ds.interp({self.coords.t: [time.start]}, kwargs=kwargs)
-            dsout = xr.concat([ds_start, dsout], dim=self.coords.t)
-        if time.end not in times:
-            ds_end = ds.interp({self.coords.t: [time.end]}, kwargs=kwargs)
-            dsout = xr.concat([dsout, ds_end], dim=self.coords.t)
-        return dsout
+    location: Literal["offshore"] = Field(
+        default="offshore",
+        description="Location to extract the data from the source dataset",
+    )
 
 
-class BoundaryBaseStation(BaseDataStation, BoundaryBase):
-    """Base class to construct XBeach wave boundary from stations type data.
-
-    This object provides similar functionality to the `BoundaryWaveStation` object in
-    that it uses wavespectra to select points from a stations (non-gridded) type source
-    data, but it also supports non-spectral data.
-
-    Notes
-    -----
-    The `time_buffer` field is redefined from the base class to define new default
-    values that ensure the time range is always buffered by one timestep.
-
-    """
-
-    def _locations(self, grid: RegularGrid) -> tuple[list[float], list[float]]:
-        """Return the x, y locations at the offshore boundary in the source crs."""
-        xoff, yoff = grid.offshore
-        bnd = Ori(x=xoff, y=yoff, crs=grid.crs).reproject(self.source.crs)
-        return [bnd.x], [bnd.y]
+class BoundaryBaseStation(BoundaryBase, BaseDataStation):
+    """Base class to construct XBeach wave boundary from stations type data."""
 
 
 class SpectraMixin:

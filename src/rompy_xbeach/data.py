@@ -173,13 +173,119 @@ class SeawardExtensionLinear(SeawardExtensionBase):
         return data_ext, grid_ext
 
 
-class BaseDataStation(DataGrid, ABC):
-    """Base class to construct XBeach data from stations type data."""
-
+class BaseData(DataGrid, ABC):
+    """Xbeach data class."""
     source: Sources = Field(
-        description="Dataset source reader, must support CRS",
+        description=(
+            "Source reader, must return a dataset with "
+            "the rioxarray accessor in the open method"
+        ),
         discriminator="model_type",
     )
+    time_buffer: list[int] = Field(
+        default=[1, 1],
+        description=(
+            "Number of source data timesteps to buffer the time range "
+            "if `filter_time` is True"
+        ),
+    )
+
+    @cached_property
+    def crs(self):
+        """Return the coordinate reference system of the data source."""
+        return self.ds.rio.crs
+
+    @cached_property
+    def x_dim(self):
+        """Return the x dimension name."""
+        return self.ds.rio.x_dim
+
+    @cached_property
+    def y_dim(self):
+        """Return the y dimension name."""
+        return self.ds.rio.y_dim
+
+    def _validate_time(self, time):
+        if self.coords.t not in self.source.coordinates:
+            raise ValueError(f"Time coordinate {self.coords.t} not in source")
+        t0, t1 = self.ds.time.to_index().to_pydatetime()[[0, -1]]
+        if time.start < t0 or time.end > t1:
+            raise ValueError(
+                f"time range {time} outside of source time range {t0} - {t1}"
+            )
+
+    def _adjust_time(self, ds: xr.Dataset, time: TimeRange) -> xr.Dataset:
+        """Modify the dataset so the start and end times are included.
+
+        TODO: Ensure there are initial or end times close to the requested time range.
+
+        Parameters
+        ----------
+        ds : xr.Dataset
+            Dataset containing the boundary data to adjust.
+        time : TimeRange
+            The time range to adjust the dataset to.
+
+        Returns
+        -------
+        dsout : xr.Dataset
+            Dataset with the adjusted time range.
+
+        """
+        dsout = ds.sel(time=slice(time.start, time.end))
+        kwargs = {"fill_value": "extrapolate"}
+        times = ds.time.to_index().to_pydatetime()
+        if time.start not in times:
+            ds_start = ds.interp({self.coords.t: [time.start]}, kwargs=kwargs)
+            dsout = xr.concat([ds_start, dsout], dim=self.coords.t)
+        if time.end not in times:
+            ds_end = ds.interp({self.coords.t: [time.end]}, kwargs=kwargs)
+            dsout = xr.concat([dsout, ds_end], dim=self.coords.t)
+        return dsout
+
+    @abstractmethod
+    def _sel_locations(self, grid) -> xr.Dataset:
+        """Select the data from the source dataset."""
+        pass
+
+    @abstractmethod
+    def get(
+        self,
+        destdir: str | Path,
+        grid: RegularGrid,
+        time: Optional[TimeRange] = None,
+    ) -> xr.Dataset:
+        """Write the data source to a new location.
+
+        Parameters
+        ----------
+        destdir : str | Path
+            The destination directory to write data file to.
+        grid: rompy_xbeach.grid.RegularGrid
+            The grid to interpolate the data to.
+        time: TimeRange, optional
+            The times to filter the data to, only used if `self.filter_time` is True.
+
+        Returns
+        -------
+        data: xr.Dataset
+            The dataset selected from the grid and times. This method is abstract and
+            must be implemented by the subclass to generate the expected xbeach output.
+
+        """
+        # Slice the times
+        if self.crop_data and time is not None:
+            self._validate_time(time)
+            self._filter_time(time)
+        # Select the boundary point
+        ds = self._sel_locations(grid)
+        # Ensure time exist at the boundaries
+        ds = self._adjust_time(ds, time)
+        return ds
+
+class BaseDataStation(BaseData):
+    """Base class to construct XBeach input from stations type data."""
+
     sel_method: Literal["idw", "nearest"] = Field(
         default="idw",
         description=(
@@ -189,14 +295,8 @@ class BaseDataStation(DataGrid, ABC):
         ),
     )
     sel_method_kwargs: dict = Field(
-        default={}, description="Keyword arguments for sel_method"
-    )
-    time_buffer: list[int] = Field(
-        default=[1, 1],
-        description=(
-            "Number of source data timesteps to buffer the time range "
-            "if `filter_time` is True"
-        ),
+        default={},
+        description="Keyword arguments for sel_method"
     )
 
     @model_validator(mode="after")
@@ -241,54 +341,52 @@ class BaseDataStation(DataGrid, ABC):
         )
         return ds
 
-    def _validate_time(self, time):
-        if self.coords.t not in self.source.coordinates:
-            raise ValueError(f"Time coordinate {self.coords.t} not in source")
-        t0, t1 = self.ds.time.to_index().to_pydatetime()[[0, -1]]
-        if time.start < t0 or time.end > t1:
-            raise ValueError(
-                f"time range {time} outside of source time range {t0} - {t1}"
-            )
 
-    @abstractmethod
-    def get(
-        self, destdir: str | Path, grid: RegularGrid, time: Optional[TimeRange] = None
-    ) -> xr.Dataset:
-        """Return a dataset with the selected data.
+class BaseDataGrid(BaseData):
+    """Base class to construct XBeach input from gridded type data."""
 
-        Parameters
-        ----------
-        destdir : str | Path
-            Placeholder for the destination directory for saving the boundary data.
-        grid: RegularGrid
-            Grid instance to use for selecting the data points.
-        time: TimeRange, optional
-            The times to filter the data to, only used if `self.crop_data` is True.
+    sel_method: Literal["interp", "sel"] = Field(
+        default="interp",
+        description=(
+            "Defines which function from xarray to use for data selection: 'interp' "
+            "uses interp() for interpolation, 'sel' uses sel() for selection"
+        ),
+    )
+    sel_method_kwargs: dict = Field(
+        default={},
+        description="Keyword arguments for sel_method"
+    )
+    location: Literal["centre", "offshore", "grid"] = Field(
+        default="centre",
+        description=(
+            "Location to extract the data from the source dataset: 'centre' extracts "
+            "the data at the centre of the grid, 'offshore' extracts the data at the "
+            "middle of the offshore grid boundary, 'grid' at all grid points"
+        ),
+    )
 
-        Returns
-        -------
-        ds: xr.Dataset
-            The dataset selected from the grid and times. This method is abstract and
-            must be implemented by the subclass to generate the expected bcfile output.
+    def _locations(self, grid: RegularGrid) -> tuple[list[float], list[float]]:
+        """Return the x, y locations to generate the data in the source crs."""
+        if self.location == "grid":
+            # return self.grid.x, self.grid.y
+            raise NotImplementedError("Location 'grid' not implemented")
+        else:
+            x, y = getattr(grid, self.location)
+            bnd = Ori(x=x, y=y, crs=grid.crs).reproject(self.crs)
+            return [bnd.x], [bnd.y]
 
-        Notes
-        -----
-        The `destdir` parameter is a placeholder for the output directory, but is not
-        used in this method. The method is designed to return the dataset for further
-        processing.
-
-        """
-        # Slice the times
-        if self.crop_data and time is not None:
-            self._validate_time(time)
-            self._filter_time(time)
-        # Select the boundary point
-        return self._sel_locations(grid)
+    def _sel_locations(self, grid) -> xr.Dataset:
+        """Select the offshore boundary point from the stations source dataset."""
+        xi, yi = self._locations(grid=grid)
+        ds = self.ds[self.variables]
+        ds = getattr(ds, self.sel_method)(
+            {self.x_dim: xi, self.y_dim: yi}, **self.sel_method_kwargs
+        )
+        return ds
 
 
 class XBeachDataGrid(DataGrid):
     """Xbeach data class."""
-    model_config = ConfigDict(extra="forbid")
     model_type: Literal["xbeach_data_grid"] = Field(
         default="xbeach_data_grid",
         description="Model type discriminator",
