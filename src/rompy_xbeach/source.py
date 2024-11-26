@@ -10,6 +10,7 @@ import pandas as pd
 import xarray as xr
 import rioxarray
 from scipy.interpolate import griddata
+import oceantide
 
 from rompy.core.source import SourceBase, SourceDataset, SourceFile, SourceIntake, SourceWavespectra
 from rompy_xbeach.grid import CRS_TYPES, validate_crs
@@ -185,6 +186,44 @@ class SourceCRSWavespectra(SourceMixin, SourceWavespectra):
     to most wavespectra datasets.
 
     """
+    crs: CRS_TYPES = Field(
+        default=4326,
+        description="Coordinate reference system of the source data",
+    )
+    x_dim: str = Field(
+        default="lon",
+        description="Name of the x dimension",
+    )
+    y_dim: str = Field(
+        default="lat",
+        description="Name of the y dimension",
+    )
+
+
+class SourceOceantide(SourceBase):
+    """Geotiff source class."""
+
+    model_type: Literal["oceantide"] = Field(
+        default="oceantide",
+        description="Model type discriminator",
+    )
+    reader: str = Field(
+        description="Name of the oceantide reader to use, e.g., read_swan",
+    )
+    kwargs: dict = Field(
+        default={},
+        description="Keyword arguments to pass to the oceantide reader",
+    )
+
+    def _open(self) -> xr.Dataset:
+        """This method needs to return an xarray Dataset object."""
+        ds = getattr(oceantide, self.reader)(**self.kwargs)
+        return ds
+
+
+class SourceCRSOceantide(SourceMixin, SourceOceantide):
+    """Source dataset with CRS support from intake catalog."""
+
     crs: CRS_TYPES = Field(
         default=4326,
         description="Coordinate reference system of the source data",
