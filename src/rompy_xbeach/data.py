@@ -286,7 +286,8 @@ class BaseData(DataGrid, ABC):
         # Select the boundary point
         ds = self._sel_locations(grid)
         # Ensure time exist at the time boundaries
-        ds = self._adjust_time(ds, time)
+        if time is not None:
+            ds = self._adjust_time(ds, time)
         return ds
 
 
@@ -347,14 +348,14 @@ class BaseDataGrid(BaseData):
     """Base class to construct XBeach input from gridded type data."""
 
     sel_method: Literal["interp", "sel"] = Field(
-        default="interp",
+        default="sel",
         description=(
             "Defines which function from xarray to use for data selection: 'interp' "
             "uses interp() for interpolation, 'sel' uses sel() for selection"
         ),
     )
     sel_method_kwargs: dict = Field(
-        default={},
+        default={"method": "nearest"},
         description="Keyword arguments for sel_method"
     )
 
