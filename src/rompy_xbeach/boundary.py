@@ -123,6 +123,10 @@ class BCFile(RompyBaseModel):
 class BoundaryBase:
     """Base class for wave boundary interfaces."""
 
+    id: str = Field(
+        default="wbc",
+        description="Identifier for this data, used to define the bcfile name"
+    )
     dbtc: Optional[float] = Field(
         default=1.0,
         description=(
@@ -287,6 +291,10 @@ class FilelistMixin:
 class BoundaryStationJons(FilelistMixin, BoundaryBaseStation, ABC):
     """Base class for JONS wave boundary from station type dataset such as SMC."""
 
+    id: str = Field(
+        default="jons",
+        description="Identifier for this data, used to define the bcfile name"
+    )
     fnyq: Optional[float] = Field(
         default=None,
         description=(
@@ -346,7 +354,7 @@ class BoundaryStationJons(FilelistMixin, BoundaryBaseStation, ABC):
                 kwargs[param] = float(data[param].squeeze())
             elif param in data and np.isnan(data[param]):
                 raise ValueError(f"Parameter {param} is NaN for {data.time}")
-        bcfile = f"jons-{t:%Y%m%dT%H%M%S}.txt"
+        bcfile = f"{self.id}-{t:%Y%m%dT%H%M%S}.txt"
         return WaveBoundaryJons(bcfile=bcfile, fnyq=self.fnyq, dfj=self.dfj, **kwargs)
 
     def get(
@@ -397,6 +405,10 @@ class BoundaryStationJons(FilelistMixin, BoundaryBaseStation, ABC):
 class BoundaryStationJonstable(BoundaryBaseStation, ABC):
     """Base class for JONSTABLE wave boundary from station type dataset such as SMC."""
 
+    id: str = Field(
+        default="jonstable",
+        description="Identifier for this data, used to define the bcfile name"
+    )
     def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryStationJons":
         """Instantiate the boundary object.
 
@@ -409,7 +421,7 @@ class BoundaryStationJonstable(BoundaryBaseStation, ABC):
         times = data.time.to_index().to_pydatetime()
         logger.debug(f"Creating jonstable boundary for times {times}")
         dts = [dt.total_seconds() for dt in np.diff(times)]
-        bcfile = f"jonstable-{times[0]:%Y%m%dT%H%M%S}-{times[-1]:%Y%m%dT%H%M%S}.txt"
+        bcfile = f"{self.id}-{times[0]:%Y%m%dT%H%M%S}-{times[-1]:%Y%m%dT%H%M%S}.txt"
         kwargs = dict(
             hm0=data.hm0.squeeze().values,
             tp=data.tp.squeeze().values,
@@ -524,6 +536,15 @@ class BoundaryStationParamJonstable(ParamMixin, BoundaryStationJonstable):
 class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStation):
     """Base class for SWAN wave boundary from station type dataset such as SMC."""
 
+    id: str = Field(
+        default="swan",
+        description="Identifier for this data, used to define the bcfile name"
+    )
+    model_type: Literal["station_spectra_swan"] = Field(
+        default="station_spectra_swan",
+        description="Model type discriminator",
+    )
+
     def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryStationJons":
         """Instantiate the boundary object.
 
@@ -536,7 +557,7 @@ class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStatio
         assert data.time.size == 1
         t = data.time.to_index().to_pydatetime()[0]
         logger.debug(f"Creating boundary for time {t}")
-        bcfile = f"swan-{t:%Y%m%dT%H%M%S}.txt"
+        bcfile = f"{self.id}-{t:%Y%m%dT%H%M%S}.txt"
         return WaveBoundarySWAN(
             bcfile=bcfile,
             freq=data.freq.squeeze().values,

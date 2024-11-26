@@ -2,8 +2,8 @@
 
 import logging
 from pathlib import Path
-from typing import Literal
-from pydantic import Field, ConfigDict
+from typing import Literal, Optional, Union, Annotated
+from pydantic import Field
 
 from rompy_xbeach.types import XBeachBaseConfig, WbcEnum
 from rompy_xbeach.grid import RegularGrid
@@ -27,6 +27,25 @@ HERE = Path(__file__).parent
 # TODO: tint: not in manual, available ones are tintc, ting, tintm, tintp
 
 
+from rompy_xbeach.boundary import (
+    BoundaryStationSpectraJons,
+    BoundaryStationParamJons,
+    BoundaryStationSpectraJonstable,
+    BoundaryStationParamJonstable,
+    BoundaryStationSpectraSwan,
+)
+
+INPUT_TYPES = Annotated[
+    Union[
+        BoundaryStationSpectraJons,
+        BoundaryStationParamJons,
+        BoundaryStationSpectraJonstable,
+        BoundaryStationParamJonstable,
+        BoundaryStationSpectraSwan,
+    ],
+    Field(description="Input data components", discriminator="model_type"),
+]
+
 class Config(XBeachBaseConfig):
     """Xbeach config class."""
     model_type: Literal["xbeach"] = Field(
@@ -43,6 +62,7 @@ class Config(XBeachBaseConfig):
     bathy: XBeachBathy = Field(
         description="The XBeach bathymetry object",
     )
+    input: list[INPUT_TYPES] = Field(default=[])
     tstart: float = Field(
         description="Start time of output, in morphological time (s)",
         default=0.0,
@@ -303,6 +323,11 @@ class Config(XBeachBaseConfig):
 
         # Initial namelist
         namelist = self.model_dump(exclude=["grid", "bathy"])
+
+        d = {}
+        for input in self.input:
+            d.update(input.get(staging_dir, self.grid, period))
+        # import ipdb; ipdb.set_trace()        
 
         # Bathy data interface
         namelist.update(self.bathy.namelist)
