@@ -74,59 +74,12 @@ def s_to_dspr(s: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
     return np.degrees(np.sqrt(2 / (s + 1)))
 
 
-class BCFile(RompyBaseModel):
-    """Base class for writing XBeach boundary condition files."""
-
-    bcfile: Optional[Path] = Field(
-        default=None,
-        description="Path to the boundary condition file",
-    )
-    filelist: Optional[Path] = Field(
-        default=None,
-        description="Path to the filelist file",
-    )
-
-    @model_validator(mode="after")
-    def bcfile_or_filelist(self) -> "BCFile":
-        if not any([self.bcfile, self.filelist]):
-            raise ValueError("Either bcfile or filelist must be set")
-        return self
-
-    @property
-    def namelist(self):
-        """Return the namelist representation of the bcfile."""
-        if self.filelist is not None:
-            return dict(filelist=self.filelist.name)
-        else:
-            return dict(bcfile=self.bcfile.name)
-
-    def write(self, destdir: str | Path) -> Path:
-        """Write the boundary condition file to the destination directory.
-
-        Parameters
-        ----------
-        destdir : str | Path
-            Destination directory for the bcfile.
-
-        Returns
-        -------
-        outfile : Path
-            Path to the bcfile.
-
-        """
-        raise NotImplementedError
-
-
 # =====================================================================================
 # Base and Mixin classes
 # =====================================================================================
 class BoundaryBase:
     """Base class for wave boundary interfaces."""
 
-    id: str = Field(
-        default="wbc",
-        description="Identifier for this data, used to define the bcfile name"
-    )
     dbtc: Optional[float] = Field(
         default=1.0,
         description=(
@@ -280,7 +233,7 @@ class FilelistMixin:
             Path to the filelist file.
 
         """
-        filename = destdir / "filelist.txt"
+        filename = destdir / f"{self.id}-filelist.txt"
         with open(filename, "w") as f:
             f.write("FILELIST\n")
             for bcfile, duration in zip(bcfiles, durations):
@@ -291,9 +244,9 @@ class FilelistMixin:
 class BoundaryStationJons(FilelistMixin, BoundaryBaseStation, ABC):
     """Base class for JONS wave boundary from station type dataset such as SMC."""
 
-    id: str = Field(
+    id: Literal["jons"] = Field(
         default="jons",
-        description="Identifier for this data, used to define the bcfile name"
+        description="Boundary type identifier"
     )
     fnyq: Optional[float] = Field(
         default=None,
@@ -325,6 +278,9 @@ class BoundaryStationJons(FilelistMixin, BoundaryBaseStation, ABC):
     @abstractmethod
     def _calculate_stats(self, ds: xr.Dataset) -> xr.Dataset:
         """Calculate the Jonswap parameters from the data.
+
+        This method should be implemented in the subclass as it will be different for
+        spectra and params data types.
 
         Parameters
         ----------
@@ -383,7 +339,7 @@ class BoundaryStationJons(FilelistMixin, BoundaryBaseStation, ABC):
             ds = ds.interp({self.coords.t: [time.start]})
             data = self._calculate_stats(ds)
             wb = self._instantiate_boundary(data)
-            bcfile = BCFile(bcfile=wb.write(destdir))
+            bcfile = wb.write(destdir)
         else:
             # Write a bcfile for each timestep in the timerange
             ds = self._adjust_time(ds, time)
@@ -398,16 +354,16 @@ class BoundaryStationJons(FilelistMixin, BoundaryBaseStation, ABC):
                 bcfiles.append(wb.write(destdir))
                 # Boundary duration
                 durations.append((t1 - t0).total_seconds())
-            bcfile = BCFile(filelist=self._write_filelist(destdir, bcfiles, durations))
-        return bcfile.namelist
+            bcfile = self._write_filelist(destdir, bcfiles, durations)
+        return {"wbctype": self.id, "bcfile": bcfile.name}
 
 
 class BoundaryStationJonstable(BoundaryBaseStation, ABC):
     """Base class for JONSTABLE wave boundary from station type dataset such as SMC."""
 
-    id: str = Field(
+    id: Literal["jonstable"] = Field(
         default="jonstable",
-        description="Identifier for this data, used to define the bcfile name"
+        description="Boundary type identifier"
     )
     def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryStationJons":
         """Instantiate the boundary object.
@@ -474,8 +430,8 @@ class BoundaryStationJonstable(BoundaryBaseStation, ABC):
         ds = self._adjust_time(ds, time)
         data = self._calculate_stats(ds)
         wb = self._instantiate_boundary(data)
-        bcfile = BCFile(bcfile=wb.write(destdir))
-        return bcfile.namelist
+        bcfile = wb.write(destdir)
+        return {"wbctype": self.id, "bcfile": bcfile.name}
 
 
 # =====================================================================================
@@ -536,9 +492,9 @@ class BoundaryStationParamJonstable(ParamMixin, BoundaryStationJonstable):
 class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStation):
     """Base class for SWAN wave boundary from station type dataset such as SMC."""
 
-    id: str = Field(
+    id: Literal["swan"] = Field(
         default="swan",
-        description="Identifier for this data, used to define the bcfile name"
+        description="Boundary type identifier"
     )
     model_type: Literal["station_spectra_swan"] = Field(
         default="station_spectra_swan",
@@ -592,7 +548,7 @@ class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStatio
             # Write a single bcfile at the timerange start
             ds = ds.interp({self.coords.t: [time.start]})
             wb = self._instantiate_boundary(ds)
-            bcfile = BCFile(bcfile=wb.write(destdir))
+            bcfile = wb.write(destdir)
         else:
             # Write a bcfile for each timestep in the timerange
             ds = self._adjust_time(ds, time)
@@ -606,5 +562,5 @@ class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStatio
                 bcfiles.append(wb.write(destdir))
                 # Boundary duration
                 durations.append((t1 - t0).total_seconds())
-            bcfile = BCFile(filelist=self._write_filelist(destdir, bcfiles, durations))
-        return bcfile.namelist
+            bcfile = self._write_filelist(destdir, bcfiles, durations)
+        return {"wbctype": self.id, "bcfile": bcfile.name}
