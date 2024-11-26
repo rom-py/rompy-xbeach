@@ -13,31 +13,6 @@ from rompy.core.types import RompyBaseModel
 logger = logging.getLogger(__name__)
 
 
-class Wind(RompyBaseModel):
-    """XBeach basic wind definition."""
-    windv: float = Field(
-        description="Wind velocity",
-        ge=0.0,
-    )
-    windth: float = Field(
-        description="Wind direction",
-        ge=-180.0,
-        le=360.0,
-    )
-
-    @property
-    def namelist(self) -> dict:
-        """Return the wind namelist."""
-        return {
-            "windv": self.windv,
-            "windth": self.windth,
-        }
-
-    def write(self, destdir: Optional[Union[str | Path]] = None):
-        """Write the wind file."""
-        return self.namelist
-
-
 class BaseFile(RompyBaseModel, ABC):
     """Base file definition."""
 
@@ -81,6 +56,31 @@ class BaseFile(RompyBaseModel, ABC):
         filename = Path(destdir) / self.filename
         np.savetxt(filename, self.data, fmt=self.fmt)
         return filename
+
+
+class Wind(RompyBaseModel):
+    """XBeach basic wind definition."""
+    windv: float = Field(
+        description="Wind velocity",
+        ge=0.0,
+    )
+    windth: float = Field(
+        description="Wind direction",
+        ge=-180.0,
+        le=360.0,
+    )
+
+    @property
+    def namelist(self) -> dict:
+        """Return the wind namelist."""
+        return {
+            "windv": self.windv,
+            "windth": self.windth,
+        }
+
+    def write(self, destdir: Optional[Union[str | Path]] = None):
+        """Write the wind file."""
+        return self.namelist
 
 
 class WindFile(BaseFile):

@@ -133,7 +133,7 @@ class BaseWind(BaseData, ABC):
         filename = f"windfile-{time.start:%Y%m%dT%H%M%S}-{time.end:%Y%m%dT%H%M%S}.txt"
         logger.debug(f"Creating wind file {filename} with times {times}")
         wf = WindFile(
-            windfile=filename,
+            filename=filename,
             tsec=[(t - times[0]).total_seconds() for t in times],
             windv=wspd.squeeze().values,
             windth=wdir.squeeze().values,
@@ -233,19 +233,19 @@ class TideGrid(BaseDataGrid):
 
         # Calculate the surface elevation
         ds = ds.tide.predict(times=time.date_range, components=["h"], time_chunk=None)
-        import ipdb; ipdb.set_trace()
+        # import ipdb; ipdb.set_trace()
 
-        # Write the data
-        times = ds.time.to_index().to_pydatetime()
-        wspd, wdir = self.spddir(ds)
-        filename = f"windfile-{time.start:%Y%m%dT%H%M%S}-{time.end:%Y%m%dT%H%M%S}.txt"
-        logger.debug(f"Creating wind file {filename} with times {times}")
-        wf = WindFile(
-            windfile=filename,
-            tsec=[(t - times[0]).total_seconds() for t in times],
-            windv=wspd.squeeze().values,
-            windth=wdir.squeeze().values,
-        )
-        wf.write(destdir)
+        # # Write the data
+        # times = ds.time.to_index().to_pydatetime()
+        # wspd, wdir = self.spddir(ds)
+        # filename = f"windfile-{time.start:%Y%m%dT%H%M%S}-{time.end:%Y%m%dT%H%M%S}.txt"
+        # logger.debug(f"Creating wind file {filename} with times {times}")
+        # wf = WindFile(
+        #     windfile=filename,
+        #     tsec=[(t - times[0]).total_seconds() for t in times],
+        #     windv=wspd.squeeze().values,
+        #     windth=wdir.squeeze().values,
+        # )
+        # wf.write(destdir)
 
-        return {"windfile": filename}
+        # return {"windfile": filename}
