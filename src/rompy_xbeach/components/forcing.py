@@ -104,38 +104,16 @@ class WindFile(BaseFile):
         return {"windfile": self.filename}
 
 
-class TideFile(RompyBaseModel):
+class TideFile(BaseFile):
     """XBeach tide file definition."""
 
-    tidefile: str = Field(
-        default="tide.txt",
-        description="Tide filename",
-    )
     tsec: list[float] = Field(
         description="Time (s)",
     )
     zs: list[float] = Field(
         description="Tide elevation (m)",
     )
-    fmt: str = Field(
-        default="%10.2f",
-        description="Format string for writing the wind file",
-    )
-
-    @model_validator(mode="after")
-    def same_sizes(self) -> "WindFile":
-        for param in ["tsec", "windv", "windth"]:
-            param_size = len(getattr(self, param))
-            if param_size != len(self):
-                raise ValueError("All input parameters must be the same size")
-        return self
-
-    def __len__(self):
-        return len(self.tsec)
-
-    @property
-    def data(self):
-        return np.column_stack((self.tsec, self.windv, self.windth))
+    _params = ["zs"]
 
     @property
     def namelist(self) -> dict:
@@ -143,9 +121,3 @@ class TideFile(RompyBaseModel):
         return {
             "filename": self.filename,
         }
-
-    def write(self, destdir: str | Path):
-        """Write the wind file."""
-        windfile = Path(destdir) / self.windfile
-        np.savetxt(windfile, self.data, fmt=self.fmt)
-        return windfile
