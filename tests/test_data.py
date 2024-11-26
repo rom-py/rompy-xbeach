@@ -1,9 +1,8 @@
 from pathlib import Path
 import pytest
-import xarray as xr
 
 from rompy_xbeach.data import XBeachDataGrid, XBeachBathy, SeawardExtensionLinear
-from rompy_xbeach.source import SourceGeotiff, SourceXYZ, SourceCRSDataset, SourceCRSFile, SourceCRSIntake
+from rompy_xbeach.source import SourceGeotiff
 from rompy_xbeach.grid import Ori, RegularGrid
 
 
@@ -18,53 +17,6 @@ def tif_path():
 @pytest.fixture(scope="module")
 def source():
     yield SourceGeotiff(filename=HERE / "data/bathy.tif")
-
-
-def test_source_xyz():
-    source = SourceXYZ(
-        filename=HERE / "data/bathy_xyz.zip",
-        read_csv_kwargs=dict(sep="\t"),
-        xcol="easting",
-        ycol="northing",
-        zcol="elevation",
-        crs=4326,
-        res=0.0005,
-    )
-    self = source
-    ds = source._open()
-    assert ds.rio.crs == 4326
-    assert ds.rio.x_dim == "x"
-    assert ds.rio.y_dim == "y"
-
-
-def test_source_crs_dataset(tif_path):
-    ds = xr.open_dataset(tif_path, engine="rasterio", band_as_variable=True)
-    ds = ds.rio.reproject("epsg:28350").rename(x="easting", y="northing")
-    source = SourceCRSDataset(obj=ds, crs=28350, x_dim="easting", y_dim="northing")
-    ds2 = source._open()
-    assert ds.rio.crs == 28350
-    assert ds.rio.x_dim == "easting"
-    assert ds.rio.y_dim == "northing"
-
-
-def test_source_crs_intake(tif_path):
-    source = SourceCRSIntake(
-        catalog_uri=tif_path.parent/"catalog.yaml",
-        dataset_id="bathy_netcdf",
-        crs=4326,
-    )
-    ds = source._open()
-    assert ds.rio.crs == 4326
-    assert ds.rio.x_dim == "x"
-    assert ds.rio.y_dim == "y"
-
-
-def test_source_crs_file(tif_path):
-    source = SourceCRSFile(uri=tif_path, crs=4326)
-    ds = source._open()
-    assert ds.rio.crs == 4326
-    assert ds.rio.x_dim == "x"
-    assert ds.rio.y_dim == "y"
 
 
 def test_geotiff(tif_path):
