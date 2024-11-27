@@ -68,10 +68,6 @@ input:
     coords:
       x: lon
       y: lat
-# Model time
-tstart: 0
-tint: 3600.0
-tstop: 86400
 # Wave boundary conditions
 front: abs_2d #1
 back: abs_2d #2
@@ -110,7 +106,9 @@ epsi: 0.001
 cfl: 0.8
 umin: 0.1
 oldhu: 1
+# Model output
+tstart: 0.0
+tintm: 3600.0
 outputformat: netcdf
 ncfilename: xboutput_test.nc
-tintm: 3600.0
 # nmeanvar: 14

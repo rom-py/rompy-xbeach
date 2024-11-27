@@ -26,7 +26,6 @@ HERE = Path(__file__).parent
 # TODO: roh should be rho
 # TODO: cf: not in manual
 # TODO: paulrevere: example says 0, manual says land, sea
-# TODO: tint: not in manual, available ones are tintc, ting, tintm, tintp
 
 
 from rompy_xbeach.forcing import WindGrid, WindStation, TideGrid
@@ -121,21 +120,6 @@ class Config(XBeachBaseConfig):
         description="Initial water level (m)",
         ge=-5.0,
         le=5.0,
-    )
-    tstart: float = Field(
-        description="Start time of output, in morphological time (s)",
-        default=0.0,
-        ge=0.0,
-    )
-    tint: float = Field(
-        description="Time interval for output (s)",
-        gt=0.0,
-    )
-    tstop: float = Field(
-        description="Stop time of simulation, in morphological time (s)",
-        default=2000.0,
-        ge=1.0,
-        le=1000000.0,
     )
     front: Literal["abs_1d", "abs_2d", "wall", "wlevel", "nonh_1d", "waveflume"] = Field(
         description="Switch for seaward flow boundary",
@@ -345,6 +329,40 @@ class Config(XBeachBaseConfig):
     #     ge=0,
     #     le=15,
     # )
+    tstart: Optional[float] = Field(
+        default=None,
+        description=(
+            "Start time of output, in morphological time (s) "
+            "(XBeach default: 0.0)"
+        ),
+        ge=0.0,
+    )
+    tintc: Optional[float] = Field(
+        default=None,
+        description="Interval time of cross section output (s)",
+        gt=0.0,
+    )
+    tintg: Optional[float] = Field(
+        default=None,
+        description="Interval time of global output (s) (XBeach default: 1.0)",
+        gt=0.0,
+    )
+    tintm: Optional[float] = Field(
+        default=None,
+        description=(
+            "Interval time of mean, var, max, min output (s) "
+            "(XBeach default: tstop - tstart)"
+        ),
+        gt=0.0,
+    )
+    tintp: Optional[float] = Field(
+        default=None,
+        description=(
+            "Interval time of point and runup gauge output (s) "
+            "(XBeach default: 1.0)"
+        ),
+        gt=0.0,
+    )
 
     def __call__(self, runtime) -> dict:
         """Callable where data and config are interfaced and CMD is rendered."""
@@ -357,6 +375,9 @@ class Config(XBeachBaseConfig):
             exclude=["model_type", "template", "checkout", "grid", "bathy", "input"],
             exclude_none=True,
         )
+
+        # Simulation time
+        namelist["tstop"] = (period.end - period.start).total_seconds()
 
         # Generate the input data
         namelist.update(self.input.get(staging_dir, self.grid, period))
