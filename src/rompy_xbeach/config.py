@@ -25,20 +25,9 @@ logger = logging.getLogger(__name__)
 HERE = Path(__file__).parent
 
 
-# TODO: Remove the 'rugdepth' parameter (confirm it with CSIRO)
-# TODO: Remove the 'breaker' parameter (confirm it with CSIRO)
+# TODO: Remove the 'rugdepth' parameter? (confirm it with CSIRO)
 # TODO: Remove the 'cf' parameter (confirm it with CSIRO)
-
 # TODO: Make 'random' part of the wave boundary conditions objects
-# TODO: What xbeach version? Does it matter? Docker available?
-# TODO: rugdetpth vs nrugdepth
-# TODO: instat: example says 41, manual says stat, bichrom, ts_1, ts_2, jons, swan, vardens, reuse, ts_nonh, off, stat_table, jons_table
-# TODO: break: example says 1, manual says roelvink1, baldock, roelvink2, roelvink_daly, janssen
-# TODO: scheme: example says 1, manual says upwind_1, lax_wendroff, upwind_2, warmbeam
-# TODO: tidelen: not in manual, what is it?
-# TODO: roh should be rho
-# TODO: cf: not in manual
-# TODO: paulrevere: example says 0, manual says land, sea
 
 
 WindType = Annotated[
@@ -100,11 +89,13 @@ class DataInterface(RompyBaseModel):
         return namelist
 
 
+BreakType = Literal["roelvink1", "baldock", "roelvink2", "roelvink_daly", "janssen"]
 FrontType = Literal["abs_1d", "abs_2d", "wall", "wlevel", "nonh_1d", "waveflume"]
 BackType = Literal["wall", "abs_1d", "abs_2d", "wlevel"]
 LeftRightType = Literal["neumann", "wall", "no_advec", "neumann_v", "abs_1d"]
 LateralWaveType = Literal["neumann", "wavecrest", "cyclic"]
 SchemeType = Literal["upwind_1", "lax_wendroff", "upwind_2", "warmbeam"]
+OutputFormatType = Literal["fortran", "netcdf", "debug"]
 
 
 class Config(XBeachBaseConfig):
@@ -152,7 +143,8 @@ class Config(XBeachBaseConfig):
         default=None,
         description="Switch for lateral boundary at left (XBeach default: neumann)",
     )
-    rugdepth: float = Field(
+    rugdepth: Optional[float] = Field(
+        default=None,
         description="To be defined",
         ge=0,
         le=1,
@@ -162,9 +154,10 @@ class Config(XBeachBaseConfig):
         description="Time units in udunits format (XBeach default: s)",
         examples=["seconds since 1970-01-01 00:00:00.00 +1:00"]
     )
-    breaker: int = Field(
-        description="Type of breaker formulation",
-        alias="breaker",
+    breaker: Optional[BreakType] = Field(
+        default=None,
+        description="Type of breaker formulation (XBeach default: roelvink_daly)",
+        alias="break",
     )
     scheme: Optional[SchemeType] = Field(
         default=None,
@@ -178,7 +171,7 @@ class Config(XBeachBaseConfig):
             "to short wave forcing is added) (XBeach default: 2)",
         ),
     )
-    random: Optional[Literal[0, 1]] = Field(
+    random: Optional[bool] = Field(
         default=None,
         description=(
             "Switch to enable random seed for instat = jons, swan or vardens "
@@ -296,57 +289,56 @@ class Config(XBeachBaseConfig):
         default=None,
         description="Turn on morphology (XBeach default: 1)",
     )
-    cf: float = Field(
+    cf: Optional[float] = Field(
+        default=None,
         description="Friction coefficient?",
-        default=0.01,
     )
-    paulrevere: Literal[0, 1] = Field(
-        description="Specifies tide on sea and land or two sea points if tideloc = 2",
-        default=0,
-    )
-    eps: float = Field(
-        description="Threshold water depth above which cells are considered wet (m)",
-        default=0.005,
+    eps: Optional[float] = Field(
+        default=None,
+        description=(
+            "Threshold water depth above which cells are considered wet (m) "
+            "(XBeach default: 0.005)"
+        ),
         ge=0.001,
         le=0.1,
     )
-    epsi: float = Field(
+    epsi: Optional[float] = Field(
+        default=None,
         description=(
-            "Ratio of mean current to time varying current through offshore boundary"
+            "Ratio of mean current to time varying current through offshore boundary "
+            "(XBeach default: -1.0)"
         ),
-        default=-1.0,
         ge=-1.0,
         le=0.2,
     )
-    cfl: float = Field(
-        description="Maximum courant-friedrichs-lewy number",
-        default=0.7,
+    cfl: Optional[float] = Field(
+        default=None,
+        description="Maximum courant-friedrichs-lewy number (XBeach default: 0.7)",
         ge=0.1,
         le=0.9,
     )
-    umin: float = Field(
+    umin: Optional[float] = Field(
+        default=None,
         description=(
             "Threshold velocity for upwind velocity detection and for vmag2 in "
-            "equilibrium sediment concentration (m/s)"
+            "equilibrium sediment concentration (m/s) (XB default: 0.0)"
         ),
-        default=0.0,
         ge=0.0,
         le=0.2,
     )
-    oldhu: Literal[0, 1] = Field(
-        description="Switch to enable old hu calculation",
-        default=0,
+    oldhu: Optional[bool] = Field(
+        default=None,
+        description="Switch to enable old hu calculation (XBeach default: 0)",
     )
-    outputformat: Literal["fortran", "netcdf", "debug"] = Field(
-        description="Output file format",
-        default="fortran",
+    outputformat: Optional[OutputFormatType] = Field(
+        default=None,
+        description="Output file format (XBeach default: fortran)",
     )
-    ncfilename: str = Field(
-        description="Xbeach netcdf output file name",
+    ncfilename: Optional[str] = Field(
+        default=None,
+        description="Xbeach netcdf output file name (XBeach default: xboutput.nc)",
     )
-    tintm: float = Field(
-        description="Interval time of mean, var, max, min output (s)",
-    )
+    # TODO: Make the fields below part of the Output object
     # nmeanvar: int = Field(
     #     description="Number of mean, min, max, var output variables",
     #     default=0,
@@ -387,6 +379,20 @@ class Config(XBeachBaseConfig):
         ),
         gt=0.0,
     )
+    # TODO: Make this part of the Tide object
+    paulrevere: Optional[Literal["land", "sea"]] = Field(
+        default=None,
+        description=(
+            "Specifies tide on sea and land or two sea points if tideloc = 2"
+            "(XBeach default: land)"
+        ),
+    )
+
+    @field_serializer("random")
+    def serialize_random(self, value: Optional[bool]):
+        if value is None:
+            return None
+        return int(value)
 
     @field_serializer("wci")
     def serialize_wci(self, value: Optional[bool]):
@@ -412,8 +418,14 @@ class Config(XBeachBaseConfig):
             return None
         return int(value)
 
+    @field_serializer("oldhu")
+    def serialize_oldhu(self, value: Optional[bool]):
+        if value is None:
+            return None
+        return int(value)
+
     def __call__(self, runtime) -> dict:
-        """Callable where data and config are interfaced and CMD is rendered."""
+        """Serialise the config to generate the params file."""
         # Model times and staging dir from the ModelRun object
         period = runtime.period
         staging_dir = runtime.staging_dir
@@ -422,6 +434,7 @@ class Config(XBeachBaseConfig):
         namelist = self.model_dump(
             exclude=["model_type", "template", "checkout", "grid", "bathy", "input"],
             exclude_none=True,
+            by_alias=True,
         )
 
         # Simulation time
