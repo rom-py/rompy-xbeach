@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Literal, Optional, Union, Annotated
 from pydantic import Field
 
+from rompy.core.types import RompyBaseModel
+from rompy.core.time import TimeRange
 from rompy_xbeach.types import XBeachBaseConfig, WbcEnum
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.data import XBeachBathy
@@ -27,6 +29,7 @@ HERE = Path(__file__).parent
 # TODO: tint: not in manual, available ones are tintc, ting, tintm, tintp
 
 
+from rompy_xbeach.forcing import WindGrid, WindStation, TideGrid
 from rompy_xbeach.boundary import (
     BoundaryStationSpectraJons,
     BoundaryStationParamJons,
@@ -35,7 +38,15 @@ from rompy_xbeach.boundary import (
     BoundaryStationSpectraSwan,
 )
 
-INPUT_TYPES = Annotated[
+WindType = Annotated[
+    Union[
+        WindGrid,
+        WindStation,
+        TideGrid,
+    ],
+    Field(description="Wind input data", discriminator="model_type"),
+]
+WaveType = Annotated[
     Union[
         BoundaryStationSpectraJons,
         BoundaryStationParamJons,
@@ -43,8 +54,48 @@ INPUT_TYPES = Annotated[
         BoundaryStationParamJonstable,
         BoundaryStationSpectraSwan,
     ],
-    Field(description="Input data components", discriminator="model_type"),
+    Field(description="Wave input data", discriminator="model_type"),
 ]
+TideType = Annotated[
+    TideGrid,
+    Field(description="Tide input data", discriminator="model_type"),
+]
+
+# TODO: Add the bathy here, need to change the return type of the get method
+class DataInterface(RompyBaseModel):
+    """SWAN forcing data interface.
+
+    Examples
+    --------
+
+    .. ipython:: python
+        :okwarning:
+
+        from rompy.swan.interface import DataInterface
+
+    """
+
+    model_type: Literal["data"] = Field(
+        default="data", description="Model type discriminator"
+    )
+    # bathy: XBeachBathy = Field(
+    #     description="Bathymetry data",
+    # )
+    wave: Optional[WaveType] = Field(default=None)
+    wind: Optional[WindType] = Field(default=None)
+    tide: Optional[TideType] = Field(default=None)
+
+    def get(self, staging_dir: Path, grid: RegularGrid, period: TimeRange):
+        """Generate each input data and return the namelist params."""
+        namelist = {}
+        if self.wave is not None:
+            namelist.update(self.wave.get(staging_dir, grid, period))
+        if self.wind is not None:
+            namelist.update(self.wind.get(staging_dir, grid, period))
+        if self.tide is not None:
+            namelist.update(self.tide.get(staging_dir, grid, period))
+        return namelist
+
 
 class Config(XBeachBaseConfig):
     """Xbeach config class."""
@@ -62,7 +113,15 @@ class Config(XBeachBaseConfig):
     bathy: XBeachBathy = Field(
         description="The XBeach bathymetry object",
     )
-    input: list[INPUT_TYPES] = Field(default=[])
+    input: DataInterface = Field(
+        description="Input data",
+    )
+    zs0: Optional[float] = Field(
+        default=None,
+        description="Initial water level (m)",
+        ge=-5.0,
+        le=5.0,
+    )
     tstart: float = Field(
         description="Start time of output, in morphological time (s)",
         default=0.0,
@@ -134,27 +193,6 @@ class Config(XBeachBaseConfig):
             "boundary conditions"
         ),
         default=1,
-    )
-    windfile: str = Field(
-        description="Name of file with non-stationary wind data",
-    )
-    zs0file: str = Field(
-        description="Name of tide boundary condition series",
-    )
-    tidelen: int = Field(
-        description="To be defined",
-    )
-    tideloc: int = Field(
-        description="Number of corner points on which a tide time series is specified",
-        default=0,
-        ge=0,
-        le=4,
-    )
-    zs0: float = Field(
-        description="Initial water level (m)",
-        default=0.0,
-        ge=-5.0,
-        le=5.0,
     )
     hmin: float = Field(
         description="Threshold water depth above which stokes drift is included (m)",
@@ -301,12 +339,12 @@ class Config(XBeachBaseConfig):
     tintm: float = Field(
         description="Interval time of mean, var, max, min output (s)",
     )
-    nmeanvar: int = Field(
-        description="Number of mean, min, max, var output variables",
-        default=0,
-        ge=0,
-        le=15,
-    )
+    # nmeanvar: int = Field(
+    #     description="Number of mean, min, max, var output variables",
+    #     default=0,
+    #     ge=0,
+    #     le=15,
+    # )
 
     def __call__(self, runtime) -> dict:
         """Callable where data and config are interfaced and CMD is rendered."""
@@ -315,17 +353,19 @@ class Config(XBeachBaseConfig):
         staging_dir = runtime.staging_dir
 
         # Initial namelist
-        namelist = self.model_dump(exclude=["grid", "bathy", "input"])
+        namelist = self.model_dump(
+            exclude=["model_type", "template", "checkout", "grid", "bathy", "input"],
+            exclude_none=True,
+        )
 
-        for input in self.input:
-            namelist.update(input.get(staging_dir, self.grid, period))
-        import ipdb; ipdb.set_trace()
+        # Generate the input data
+        namelist.update(self.input.get(staging_dir, self.grid, period))
 
         # Bathy data interface
+        # TODO: Make this consistent with the other input data
         namelist.update(self.bathy.namelist)
         __, __, depfile, grid = self.bathy.get(destdir=staging_dir, grid=self.grid)
-
         namelist.update(grid.namelist)
-        namelist.update({"depfile": depfile})
+        namelist.update({"depfile": depfile.name})
 
         return namelist

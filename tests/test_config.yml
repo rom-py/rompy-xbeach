@@ -30,7 +30,8 @@ bathy:
     slope: 0.3
 # Model input data
 input:
-  - model_type: station_param_jonstable
+  wave:
+    model_type: station_param_jonstable
     source:
       model_type: file
       uri: /source/csiro/rompy-xbeach/tests/data/smc-params-20230101.nc
@@ -42,6 +43,31 @@ input:
     mainang: pdir1
     gammajsp: ppe1
     dspr: pspr1
+  wind:
+    model_type: wind_station
+    source:
+      model_type: file
+      uri: /source/csiro/rompy-xbeach/tests/data/smc-params-20230101.nc
+      crs: 4326
+    coords:
+      s: seapoint
+    wind_vars:
+      model_type: wind_vector
+      u: uwnd
+      v: vwnd
+  tide:
+    model_type: tide_grid
+    source:
+      model_type: oceantide
+      reader: read_otis_binary
+      kwargs:
+        gfile: /source/csiro/rompy-xbeach/tests/data/swaus_tide_cons/grid_m2s2n2k2k1o1p1q1mmmf
+        hfile: /source/csiro/rompy-xbeach/tests/data/swaus_tide_cons/h_m2s2n2k2k1o1p1q1mmmf
+        ufile: /source/csiro/rompy-xbeach/tests/data/swaus_tide_cons/u_m2s2n2k2k1o1p1q1mmmf
+      crs: 4326
+    coords:
+      x: lon
+      y: lat
 # Model time
 tstart: 0
 tint: 3600.0
@@ -52,18 +78,14 @@ back: abs_2d #2
 left: neumann #0
 right: neumann #0
 rugdepth: 0.011
-tunits: seconds since 1970-01-01 00:00:00.00 +00"
+tunits: seconds since 1970-01-01 00:00:00.00 +00
 breaker: 1
 scheme: 1
 order: 1
 leftwave: wavecrest
 rightwave: wavecrest
 random: 1
-windfile: wind.txt
-zs0file: zs0input.txt
-tidelen: 49
-tideloc: 1
-zs0: 0.0
+zs0: null
 hmin: 0.01
 wci: 0
 alpha: 1
@@ -91,4 +113,4 @@ oldhu: 1
 outputformat: netcdf
 ncfilename: xboutput_test.nc
 tintm: 3600.0
-nmeanvar: 14
+# nmeanvar: 14

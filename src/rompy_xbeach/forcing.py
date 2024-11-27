@@ -144,7 +144,14 @@ class BaseWind(BaseData, ABC):
 
 
 class WindGrid(BaseDataGrid, BaseWind):
-    """Wind forcing from gridded data."""
+    """Wind forcing from gridded data.
+
+    Namelist
+    --------
+    - windfile : str
+        Name of file with non-stationary wind data.
+
+    """
 
     model_type: Literal["wind_grid"] = Field(
         default="wind_grid",
@@ -153,7 +160,14 @@ class WindGrid(BaseDataGrid, BaseWind):
 
 
 class WindStation(BaseDataStation, BaseWind):
-    """Wind forcing from station data."""
+    """Wind forcing from station data.
+
+    Namelist
+    --------
+    - windfile : str
+        Name of file with non-stationary wind data.
+
+    """
 
     model_type: Literal["wind_station"] = Field(
         default="wind_station",
@@ -166,7 +180,18 @@ class WindStation(BaseDataStation, BaseWind):
 # =====================================================================================
 # class TideGrid(BaseData, ABC):
 class TideGrid(BaseDataGrid):
-    """Water level forcing from tide."""
+    """Water level forcing from tide.
+
+    Namelist
+    --------
+    - zs0file : str
+        Name of tide boundary condition series.
+    - tideloc : int
+        Number of corner points on which a tide time series is specified.
+    - tidelen : int
+        Number of time steps in the tide time series.
+
+    """
 
     model_type: Literal["tide_grid"] = Field(
         default="tide_grid",

@@ -500,6 +500,15 @@ class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStatio
         default="station_spectra_swan",
         description="Model type discriminator",
     )
+    dthetas_xb: Optional[float] = Field(
+        default=None,
+        description=(
+            "The (counter-clockwise) angle in the degrees needed to rotate from the "
+            "x-axis in swan to the x-axis pointing east (XBeach default: 0.0)",
+        ),
+        ge=-360.0,
+        le=360.0,
+    )
 
     def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryStationJons":
         """Instantiate the boundary object.
@@ -563,4 +572,7 @@ class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStatio
                 # Boundary duration
                 durations.append((t1 - t0).total_seconds())
             bcfile = self._write_filelist(destdir, bcfiles, durations)
-        return {"wbctype": self.id, "bcfile": bcfile.name}
+        namelist = {"wbctype": self.id, "bcfile": bcfile.name}
+        if self.dthetas_xb is not None:
+            namelist["dthetas_xb"] = self.dthetas_xb
+        return namelist
