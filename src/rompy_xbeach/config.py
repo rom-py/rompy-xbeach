@@ -3,31 +3,13 @@
 import logging
 from pathlib import Path
 from typing import Literal, Optional, Union, Annotated
-from pydantic import Field
+from pydantic import Field, field_validator, model_validator, field_serializer
 
 from rompy.core.types import RompyBaseModel
 from rompy.core.time import TimeRange
 from rompy_xbeach.types import XBeachBaseConfig, WbcEnum
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.data import XBeachBathy
-logger = logging.getLogger(__name__)
-
-HERE = Path(__file__).parent
-
-
-# TODO: What xbeach version? Does it matter? Docker available?
-# TODO: rugdetpth vs nrugdepth
-# TODO: instat: example says 41, manual says stat, bichrom, ts_1, ts_2, jons, swan, vardens, reuse, ts_nonh, off, stat_table, jons_table
-# TODO: break: example says 1, manual says roelvink1, baldock, roelvink2, roelvink_daly, janssen
-# TODO: scheme: example says 1, manual says upwind_1, lax_wendroff, upwind_2, warmbeam
-# TODO: leftwave: not in manual (lateralwave)
-# TODO: rightwave: not in manual
-# TODO: tidelen: not in manual, what is it?
-# TODO: roh should be rho
-# TODO: cf: not in manual
-# TODO: paulrevere: example says 0, manual says land, sea
-
-
 from rompy_xbeach.forcing import WindGrid, WindStation, TideGrid
 from rompy_xbeach.boundary import (
     BoundaryStationSpectraJons,
@@ -36,6 +18,28 @@ from rompy_xbeach.boundary import (
     BoundaryStationParamJonstable,
     BoundaryStationSpectraSwan,
 )
+
+
+logger = logging.getLogger(__name__)
+
+HERE = Path(__file__).parent
+
+
+# TODO: Remove the 'rugdepth' parameter (confirm it with CSIRO)
+# TODO: Remove the 'breaker' parameter (confirm it with CSIRO)
+# TODO: Remove the 'cf' parameter (confirm it with CSIRO)
+
+# TODO: Make 'random' part of the wave boundary conditions objects
+# TODO: What xbeach version? Does it matter? Docker available?
+# TODO: rugdetpth vs nrugdepth
+# TODO: instat: example says 41, manual says stat, bichrom, ts_1, ts_2, jons, swan, vardens, reuse, ts_nonh, off, stat_table, jons_table
+# TODO: break: example says 1, manual says roelvink1, baldock, roelvink2, roelvink_daly, janssen
+# TODO: scheme: example says 1, manual says upwind_1, lax_wendroff, upwind_2, warmbeam
+# TODO: tidelen: not in manual, what is it?
+# TODO: roh should be rho
+# TODO: cf: not in manual
+# TODO: paulrevere: example says 0, manual says land, sea
+
 
 WindType = Annotated[
     Union[
@@ -96,6 +100,13 @@ class DataInterface(RompyBaseModel):
         return namelist
 
 
+FrontType = Literal["abs_1d", "abs_2d", "wall", "wlevel", "nonh_1d", "waveflume"]
+BackType = Literal["wall", "abs_1d", "abs_2d", "wlevel"]
+LeftRightType = Literal["neumann", "wall", "no_advec", "neumann_v", "abs_1d"]
+LateralWaveType = Literal["neumann", "wavecrest", "cyclic"]
+SchemeType = Literal["upwind_1", "lax_wendroff", "upwind_2", "warmbeam"]
+
+
 class Config(XBeachBaseConfig):
     """Xbeach config class."""
     model_type: Literal["xbeach"] = Field(
@@ -117,160 +128,173 @@ class Config(XBeachBaseConfig):
     )
     zs0: Optional[float] = Field(
         default=None,
-        description="Initial water level (m)",
+        description="Initial water level (m) (XB default: 0.0)",
         ge=-5.0,
         le=5.0,
     )
-    front: Literal["abs_1d", "abs_2d", "wall", "wlevel", "nonh_1d", "waveflume"] = Field(
-        description="Switch for seaward flow boundary",
-        default="abs_2d",
+    front: Optional[FrontType] = Field(
+        default=None,
+        description="Switch for seaward flow boundary (XBeach default: abs_2d)",
     )
-    back: Literal["wall", "abs_1d", "abs_2d", "wlevel"] = Field(
-        description="Switch for boundary at bay side",
-        default="abs_2d",
+    back: Optional[BackType] = Field(
+        default=None,
+        description="Switch for boundary at bay side (XBeach default: abs_2d)",
     )
-    left: Literal["neumann", "wall", "no_advec", "neumann_v", "abs_1d"] = Field(
-        description="Switch for lateral boundary at ny+1",
-        default="neumann",
+    left: Optional[LeftRightType] = Field(
+        default=None,
+        description="Switch for lateral boundary at ny+1 (XBeach default: neumann)",
     )
-    right: Literal["neumann", "wall", "no_advec", "neumann_v", "abs_1d"] = Field(
-        description="Switch for lateral boundary at 0",
-        default="neumann",
+    right: Optional[LeftRightType] = Field(
+        default=None,
+        description="Switch for lateral boundary at 0 (XBeach default: neumann)",
+    )
+    lateralwave: Optional[LateralWaveType] = Field(
+        default=None,
+        description="Switch for lateral boundary at left (XBeach default: neumann)",
     )
     rugdepth: float = Field(
         description="To be defined",
         ge=0,
         le=1,
     )
-    tunits: str = Field(
-        description=(
-            "Time units in udunits format (seconds since 1970-01-01 00:00:00.00 +1:00)"
-        ),
-        default="s",
+    tunits: Optional[str] = Field(
+        default=None,
+        description="Time units in udunits format (XBeach default: s)",
+        examples=["seconds since 1970-01-01 00:00:00.00 +1:00"]
     )
     breaker: int = Field(
         description="Type of breaker formulation",
         alias="breaker",
     )
-    scheme: int = Field(
-        description="Numerical scheme for wave propagation",
+    scheme: Optional[SchemeType] = Field(
+        default=None,
+        description="Numerical scheme for wave propagation (XBeach default: warmbeam)",
     )
-    order: Literal[1, 2] = Field(
+    order: Optional[Literal[1, 2]] = Field(
+        default=None,
         description=(
             "Switch for order of wave steering, first order wave steering (short wave "
             "energy only), second oder wave steering (bound long wave corresponding "
-            "to short wave forcing is added)",
+            "to short wave forcing is added) (XBeach default: 2)",
         ),
-        default=2,
     )
-    leftwave: Literal["neumann", "wavecrest", "cyclic"] = Field(
-        description="Switch for lateral boundary at left",
-        default="neumann",
-    )
-    rightwave: Literal["neumann", "wavecrest", "cyclic"] = Field(
-        description="Switch for lateral boundary at left",
-        default="neumann",
-    )
-    random: Literal[0, 1] = Field(
+    random: Optional[Literal[0, 1]] = Field(
+        default=None,
         description=(
             "Switch to enable random seed for instat = jons, swan or vardens "
-            "boundary conditions"
+            "boundary conditions (XBeach default: 1)",
         ),
-        default=1,
     )
-    hmin: float = Field(
-        description="Threshold water depth above which stokes drift is included (m)",
-        default=0.0,
-        ge=0.0,
+    hmin: Optional[float] = Field(
+        default=None,
+        description=(
+            "Threshold water depth above which stokes drift is included (m) "
+            "(XBeach default: 0.0)",
+        ),
+        ge=0.001,
         le=1.0,
     )
-    wci: Literal[0, 1] = Field(
-        description="Turns on wave-current interaction",
-        default=0,
+    wci: Optional[bool] = Field(
+        default=None,
+        description="Turns on wave-current interaction (XBeach default: 0)",
     )
-    alpha: float = Field(
-        description="Wave dissipation coefficient in roelvink formulation",
-        default=1.38,
+    alpha: Optional[float] = Field(
+        default=None,
+        description=(
+            "Wave dissipation coefficient in roelvink formulation"
+            "(XBeach default: 1.38)"
+        ),
         ge=0.5,
         le=2.0,
     )
-    delta: float = Field(
-        description="Fraction of wave height to add to water depth",
-        default=0.0,
+    delta: Optional[float] = Field(
+        default=None,
+        description=(
+            "Fraction of wave height to add to water depth (XBeach default: 0.0)"
+        ),
         ge=0.0,
         le=1.0,
     )
-    n: float = Field(
-        description="Power in roelvink dissipation model",
-        default=10.0,
+    n: Optional[float] = Field(
+        default=None,
+        description="Power in roelvink dissipation model (Xbeach default: 10.0)",
         ge=5.0,
         le=20.0,
     )
-    rho: float = Field(
-        description="Density of water (kgm-3)",
-        default=1025.0,
+    rho: Optional[float] = Field(
+        default=None,
+        description="Density of water (kgm-3) (XBeach default: 1025.0)",
         ge=1000.0,
         le=1040.0,
     )
-    g: float = Field(
-        description="Gravitational acceleration (ms^-2)",
-        default=9.81,
+    g: Optional[float] = Field(
+        default=None,
+        description="Gravitational acceleration (ms^-2) (XBeach default: 9.81)",
         ge=9.7,
         le=9.9,
     )
-    thetamin: float = Field(
-        description="Lower directional limit (angle w.r.t computational x-axis) (deg)",
-        default=-90.0,
+    thetamin: Optional[float] = Field(
+        default=None,
+        description=(
+            "Lower directional limit (angle w.r.t computational x-axis) (deg) "
+            "(XBeach default: -90.0)"
+        ),
         ge=-360.0,
         le=360.0,
     )
-    thetamax: float = Field(
-        description="Higher directional limit (angle w.r.t computational x-axis) (deg)",
-        default=90.0,
+    thetamax: Optional[float] = Field(
+        default=None,
+        description=(
+            "Higher directional limit (angle w.r.t computational x-axis) (deg) "
+            "(XBeach default: 90.0)"
+        ),
         ge=-360.0,
         le=360.0,
     )
-    dtheta: float = Field(
-        description="Directional resolution (deg)",
-        default=10.0,
+    dtheta: Optional[float] = Field(
+        default=None,
+        description="Directional resolution (deg) (XBeach default: 10.0)",
         ge=0.1,
         le=180.0,
     )
-    beta: float = Field(
-        description="Breaker slope coefficient in roller model",
-        default=0.08,
+    beta: Optional[float] = Field(
+        default=None,
+        description="Breaker slope coefficient in roller model (XBeach default: 0.08)",
         ge=0.05,
         le=0.3,
     )
-    roller: Literal[0, 1] = Field(
-        description="Switch to enable roller model",
-        default=1,
+    roller: Optional[bool] = Field(
+        default=None,
+        description="Switch to enable roller model (XBeach default: 1)",
     )
-    gamma: float = Field(
-        description="Breaker parameter in baldock or roelvink formulation",
-        default=0.46,
+    gamma: Optional[float] = Field(
+        default=None,
+        description=(
+            "Breaker parameter in baldock or roelvink formulation "
+            "(XBeach default: 0.46)"
+        ),
         ge=0.4,
         le=0.9,
     )
-    gammax: float = Field(
-        description="Maximum ratio wave height to water depth",
-        default=2.0,
+    gammax: Optional[float] = Field(
+        default=None,
+        description="Maximum ratio wave height to water depth (XBeach default: 2.0)",
         ge=0.4,
         le=5.0,
     )
-    sedtrans: Literal[0, 1] = Field(
-        description="Turn on sediment transport",
-        default=1,
+    sedtrans: Optional[bool] = Field(
+        default=None,
+        description="Turn on sediment transport (XBeach default: 1)",
     )
-    morfac: float = Field(
-        description="Morphological acceleration factor",
-        default=1.0,
+    morfac: Optional[float] = Field(
+        default=None,
+        description="Morphological acceleration factor (XBeach default: 1.0)",
         ge=0.0,
         le=1000.0,
     )
-    morphology: Literal[0, 1] = Field(
-        description="Turn on morphology",
-        default=1,
+    morphology: Optional[bool] = Field(
+        default=None,
+        description="Turn on morphology (XBeach default: 1)",
     )
     cf: float = Field(
         description="Friction coefficient?",
@@ -363,6 +387,30 @@ class Config(XBeachBaseConfig):
         ),
         gt=0.0,
     )
+
+    @field_serializer("wci")
+    def serialize_wci(self, value: Optional[bool]):
+        if value is None:
+            return None
+        return int(value)
+
+    @field_serializer("roller")
+    def serialize_roller(self, value: Optional[bool]):
+        if value is None:
+            return None
+        return int(value)
+
+    @field_serializer("sedtrans")
+    def serialize_sedtrans(self, value: Optional[bool]):
+        if value is None:
+            return None
+        return int(value)
+
+    @field_serializer("morphology")
+    def serialize_morphology(self, value: Optional[bool]):
+        if value is None:
+            return None
+        return int(value)
 
     def __call__(self, runtime) -> dict:
         """Callable where data and config are interfaced and CMD is rendered."""
