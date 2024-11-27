@@ -11,12 +11,10 @@ class BaseInterpolator(ABC, RompyBaseModel):
     """Base interpolator class."""
 
     model_type: Literal["base"] = Field(
-        default="base",
-        description="Model type discriminator"
+        default="base", description="Model type discriminator"
     )
     kwargs: dict = Field(
-        default={},
-        description="Keyword arguments for the interpolator"
+        default={}, description="Keyword arguments for the interpolator"
     )
 
     @abstractmethod
@@ -59,8 +57,7 @@ class RegularGridInterpolator(BaseInterpolator):
     """Regular grid interpolator based on scipy's RegularGridInterpolator."""
 
     model_type: Literal["scipy_regular_grid"] = Field(
-        default="scipy_regular_grid",
-        description="Model type discriminator"
+        default="scipy_regular_grid", description="Model type discriminator"
     )
 
     def get(

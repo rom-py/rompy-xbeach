@@ -60,6 +60,7 @@ class BaseFile(RompyBaseModel, ABC):
 
 class Wind(RompyBaseModel):
     """XBeach basic wind definition."""
+
     windv: float = Field(
         description="Wind velocity",
         ge=0.0,

@@ -6,6 +6,7 @@ from rompy.core.config import BaseConfig
 
 class XBeachBaseConfig(BaseConfig):
     """Base configuration class for all XBeach models."""
+
     model_config = ConfigDict(extra="forbid")
 
 
@@ -37,6 +38,7 @@ class WbcEnum(str, Enum):
         No wave boundary conditions.
 
     """
+
     PARAMS = "params"
     JONS = "jons"
     JONSTABLE = "jonstable"

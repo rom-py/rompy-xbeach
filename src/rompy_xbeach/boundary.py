@@ -20,7 +20,11 @@ from rompy_xbeach.source import (
     SourceCRSWavespectra,
 )
 from rompy_xbeach.grid import RegularGrid, Ori
-from rompy_xbeach.components.boundary import WaveBoundaryJons, WaveBoundaryJonstable, WaveBoundarySWAN
+from rompy_xbeach.components.boundary import (
+    WaveBoundaryJons,
+    WaveBoundaryJonstable,
+    WaveBoundarySWAN,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -244,10 +248,7 @@ class FilelistMixin:
 class BoundaryStationJons(FilelistMixin, BoundaryBaseStation, ABC):
     """Base class for JONS wave boundary from station type dataset such as SMC."""
 
-    id: Literal["jons"] = Field(
-        default="jons",
-        description="Boundary type identifier"
-    )
+    id: Literal["jons"] = Field(default="jons", description="Boundary type identifier")
     fnyq: Optional[float] = Field(
         default=None,
         description=(
@@ -362,9 +363,9 @@ class BoundaryStationJonstable(BoundaryBaseStation, ABC):
     """Base class for JONSTABLE wave boundary from station type dataset such as SMC."""
 
     id: Literal["jonstable"] = Field(
-        default="jonstable",
-        description="Boundary type identifier"
+        default="jonstable", description="Boundary type identifier"
     )
+
     def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryStationJons":
         """Instantiate the boundary object.
 
@@ -492,10 +493,7 @@ class BoundaryStationParamJonstable(ParamMixin, BoundaryStationJonstable):
 class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStation):
     """Base class for SWAN wave boundary from station type dataset such as SMC."""
 
-    id: Literal["swan"] = Field(
-        default="swan",
-        description="Boundary type identifier"
-    )
+    id: Literal["swan"] = Field(default="swan", description="Boundary type identifier")
     model_type: Literal["station_spectra_swan"] = Field(
         default="station_spectra_swan",
         description="Model type discriminator",

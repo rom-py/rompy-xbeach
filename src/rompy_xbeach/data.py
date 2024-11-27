@@ -82,6 +82,7 @@ class SeawardExtensionLinear(SeawardExtensionBase):
     offshore depth, the depth at the extended boundary, and the maximum slope.
 
     """
+
     model_type: Literal["linear"] = Field(
         default="linear",
         description="Model type discriminator",
@@ -157,12 +158,12 @@ class SeawardExtensionLinear(SeawardExtensionBase):
         grid_ext = grid.expand(front=nx)
 
         # Initialise an extension array that includes the offshore grid column
-        ext = np.full((int(grid.ny), nx+1), np.nan)
+        ext = np.full((int(grid.ny), nx + 1), np.nan)
         ext[:, 0] = 25
         ext[:, -1] = data_posdwn[:, 0]
 
         # Linearly interpolate the data between the existing and extended boundary
-        ext = np.linspace(ext[:, 0], ext[:, -1], nx+1).T
+        ext = np.linspace(ext[:, 0], ext[:, -1], nx + 1).T
 
         # Concatenate the extension to the data
         data_ext = np.concatenate((ext[:, :-1], data_posdwn), axis=1)
@@ -175,6 +176,7 @@ class SeawardExtensionLinear(SeawardExtensionBase):
 
 class BaseData(DataGrid, ABC):
     """Xbeach data class."""
+
     source: Sources = Field(
         description=(
             "Source reader, must return a dataset with "
@@ -303,8 +305,7 @@ class BaseDataStation(BaseData):
         ),
     )
     sel_method_kwargs: dict = Field(
-        default={},
-        description="Keyword arguments for sel_method"
+        default={}, description="Keyword arguments for sel_method"
     )
 
     @model_validator(mode="after")
@@ -355,8 +356,7 @@ class BaseDataGrid(BaseData):
         ),
     )
     sel_method_kwargs: dict = Field(
-        default={"method": "nearest"},
-        description="Keyword arguments for sel_method"
+        default={"method": "nearest"}, description="Keyword arguments for sel_method"
     )
 
     @cached_property
@@ -381,6 +381,7 @@ class BaseDataGrid(BaseData):
 
 class XBeachDataGrid(DataGrid):
     """Xbeach data class."""
+
     model_type: Literal["xbeach_data_grid"] = Field(
         default="xbeach_data_grid",
         description="Model type discriminator",
@@ -480,6 +481,7 @@ class XBeachDataGrid(DataGrid):
 
 class XBeachBathy(XBeachDataGrid):
     """XBeach bathymetry data class."""
+
     model_type: Literal["xbeach_bathy"] = Field(
         default="xbeach_bathy",
         description="Model type discriminator",
@@ -715,7 +717,7 @@ class XBeach_accessor(object):
             slopes[iy, :] = np.gradient(dep[iy, :], grid.dx)
         z = np.nanmean(dep, axis=0)
         ax.plot(x, z, color="k", linewidth=3)
-        ax.plot(x, x*0, "k--")
+        ax.plot(x, x * 0, "k--")
         ax.set_xlabel("x")
         ax.set_ylabel("z")
         if posdwn:
@@ -725,7 +727,9 @@ class XBeach_accessor(object):
         # Plot the cross-shore slopes on the right axis
         ax2 = ax.twinx()
         slope = np.gradient(z, grid.dx)
-        ax2.fill_between(x, np.nanmin(slopes, 0), np.nanmax(slopes, 0), color="r", alpha=0.2)
+        ax2.fill_between(
+            x, np.nanmin(slopes, 0), np.nanmax(slopes, 0), color="r", alpha=0.2
+        )
         ax2.plot(x, slope, color="r")
         ax2.yaxis.label.set_color("r")
         ax2.tick_params(axis="y", colors="r")

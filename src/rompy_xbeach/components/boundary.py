@@ -371,7 +371,7 @@ class WaveBoundaryJonstable(WaveBoundarySpectral):
 
 class WaveBoundarySWAN(WaveBoundarySpectral):
     """Wave boundary conditions specified as a SWAN spectrum."""
-    
+
     model_type: Literal["swan"] = Field(
         default="swan",
         description="Model type discriminator",

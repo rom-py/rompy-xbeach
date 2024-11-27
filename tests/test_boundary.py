@@ -155,7 +155,7 @@ def test_boundary_station_is_abstract(source_file):
         BoundaryBaseStation(
             id="base",
             source=source_file,
-            coords=dict(x="longitude", y="latitude", s="seapoint")
+            coords=dict(x="longitude", y="latitude", s="seapoint"),
         )
 
 
@@ -254,7 +254,9 @@ def test_boundary_station_spectra_jons_bcfile(tmp_path, source_wavespectra, grid
         assert keys in bcdata
 
 
-def test_boundary_station_spectra_jons_filelist(tmp_path, source_wavespectra, grid, time):
+def test_boundary_station_spectra_jons_filelist(
+    tmp_path, source_wavespectra, grid, time
+):
     """Test multiple (filelist) jons spectral boundary from spectra source."""
     wb = BoundaryStationSpectraJons(
         source=source_wavespectra,
@@ -337,7 +339,9 @@ def test_boundary_station_spectra_swan_bcfile(tmp_path, source_wavespectra, grid
     assert hasattr(ds, "spec")
 
 
-def test_boundary_station_spectra_swan_filelist(tmp_path, source_wavespectra, grid, time):
+def test_boundary_station_spectra_swan_filelist(
+    tmp_path, source_wavespectra, grid, time
+):
     """Test multiple (filelist) jons spectral boundary from param source."""
     wb = BoundaryStationSpectraSwan(
         source=source_wavespectra,

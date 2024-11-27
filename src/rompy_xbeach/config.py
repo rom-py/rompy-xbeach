@@ -53,6 +53,7 @@ TideType = Annotated[
     Field(description="Tide input data", discriminator="model_type"),
 ]
 
+
 # TODO: Add the bathy here, need to change the return type of the get method
 class DataInterface(RompyBaseModel):
     """SWAN forcing data interface.
@@ -100,6 +101,7 @@ OutputFormatType = Literal["fortran", "netcdf", "debug"]
 
 class Config(XBeachBaseConfig):
     """Xbeach config class."""
+
     model_type: Literal["xbeach"] = Field(
         default="xbeach",
         description="Model type discriminator",
@@ -152,7 +154,7 @@ class Config(XBeachBaseConfig):
     tunits: Optional[str] = Field(
         default=None,
         description="Time units in udunits format (XBeach default: s)",
-        examples=["seconds since 1970-01-01 00:00:00.00 +1:00"]
+        examples=["seconds since 1970-01-01 00:00:00.00 +1:00"],
     )
     breaker: Optional[BreakType] = Field(
         default=None,
@@ -348,8 +350,7 @@ class Config(XBeachBaseConfig):
     tstart: Optional[float] = Field(
         default=None,
         description=(
-            "Start time of output, in morphological time (s) "
-            "(XBeach default: 0.0)"
+            "Start time of output, in morphological time (s) " "(XBeach default: 0.0)"
         ),
         ge=0.0,
     )
@@ -374,8 +375,7 @@ class Config(XBeachBaseConfig):
     tintp: Optional[float] = Field(
         default=None,
         description=(
-            "Interval time of point and runup gauge output (s) "
-            "(XBeach default: 1.0)"
+            "Interval time of point and runup gauge output (s) " "(XBeach default: 1.0)"
         ),
         gt=0.0,
     )

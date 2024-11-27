@@ -41,6 +41,7 @@ def validate_crs(crs: Optional[CRS_TYPES]) -> CRS:
 
 class Ori(RompyBaseModel):
     """Origin of the grid in geographic space."""
+
     x: float = Field(
         description="X coordinate of the origin",
     )
@@ -172,12 +173,15 @@ class RegularGrid(BaseGrid):
         i, j = np.meshgrid(
             range(self.shape[0] - 1), range(self.shape[1] - 1), indexing="ij"
         )
-        corners = np.stack([
-            np.stack((self.x[i, j], self.y[i, j]), axis=-1),
-            np.stack((self.x[i, j+1], self.y[i, j+1]), axis=-1),
-            np.stack((self.x[i+1, j+1], self.y[i+1, j+1]), axis=-1),
-            np.stack((self.x[i+1, j], self.y[i+1, j]), axis=-1)
-        ], axis=-2)
+        corners = np.stack(
+            [
+                np.stack((self.x[i, j], self.y[i, j]), axis=-1),
+                np.stack((self.x[i, j + 1], self.y[i, j + 1]), axis=-1),
+                np.stack((self.x[i + 1, j + 1], self.y[i + 1, j + 1]), axis=-1),
+                np.stack((self.x[i + 1, j], self.y[i + 1, j]), axis=-1),
+            ],
+            axis=-2,
+        )
         corners_2d = corners.reshape(-1, 4, 2)
         multi_polygon = MultiPolygon([Polygon(cell) for cell in corners_2d])
         gdf = gpd.GeoDataFrame(geometry=[multi_polygon], crs=self.crs)
@@ -258,7 +262,9 @@ class RegularGrid(BaseGrid):
             crs=crs,
         )
 
-    def _generate(self, left=0, right=0, back=0, front=0) -> tuple[np.ndarray, np.ndarray]:
+    def _generate(
+        self, left=0, right=0, back=0, front=0
+    ) -> tuple[np.ndarray, np.ndarray]:
         """Generate the grid coordinates.
 
         Parameters
@@ -281,11 +287,25 @@ class RegularGrid(BaseGrid):
         if front > 0:
             i = np.concatenate([np.arange(-front * self.dx, 0, self.dx), i])
         if back > 0:
-            i = np.concatenate([i, np.arange(self.dx * self.nx, self.dx * self.nx + back * self.dx, self.dx)])
+            i = np.concatenate(
+                [
+                    i,
+                    np.arange(
+                        self.dx * self.nx, self.dx * self.nx + back * self.dx, self.dx
+                    ),
+                ]
+            )
         if right > 0:
             j = np.concatenate([np.arange(-right * self.dy, 0, self.dy), j])
         if left > 0:
-            j = np.concatenate([j, np.arange(self.dy * self.ny, self.dy * self.ny + left * self.dy, self.dy)])
+            j = np.concatenate(
+                [
+                    j,
+                    np.arange(
+                        self.dy * self.ny, self.dy * self.ny + left * self.dy, self.dy
+                    ),
+                ]
+            )
 
         # 2D grid indices
         ii, jj = np.meshgrid(i, j)
@@ -363,7 +383,9 @@ class RegularGrid(BaseGrid):
 
         # Define axis if not provided
         if ax is None:
-            __, ax = plt.subplots(figsize=figsize, subplot_kw=dict(projection=projection))
+            __, ax = plt.subplots(
+                figsize=figsize, subplot_kw=dict(projection=projection)
+            )
 
         # Add coastlines
         if scale is not None:
@@ -396,7 +418,7 @@ class RegularGrid(BaseGrid):
         if set_extent:
             x0, y0, x1, y1 = self.bbox()
             ax.set_extent(
-                [x0-buffer, x1+buffer, y0-buffer, y1+buffer],
+                [x0 - buffer, x1 + buffer, y0 - buffer, y1 + buffer],
                 crs=self.transform,
             )
 

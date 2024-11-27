@@ -12,7 +12,13 @@ import rioxarray
 from scipy.interpolate import griddata
 import oceantide
 
-from rompy.core.source import SourceBase, SourceDataset, SourceFile, SourceIntake, SourceWavespectra
+from rompy.core.source import (
+    SourceBase,
+    SourceDataset,
+    SourceFile,
+    SourceIntake,
+    SourceWavespectra,
+)
 from rompy_xbeach.grid import CRS_TYPES, validate_crs
 
 
@@ -132,14 +138,14 @@ class SourceXYZ(SourceBase):
 
         # Create the dataset
         ds = xr.Dataset(
-            data_vars={"z": (["y", "x"], zgrid)},
-            coords={"y": ygrid, "x": xgrid}
+            data_vars={"z": (["y", "x"], zgrid)}, coords={"y": ygrid, "x": xgrid}
         )
         return ds.rio.write_crs(self.crs)
 
 
 class SourceMixin:
     """Mixin class for crs aware source objects."""
+
     crs: CRS_TYPES = Field(
         description="Coordinate reference system of the source data",
     )
@@ -186,6 +192,7 @@ class SourceCRSWavespectra(SourceMixin, SourceWavespectra):
     to most wavespectra datasets.
 
     """
+
     crs: CRS_TYPES = Field(
         default=4326,
         description="Coordinate reference system of the source data",

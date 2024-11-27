@@ -9,7 +9,7 @@ from rompy_xbeach.source import (
     SourceCRSFile,
     SourceCRSIntake,
     SourceOceantide,
-    SourceCRSOceantide
+    SourceCRSOceantide,
 )
 
 
@@ -80,7 +80,7 @@ def test_source_oceantide():
             gfile=HERE / "data/swaus_tide_cons/grid_m2s2n2k2k1o1p1q1mmmf",
             hfile=HERE / "data/swaus_tide_cons/h_m2s2n2k2k1o1p1q1mmmf",
             ufile=HERE / "data/swaus_tide_cons/u_m2s2n2k2k1o1p1q1mmmf",
-        )
+        ),
     )
     assert hasattr(source._open(), "tide")
 
