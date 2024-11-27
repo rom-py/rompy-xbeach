@@ -78,13 +78,6 @@ class Config(XBeachBaseConfig):
         ge=1.0,
         le=1000000.0,
     )
-    wbctype: WbcEnum = Field(
-        default="jonstable",
-        description="Wave boundary condition type",
-    )
-    bcfile: str = Field(
-        description="Name of spectrum file",
-    )
     front: Literal["abs_1d", "abs_2d", "wall", "wlevel", "nonh_1d", "waveflume"] = Field(
         description="Switch for seaward flow boundary",
         default="abs_2d",
@@ -322,12 +315,11 @@ class Config(XBeachBaseConfig):
         staging_dir = runtime.staging_dir
 
         # Initial namelist
-        namelist = self.model_dump(exclude=["grid", "bathy"])
+        namelist = self.model_dump(exclude=["grid", "bathy", "input"])
 
-        d = {}
         for input in self.input:
-            d.update(input.get(staging_dir, self.grid, period))
-        # import ipdb; ipdb.set_trace()        
+            namelist.update(input.get(staging_dir, self.grid, period))
+        import ipdb; ipdb.set_trace()
 
         # Bathy data interface
         namelist.update(self.bathy.namelist)

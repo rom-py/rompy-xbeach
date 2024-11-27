@@ -5,6 +5,7 @@ import pytest
 from importlib.metadata import entry_points
 
 from rompy.model import ModelRun
+from rompy.core.time import TimeRange
 from rompy_xbeach.config import Config
 
 
@@ -35,6 +36,7 @@ def test_model_generate(kwargs, tmp_path):
         run_id="test",
         output_dir=tmp_path,
         config=config,
+        period=TimeRange(start="2023-01-01T00", end="2023-01-01T12", interval="1h"),
     )
     model.generate()
     assert (tmp_path / model.run_id / "params.txt").is_file()

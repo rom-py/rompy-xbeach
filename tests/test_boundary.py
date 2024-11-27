@@ -49,8 +49,6 @@ def source_file():
         uri=HERE / "data/smc-params-20230101.nc",
         kwargs=dict(engine="netcdf4"),
         crs=4326,
-        x_dim="lon",
-        y_dim="lat",
     )
 
 

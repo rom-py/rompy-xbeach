@@ -28,13 +28,25 @@ bathy:
     model_type: linear
     depth: 25
     slope: 0.3
+# Model input data
+input:
+  - model_type: station_param_jonstable
+    source:
+      model_type: file
+      uri: /source/csiro/rompy-xbeach/tests/data/smc-params-20230101.nc
+      crs: 4326
+    coords:
+      s: seapoint
+    hm0: phs1
+    tp: ptp1
+    mainang: pdir1
+    gammajsp: ppe1
+    dspr: pspr1
 # Model time
 tstart: 0
 tint: 3600.0
 tstop: 86400
 # Wave boundary conditions
-wbctype: jonstable
-bcfile: jonswap.txt
 front: abs_2d #1
 back: abs_2d #2
 left: neumann #0
