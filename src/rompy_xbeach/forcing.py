@@ -204,6 +204,10 @@ class TideGrid(BaseDataGrid):
         default=1,
         description="Number of corner points on which a tide time series is specified",
     )
+    freq: str = Field(
+        default="1h",
+        description="Frequency for generating the tide timeseries from constituents",
+    )
 
     @field_validator("tideloc")
     @classmethod
@@ -264,14 +268,15 @@ class TideGrid(BaseDataGrid):
         ds = super().get(destdir, grid, time=None)
 
         # Calculate the surface elevation
-        ds = ds.tide.predict(times=time.date_range, components=["h"], time_chunk=None)
+        times = pd.date_range(time.start, time.end, freq=self.freq)
+        ds = ds.tide.predict(times=times, components=["h"], time_chunk=None)
 
         # Write the data
         filename = f"tidefile-{time.start:%Y%m%dT%H%M%S}-{time.end:%Y%m%dT%H%M%S}.txt"
-        logger.debug(f"Creating wind file {filename} with times {time.date_range}")
+        logger.debug(f"Creating wind file {filename} with times {times}")
         tf = TideFile(
             filename=filename,
-            tsec=[(t - time.date_range[0]).total_seconds() for t in time.date_range],
+            tsec=[(t - times[0]).total_seconds() for t in times],
             zs=ds.h.squeeze().values,
         )
         tf.write(destdir)

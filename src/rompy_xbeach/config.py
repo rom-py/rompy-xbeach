@@ -82,10 +82,13 @@ class DataInterface(RompyBaseModel):
         """Generate each input data and return the namelist params."""
         namelist = {}
         if self.wave is not None:
+            logger.info("Generating wave boundary data")
             namelist.update(self.wave.get(staging_dir, grid, period))
         if self.wind is not None:
+            logger.info("Generating wind forcing data")
             namelist.update(self.wind.get(staging_dir, grid, period))
         if self.tide is not None:
+            logger.info("Generating tide forcing data")
             namelist.update(self.tide.get(staging_dir, grid, period))
         return namelist
 
@@ -387,6 +390,7 @@ class Config(XBeachBaseConfig):
             "(XBeach default: land)"
         ),
     )
+    _namelist = {}
 
     @field_serializer("random")
     def serialize_random(self, value: Optional[bool]):
@@ -424,6 +428,11 @@ class Config(XBeachBaseConfig):
             return None
         return int(value)
 
+    @property
+    def namelist(self) -> dict:
+        """Return the config namelist."""
+        return self._namelist
+
     def __call__(self, runtime) -> dict:
         """Serialise the config to generate the params file."""
         # Model times and staging dir from the ModelRun object
@@ -431,23 +440,23 @@ class Config(XBeachBaseConfig):
         staging_dir = runtime.staging_dir
 
         # Initial namelist
-        namelist = self.model_dump(
+        self._namelist = self.model_dump(
             exclude=["model_type", "template", "checkout", "grid", "bathy", "input"],
             exclude_none=True,
             by_alias=True,
         )
 
         # Simulation time
-        namelist["tstop"] = (period.end - period.start).total_seconds()
+        self._namelist["tstop"] = (period.end - period.start).total_seconds()
 
         # Generate the input data
-        namelist.update(self.input.get(staging_dir, self.grid, period))
+        self._namelist.update(self.input.get(staging_dir, self.grid, period))
 
         # Bathy data interface
         # TODO: Make this consistent with the other input data
-        namelist.update(self.bathy.namelist)
+        self._namelist.update(self.bathy.namelist)
         __, __, depfile, grid = self.bathy.get(destdir=staging_dir, grid=self.grid)
-        namelist.update(grid.namelist)
-        namelist.update({"depfile": depfile.name})
+        self._namelist.update(grid.namelist)
+        self._namelist.update({"depfile": depfile.name})
 
-        return namelist
+        return self._namelist
