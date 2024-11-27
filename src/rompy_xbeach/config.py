@@ -156,7 +156,7 @@ class Config(XBeachBaseConfig):
         description="Time units in udunits format (XBeach default: s)",
         examples=["seconds since 1970-01-01 00:00:00.00 +1:00"],
     )
-    breaker: Optional[BreakType] = Field(
+    breaktype: Optional[BreakType] = Field(
         default=None,
         description="Type of breaker formulation (XBeach default: roelvink_daly)",
         alias="break",
