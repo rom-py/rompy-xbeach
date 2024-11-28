@@ -197,6 +197,10 @@ class TideGrid(BaseDataGrid):
 
     """
 
+    id: Literal["tide"] = Field(
+        default="tide",
+        description="Identifier for the tide forcing",
+    )
     model_type: Literal["tide_grid"] = Field(
         default="tide_grid",
         description="Model type discriminator",
@@ -230,24 +234,6 @@ class TideGrid(BaseDataGrid):
         self.variables = ["h", "dep"]
         return self
 
-    def calc_eta(self, ds: xr.Dataset, time: TimeRange) -> xr.DataArray:
-        """Calculate the surface elevation timeseries from cons and time.
-
-        Parameters
-        ----------
-        ds : xr.Dataset
-            Dataset containing the wind data.
-
-        Returns
-        -------
-        spd : xr.DataArray
-            Wind speed.
-        dir : xr.DataArray
-            Wind coming_from direction.
-
-        """
-        pass
-
     def get(
         self, destdir: str | Path, grid: RegularGrid, time: Optional[TimeRange] = None
     ) -> dict:
@@ -276,7 +262,7 @@ class TideGrid(BaseDataGrid):
         ds = ds.tide.predict(times=times, components=["h"], time_chunk=None)
 
         # Write the data
-        filename = f"tidefile-{time.start:%Y%m%dT%H%M%S}-{time.end:%Y%m%dT%H%M%S}.txt"
+        filename = f"{self.id}-{time.start:%Y%m%dT%H%M%S}-{time.end:%Y%m%dT%H%M%S}.txt"
         logger.debug(f"Creating wind file {filename} with times {times}")
         tf = TideFile(
             filename=filename,
