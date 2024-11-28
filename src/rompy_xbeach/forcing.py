@@ -59,6 +59,10 @@ class WindScalar(RompyBaseModel):
 class BaseWind(BaseData, ABC):
     """Wind forcing from gridded data."""
 
+    id: Literal["wind"] = Field(
+        default="wind",
+        description="Identifier for the wind forcing",
+    )
     wind_vars: Union[WindVector, WindScalar] = Field(
         description="Wind forcing variables",
         discriminator="model_type",
@@ -130,7 +134,7 @@ class BaseWind(BaseData, ABC):
         # Write the data
         times = ds.time.to_index().to_pydatetime()
         wspd, wdir = self.spddir(ds)
-        filename = f"windfile-{time.start:%Y%m%dT%H%M%S}-{time.end:%Y%m%dT%H%M%S}.txt"
+        filename = f"{self.id}-{time.start:%Y%m%dT%H%M%S}-{time.end:%Y%m%dT%H%M%S}.txt"
         logger.debug(f"Creating wind file {filename} with times {times}")
         wf = WindFile(
             filename=filename,
