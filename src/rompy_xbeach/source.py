@@ -12,6 +12,7 @@ import rioxarray
 from scipy.interpolate import griddata
 import oceantide
 
+from rompy.core.filters import Filter
 from rompy.core.source import (
     SourceBase,
     SourceDataset,
@@ -160,16 +161,29 @@ class SourceMixin:
     _validate_crs = field_validator("crs")(validate_crs)
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    def _open(self):
-        """Return a CRS aware dataset."""
-        ds = super()._open()
+    def open(self, variables: list = [], filters: Filter = {}, **kwargs) -> xr.Dataset:
+        """Return the filtered dataset object.
+
+        Parameters
+        ----------
+        variables : list, optional
+            List of variables to select from the dataset.
+        filters : Filter, optional
+            Filters to apply to the dataset.
+
+        Notes
+        -----
+        The kwargs are only a placeholder in case a subclass needs to pass additional
+        arguments to the open method.
+
+        """
+        ds = super().open(variables=variables, filters=filters, **kwargs)
         # Set spatial dims, wavespectra won't have the dims so we allow it to pass
         if self.x_dim in ds.dims and self.y_dim in ds.dims:
             ds = ds.rio.set_spatial_dims(self.x_dim, self.y_dim)
         else:
             logger.debug(f"Spatial dims ({self.x_dim}, {self.y_dim}) not available")
         return ds.rio.write_crs(self.crs)
-
 
 class SourceCRSDataset(SourceMixin, SourceDataset):
     """Source dataset with CRS support from an existing xarray Dataset object."""
