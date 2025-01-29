@@ -112,11 +112,11 @@ class SourceTimeseriesCSV(SourceBase):
     def validate_kwargs(self) -> "SourceTimeseriesCSV":
         """Validate the keyword arguments."""
         if "parse_dates" in self.read_csv_kwargs:
-            logger.warning("`parse_dates` defined in kwargs, ignoring tcol")
+            pass # logger.warning("`parse_dates` defined in kwargs, ignoring tcol")
         else:
             self.read_csv_kwargs["parse_dates"] = [self.tcol]
         if "index_col" in self.read_csv_kwargs:
-            logger.warning("`index_col` defined in kwargs, ignoring tcol")
+            pass # logger.warning("`index_col` defined in kwargs, ignoring tcol")
         else:
             self.read_csv_kwargs["index_col"] = self.tcol
         return self
