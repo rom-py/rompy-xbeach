@@ -36,8 +36,7 @@ def test_source_xyz():
         crs=4326,
         res=0.0005,
     )
-    self = source
-    ds = source._open()
+    ds = source.open()
     assert ds.rio.crs == 4326
     assert ds.rio.x_dim == "x"
     assert ds.rio.y_dim == "y"
@@ -47,10 +46,10 @@ def test_source_crs_dataset(tif_path):
     ds = xr.open_dataset(tif_path, engine="rasterio", band_as_variable=True)
     ds = ds.rio.reproject("epsg:28350").rename(x="easting", y="northing")
     source = SourceCRSDataset(obj=ds, crs=28350, x_dim="easting", y_dim="northing")
-    ds2 = source._open()
-    assert ds.rio.crs == 28350
-    assert ds.rio.x_dim == "easting"
-    assert ds.rio.y_dim == "northing"
+    ds2 = source.open()
+    assert ds2.rio.crs == 28350
+    assert ds2.rio.x_dim == "easting"
+    assert ds2.rio.y_dim == "northing"
 
 
 def test_source_crs_intake(tif_path):
@@ -59,7 +58,7 @@ def test_source_crs_intake(tif_path):
         dataset_id="bathy_netcdf",
         crs=4326,
     )
-    ds = source._open()
+    ds = source.open()
     assert ds.rio.crs == 4326
     assert ds.rio.x_dim == "x"
     assert ds.rio.y_dim == "y"
@@ -67,7 +66,7 @@ def test_source_crs_intake(tif_path):
 
 def test_source_crs_file(tif_path):
     source = SourceCRSFile(uri=tif_path, crs=4326)
-    ds = source._open()
+    ds = source.open()
     assert ds.rio.crs == 4326
     assert ds.rio.x_dim == "x"
     assert ds.rio.y_dim == "y"
@@ -82,7 +81,7 @@ def test_source_oceantide():
             ufile=HERE / "data/swaus_tide_cons/u_m2s2n2k2k1o1p1q1mmmf",
         ),
     )
-    assert hasattr(source._open(), "tide")
+    assert hasattr(source.open(), "tide")
 
 
 def test_source_crs_oceantide():
@@ -95,5 +94,5 @@ def test_source_crs_oceantide():
         ),
         crs=4326,
     )
-    assert hasattr(source._open(), "tide")
-    assert source._open().rio.crs == 4326
+    assert hasattr(source.open(), "tide")
+    assert source.open().rio.crs == 4326
