@@ -1,5 +1,6 @@
 from pathlib import Path
 import pytest
+import pandas as pd
 import xarray as xr
 
 from rompy_xbeach.source import (
@@ -10,10 +11,17 @@ from rompy_xbeach.source import (
     SourceCRSIntake,
     SourceOceantide,
     SourceCRSOceantide,
+    SourceTimeseriesCSV,
+    SourceTimeseriesDataFrame,
 )
 
 
 HERE = Path(__file__).parent
+
+
+@pytest.fixture(scope="module")
+def csv_path():
+    yield HERE / "data/wind.csv"
 
 
 @pytest.fixture(scope="module")
@@ -24,6 +32,28 @@ def tif_path():
 @pytest.fixture(scope="module")
 def source():
     yield SourceGeotiff(filename=HERE / "data/bathy.tif")
+
+
+def test_source_timeseries_csv(csv_path):
+    source = SourceTimeseriesCSV(filename=csv_path, tcol="time")
+    ds = source.open()
+    assert "time" in ds.dims
+    assert "wspd" in ds.data_vars
+
+
+def test_source_timeseries_csv_parse_dates_in_kwargs(csv_path):
+    source = SourceTimeseriesCSV(
+        filename=csv_path, read_csv_kwargs=dict(parse_dates="datetime")
+    )
+    assert source.read_csv_kwargs["parse_dates"] == "datetime"
+
+
+def test_source_timeseries_dataframe(csv_path):
+    df = pd.read_csv(csv_path, parse_dates=["time"], index_col="time")
+    source = SourceTimeseriesDataFrame(obj=df)
+    ds = source.open()
+    assert "time" in ds.dims
+    assert "wspd" in ds.data_vars
 
 
 def test_source_xyz():

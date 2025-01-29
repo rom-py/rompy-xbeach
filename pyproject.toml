@@ -46,6 +46,8 @@ xyz = "rompy_xbeach.source:SourceXYZ"
 dataset = "rompy_xbeach.source:SourceCRSDataset"
 file = "rompy_xbeach.source:SourceCRSFile"
 intake = "rompy_xbeach.source:SourceCRSIntake"
+csv = "rompy_xbeach.source:SourceTimeseriesCSV"
+dataframe = "rompy_xbeach.source:SourceTimeseriesDataFrame"
 
 [project.entry-points."xbeach.interpolator"]
 regular_grid = "rompy_xbeach.interpolate:RegularGridInterpolator"

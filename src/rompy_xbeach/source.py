@@ -3,7 +3,7 @@
 import logging
 from pathlib import Path
 from typing import Literal, Union, Optional
-from pydantic import Field, field_validator, ConfigDict
+from pydantic import Field, field_validator, model_validator, ConfigDict
 import cartopy.crs as ccrs
 import numpy as np
 import pandas as pd
@@ -63,6 +63,73 @@ class SourceGeotiff(SourceBase):
         xds = rioxarray.open_rasterio(self.filename, **self.kwargs)
         xds = xds.sel(band=self.band).to_dataset(name="data")
         return xds
+
+
+class SourceTimeseriesDataFrame(SourceBase):
+    """Source dataset from an existing pandas DataFrame timeseries object."""
+
+    model_type: Literal["dataframe"] = Field(
+        default="dataframe",
+        description="Model type discriminator",
+    )
+    obj: pd.DataFrame = Field(
+        description="pandas DataFrame object",
+    )
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    def __str__(self) -> str:
+        return f"SourceTimeseriesDataFrame(obj={self.obj})"
+
+    def _open(self) -> xr.Dataset:
+        return xr.Dataset.from_dataframe(self.obj).rename({self.obj.index.name: "time"})
+
+
+class SourceTimeseriesCSV(SourceBase):
+    """Timeseries source class from CSV file.
+
+    This class should return a timeseries from a CSV file. The dataset variables are
+    defined from the column headers, therefore the appropriate read_csv kwargs must be
+    passed to allow defining the columns. The time index is defined from column name
+    identified by the tcol field.
+
+    """
+
+    model_type: Literal["csv"] = Field(
+        default="csv",
+        description="Model type discriminator",
+    )
+    filename: str | Path = Field(description="Path to the csv dataset")
+    tcol: str = Field(
+        default="time",
+        description="Name of the column containing the time data",
+    )
+    read_csv_kwargs: dict = Field(
+        default={},
+        description="Keyword arguments to pass to pandas.read_csv",
+    )
+
+    @model_validator(mode="after")
+    def validate_kwargs(self) -> "SourceTimeseriesCSV":
+        """Validate the keyword arguments."""
+        if "parse_dates" in self.read_csv_kwargs:
+            logger.warning("`parse_dates` defined in kwargs, ignoring tcol")
+        else:
+            self.read_csv_kwargs["parse_dates"] = [self.tcol]
+        if "index_col" in self.read_csv_kwargs:
+            logger.warning("`index_col` defined in kwargs, ignoring tcol")
+        else:
+            self.read_csv_kwargs["index_col"] = self.tcol
+        return self
+
+    def _open_dataframe(self) -> pd.DataFrame:
+        """Read the data from the csv file."""
+        return pd.read_csv(self.filename, **self.read_csv_kwargs)
+
+    def _open(self) -> xr.Dataset:
+        """Interpolate the xyz data onto a regular grid."""
+        df = self._open_dataframe()
+        ds = xr.Dataset.from_dataframe(df).rename({self.tcol: "time"})
+        return ds
 
 
 class SourceXYZ(SourceBase):
@@ -184,6 +251,7 @@ class SourceMixin:
         else:
             logger.debug(f"Spatial dims ({self.x_dim}, {self.y_dim}) not available")
         return ds.rio.write_crs(self.crs)
+
 
 class SourceCRSDataset(SourceMixin, SourceDataset):
     """Source dataset with CRS support from an existing xarray Dataset object."""

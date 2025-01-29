@@ -13,10 +13,9 @@ from pydantic import Field, model_validator, field_validator
 
 from rompy.core.types import RompyBaseModel
 from rompy.core.time import TimeRange
-from rompy_xbeach.data import BaseDataStation
 
 from rompy_xbeach.source import SourceCRSOceantide
-from rompy_xbeach.data import BaseData, BaseDataGrid, BaseDataStation
+from rompy_xbeach.data import BaseData, BaseDataGrid, BaseDataStation, BaseDataTimeseries
 from rompy_xbeach.grid import RegularGrid, Ori
 from rompy_xbeach.components.forcing import WindFile, TideFile
 
@@ -175,6 +174,22 @@ class WindStation(BaseDataStation, BaseWind):
 
     model_type: Literal["wind_station"] = Field(
         default="wind_station",
+        description="Model type discriminator",
+    )
+
+
+class WindTimeseries(BaseDataTimeseries, BaseWind):
+    """Wind forcing from timeseries data.
+
+    Namelist
+    --------
+    - windfile : str
+        Name of file with non-stationary wind data.
+
+    """
+
+    model_type: Literal["wind_timeseries"] = Field(
+        default="wind_timeseries",
         description="Model type discriminator",
     )
 

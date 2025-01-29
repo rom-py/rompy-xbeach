@@ -293,6 +293,21 @@ class BaseData(DataGrid, ABC):
         return ds
 
 
+class BaseDataTimeseries(BaseData):
+    """Base class to construct XBeach input from timeseries type data."""
+
+    source: Sources = Field(
+        description=(
+            "Source reader, must return a dataset with "
+            "the rioxarray accessor in the open method"
+        ),
+    )
+
+    def _sel_locations(self, grid) -> xr.Dataset:
+        """Just a placeholder given no spatial selection needs to be performed."""
+        return self.ds
+
+
 class BaseDataStation(BaseData):
     """Base class to construct XBeach input from stations type data."""
 
