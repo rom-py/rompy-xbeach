@@ -156,7 +156,10 @@ class Config(XBeachBaseConfig):
     )
     tunits: Optional[str] = Field(
         default=None,
-        description="Time units in udunits format (XBeach default: s)",
+        description=(
+            "Time units in udunits format, if not provided it is constructed based on "
+            "the simulation start time (XBeach default: s)"
+        ),
         examples=["seconds since 1970-01-01 00:00:00.00 +1:00"],
     )
     breaktype: Optional[BreakType] = Field(
@@ -448,6 +451,10 @@ class Config(XBeachBaseConfig):
 
         # Simulation time
         self._namelist["tstop"] = (period.end - period.start).total_seconds()
+
+        # tunits
+        if self.tunits is None:
+            self._namelist["tunits"] = f"seconds since {period.start:%Y-%m-%d %H:%M:%S}"
 
         # Generate the input data
         self._namelist.update(self.input.get(staging_dir, self.grid, period))
