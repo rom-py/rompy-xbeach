@@ -3,6 +3,7 @@ import pytest
 import pandas as pd
 import xarray as xr
 
+from rompy.core.source import SourceTimeseriesCSV, SourceTimeseriesDataFrame
 from rompy_xbeach.source import (
     SourceGeotiff,
     SourceXYZ,
@@ -11,8 +12,6 @@ from rompy_xbeach.source import (
     SourceCRSIntake,
     SourceOceantide,
     SourceCRSOceantide,
-    SourceTimeseriesCSV,
-    SourceTimeseriesDataFrame,
 )
 
 

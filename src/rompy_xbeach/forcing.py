@@ -197,9 +197,8 @@ class WindTimeseries(BaseDataTimeseries, BaseWind):
 # =====================================================================================
 # Water level
 # =====================================================================================
-# class TideGrid(BaseData, ABC):
-class TideGrid(BaseDataGrid):
-    """Water level forcing from tide.
+class BaseTide(BaseData):
+    """Base class for Water level forcing from tide.
 
     Namelist
     --------
@@ -215,10 +214,6 @@ class TideGrid(BaseDataGrid):
     id: Literal["tide"] = Field(
         default="tide",
         description="Identifier for the tide forcing",
-    )
-    model_type: Literal["tide_grid"] = Field(
-        default="tide_grid",
-        description="Model type discriminator",
     )
     source: SourceCRSOceantide = Field(
         description="Source of the tide data",
@@ -252,7 +247,7 @@ class TideGrid(BaseDataGrid):
     def get(
         self, destdir: str | Path, grid: RegularGrid, time: Optional[TimeRange] = None
     ) -> dict:
-        """Generate the wind file.
+        """Generate the tide file.
 
         Parameters
         ----------
@@ -287,3 +282,46 @@ class TideGrid(BaseDataGrid):
         tf.write(destdir)
 
         return {"zs0file": filename, "tideloc": self.tideloc, "tidelen": ds.time.size}
+
+
+class TideGrid(BaseTide, BaseDataGrid):
+    """Water level forcing from gridded tide cons.
+
+    Namelist
+    --------
+    - zs0file : str
+        Name of tide boundary condition series.
+    - tideloc : int
+        Number of corner points on which a tide time series is specified.
+    - tidelen : int
+        Number of time steps in the tide time series.
+
+    """
+
+    model_type: Literal["tide_grid"] = Field(
+        default="tide_grid",
+        description="Model type discriminator",
+    )
+    # source: SourceCRSOceantide = Field(
+    #     description="Source of the tide data",
+    # )
+
+
+class TideTimeseries(BaseDataTimeseries, BaseTide):
+    """Water level forcing from tide cons station.
+
+    Namelist
+    --------
+    - zs0file : str
+        Name of tide boundary condition series.
+    - tideloc : int
+        Number of corner points on which a tide time series is specified.
+    - tidelen : int
+        Number of time steps in the tide time series.
+
+    """
+
+    model_type: Literal["tide_timeseries"] = Field(
+        default="tide_timeseries",
+        description="Model type discriminator",
+    )

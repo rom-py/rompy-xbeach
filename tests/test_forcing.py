@@ -3,11 +3,12 @@ from pathlib import Path
 import numpy as np
 
 from rompy.core.time import TimeRange
-from rompy_xbeach.source import SourceCRSFile, SourceCRSOceantide, SourceTimeseriesCSV, SourceTimeseriesDataFrame
+from rompy.core.source import SourceTimeseriesCSV, SourceTimeseriesDataFrame
+from rompy_xbeach.source import SourceCRSFile, SourceCRSOceantide
 from rompy_xbeach.grid import RegularGrid
 
 from rompy_xbeach.components.forcing import Wind, WindFile
-from rompy_xbeach.forcing import WindGrid, WindStation, WindTimeseries, WindVector, WindScalar, TideGrid
+from rompy_xbeach.forcing import WindGrid, WindStation, WindTimeseries, WindVector, WindScalar, TideGrid, TideTimeseries
 
 
 HERE = Path(__file__).parent
@@ -189,3 +190,7 @@ def test_tide_grid(tmp_path, source_tide_grid, grid, time):
     tidedata = np.loadtxt(filename)
     assert namelist["tidelen"] == tidedata.shape[0]
     assert namelist["tideloc"] == 1
+
+
+def test_tide_timeseries(tmp_path, grid, time):
+    pass
