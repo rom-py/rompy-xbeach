@@ -18,6 +18,7 @@ from pydantic_numpy.typing import Np2DArray
 
 from wavespectra.core import select
 
+from rompy.utils import load_entry_points
 from rompy.core.types import RompyBaseModel
 from rompy.core.data import DataGrid
 from rompy.core.time import TimeRange
@@ -29,12 +30,12 @@ logger = logging.getLogger(__name__)
 HERE = Path(__file__).parent
 
 # Load the source types from the entry points
-eps = entry_points(group="xbeach.source")
-Sources = Union[tuple([e.load() for e in eps])]
+SOURCES = Union[load_entry_points("xbeach.source")]
+SOURCES_TS = Union[load_entry_points("rompy.source", etype="timeseries")]
 
 # Load the interpolator types from the entry points
-eps = entry_points(group="xbeach.interpolator")
-Interpolators = Union[tuple([e.load() for e in eps])]
+INTERPOLATORS = Union[load_entry_points("xbeach.interpolator")]
+default_interpolator = entry_points(group="xbeach.interpolator")["regular_grid"].load()
 
 
 class SeawardExtensionBase(RompyBaseModel, ABC):
@@ -177,7 +178,7 @@ class SeawardExtensionLinear(SeawardExtensionBase):
 class BaseData(DataGrid, ABC):
     """Xbeach data class."""
 
-    source: Sources = Field(
+    source: SOURCES = Field(
         description=(
             "Source reader, must return a dataset with "
             "the rioxarray accessor in the open method"
@@ -296,7 +297,7 @@ class BaseData(DataGrid, ABC):
 class BaseDataTimeseries(BaseData):
     """Base class to construct XBeach input from timeseries type data."""
 
-    source: Sources = Field(
+    source: SOURCES_TS = Field(
         description=(
             "Source reader, must return a dataset with "
             "the rioxarray accessor in the open method"
@@ -401,15 +402,15 @@ class XBeachDataGrid(DataGrid):
         default="xbeach_data_grid",
         description="Model type discriminator",
     )
-    source: Sources = Field(
+    source: SOURCES = Field(
         description=(
             "Source reader, must return a dataset with "
             "the rioxarray accessor in the open method"
         ),
         discriminator="model_type",
     )
-    interpolator: Interpolators = Field(
-        default_factory=eps["regular_grid"].load(),
+    interpolator: INTERPOLATORS = Field(
+        default_factory=default_interpolator,
         description="Interpolator for the data",
         discriminator="model_type",
     )
