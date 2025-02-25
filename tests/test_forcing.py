@@ -4,7 +4,7 @@ import numpy as np
 
 from rompy.core.time import TimeRange
 from rompy.core.source import SourceTimeseriesCSV, SourceTimeseriesDataFrame
-from rompy_xbeach.source import SourceCRSFile, SourceCRSOceantide
+from rompy_xbeach.source import SourceCRSFile, SourceCRSOceantide, SourceTideStationCSV
 from rompy_xbeach.grid import RegularGrid
 
 from rompy_xbeach.components.forcing import Wind, WindFile
@@ -193,4 +193,11 @@ def test_tide_grid(tmp_path, source_tide_grid, grid, time):
 
 
 def test_tide_timeseries(tmp_path, grid, time):
-    pass
+    source = SourceTideStationCSV(filename=HERE / "data/tide_cons_station.csv")
+    tide = TideTimeseries(source=source)
+    namelist = tide.get(destdir=tmp_path, grid=grid, time=time)
+    filename = tmp_path / namelist["zs0file"]
+    assert filename.is_file()
+    tidedata = np.loadtxt(filename)
+    assert namelist["tidelen"] == tidedata.shape[0]
+    assert namelist["tideloc"] == 1
