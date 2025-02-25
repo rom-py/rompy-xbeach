@@ -41,11 +41,12 @@ rompy_xbeach = "rompy_xbeach.cli:app"
 xbeach = "rompy_xbeach.config:Config"
 
 [project.entry-points."xbeach.source"]
-geotiff = "rompy_xbeach.source:SourceGeotiff"
-xyz = "rompy_xbeach.source:SourceXYZ"
-dataset = "rompy_xbeach.source:SourceCRSDataset"
-file = "rompy_xbeach.source:SourceCRSFile"
-intake = "rompy_xbeach.source:SourceCRSIntake"
+"geotiff:crs" = "rompy_xbeach.source:SourceGeotiff"
+"xyz:crs" = "rompy_xbeach.source:SourceXYZ"
+"dataset:crs" = "rompy_xbeach.source:SourceCRSDataset"
+"file:crs" = "rompy_xbeach.source:SourceCRSFile"
+"intake:crs" = "rompy_xbeach.source:SourceCRSIntake"
+"tide_station_csv:tide_station" = "rompy_xbeach.source:SourceTideStationCSV"
 
 [project.entry-points."xbeach.interpolator"]
 regular_grid = "rompy_xbeach.interpolate:RegularGridInterpolator"

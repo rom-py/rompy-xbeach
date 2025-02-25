@@ -260,34 +260,52 @@ class SourceCRSOceantide(SourceMixin, SourceOceantide):
     )
 
 
-# class SourceTideStation(SourceBase):
-#     """Tide station source class."""
+class SourceTideStationCSV(SourceBase):
+    """Tide station source class."""
 
-#     model_type: Literal["tide_station"] = Field(
-#         default="tide_station",
-#         description="Model type discriminator",
-#     )
-#     station: str = Field(
-#         description="Name of the tide station",
-#     )
-#     crs: CRS_TYPES = Field(
-#         description="Coordinate reference system of the source data",
-#     )
-#     x: float = Field(
-#         description="Easting coordinate of the tide station",
-#     )
-#     y: float = Field(
-#         description="Northing coordinate of the tide station",
-#     )
-#     time: pd.Timestamp = Field(
-#         description="Time of the tide data",
-#     )
-#     kwargs: dict = Field(
-#         default={},
-#         description="Keyword arguments to pass to the tide reader",
-#     )
+    model_type: Literal["tide_station"] = Field(
+        default="tide_station",
+        description="Model type discriminator",
+    )
+    filename: str | Path = Field(description="Path to the csv stations file")
+    acol: str = Field(
+        default="amplitude",
+        description="Name of the column containing the amplitude data",
+    )
+    pcol: str = Field(
+        default="phase",
+        description="Name of the column containing the phase data",
+    )
+    ccol: str = Field(
+        default="constituent",
+        description="Name of the column containing the constituent data",
+    )
+    read_csv_kwargs: dict = Field(
+        default={},
+        description="Keyword arguments to pass to pandas.read_csv",
+    )
 
-#     def _open(self) -> xr.Dataset:
-#         """This method needs to return an xarray Dataset object."""
-#         ds = oceantide.read_station(self.station, self.x, self.y, self.time, **self.kwargs)
-#         return ds
+    @model_validator(mode="after")
+    def validate_kwargs(self) -> "SourceTideStationCSV":
+        """Validate the keyword arguments."""
+        if "index_col" not in self.read_csv_kwargs:
+            self.read_csv_kwargs["index_col"] = self.ccol
+        return self
+
+    def _to_oceantide(self, df):
+        """."""
+        df["h"] = df.amplitude * np.exp(1j * np.deg2rad(df.phase))
+        df.index = df.index.str.upper()
+        df.index.name = "con"
+        ds = xr.Dataset.from_dataframe(df[["h"]])
+        return ds.assign_coords(con=ds.con.astype("U4"))
+
+    def _open_dataframe(self) -> pd.DataFrame:
+        """Read the data from the csv file."""
+        return pd.read_csv(self.filename, **self.read_csv_kwargs)
+
+    def _open(self) -> xr.Dataset:
+        """Interpolate the xyz data onto a regular grid."""
+        df = self._open_dataframe()
+        ds =self._to_oceantide(df)
+        return ds

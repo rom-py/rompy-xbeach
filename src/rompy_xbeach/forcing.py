@@ -13,6 +13,7 @@ from pydantic import Field, model_validator, field_validator
 
 from rompy.core.types import RompyBaseModel
 from rompy.core.time import TimeRange
+from rompy.utils import load_entry_points
 
 from rompy_xbeach.source import SourceCRSOceantide
 from rompy_xbeach.data import BaseData, BaseDataGrid, BaseDataStation, BaseDataTimeseries
@@ -198,7 +199,7 @@ class WindTimeseries(BaseDataTimeseries, BaseWind):
 # Water level
 # =====================================================================================
 class BaseTide(BaseData):
-    """Base class for Water level forcing from tide.
+    """Base class for Water level forcing from tide based on oceantide.
 
     Namelist
     --------
@@ -226,6 +227,10 @@ class BaseTide(BaseData):
         default="1h",
         description="Frequency for generating the tide timeseries from constituents",
     )
+    variables: list[str] = Field(
+        default=["h"],
+        description="Variables to extract from the dataset",
+    )
 
     @field_validator("tideloc")
     @classmethod
@@ -241,7 +246,7 @@ class BaseTide(BaseData):
         logger.debug("Setting oceantide variables")
         if self.variables:
             logger.warning(f"Overwriting tide variables from to oceantide convention")
-        self.variables = ["h", "dep"]
+        self.variables = ["h"]
         return self
 
     def get(
@@ -302,12 +307,12 @@ class TideGrid(BaseTide, BaseDataGrid):
         default="tide_grid",
         description="Model type discriminator",
     )
-    # source: SourceCRSOceantide = Field(
-    #     description="Source of the tide data",
-    # )
 
 
-class TideTimeseries(BaseDataTimeseries, BaseTide):
+# SOURCES_TIDE_STATION = load_entry_points("rompy_xbeach.sources", "tide_station")
+from rompy_xbeach.source import SourceTideStationCSV
+
+class TideTimeseries(BaseTide, BaseDataTimeseries):
     """Water level forcing from tide cons station.
 
     Namelist
@@ -324,4 +329,7 @@ class TideTimeseries(BaseDataTimeseries, BaseTide):
     model_type: Literal["tide_timeseries"] = Field(
         default="tide_timeseries",
         description="Model type discriminator",
+    )
+    source: SourceTideStationCSV = Field(
+        description="Source of the tide data",
     )
