@@ -46,7 +46,7 @@ xbeach = "rompy_xbeach.config:Config"
 "dataset:crs" = "rompy_xbeach.source:SourceCRSDataset"
 "file:crs" = "rompy_xbeach.source:SourceCRSFile"
 "intake:crs" = "rompy_xbeach.source:SourceCRSIntake"
-"tide_station_csv:tide_station" = "rompy_xbeach.source:SourceTideStationCSV"
+"tide_point_csv:tide_point" = "rompy_xbeach.source:SourceTidePointCSV"
 
 [project.entry-points."xbeach.interpolator"]
 regular_grid = "rompy_xbeach.interpolate:RegularGridInterpolator"

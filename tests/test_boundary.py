@@ -10,11 +10,11 @@ from rompy_xbeach.source import SourceCRSFile, SourceCRSWavespectra
 from rompy_xbeach.boundary import (
     BoundaryBaseStation,
     BoundaryStationParamJons,
-    BoundaryTimeseriesParamJons,
+    BoundaryPointParamJons,
     BoundaryStationSpectraJons,
     BoundaryStationSpectraJonstable,
     BoundaryStationParamJonstable,
-    BoundaryTimeseriesParamJonstable,
+    BoundaryPointParamJonstable,
     BoundaryStationSpectraSwan,
 )
 from rompy_xbeach.components.boundary import (
@@ -286,7 +286,7 @@ def test_boundary_station_spectra_jons_filelist(
 
 def test_boundary_timeseries_param_jons_bcfile(tmp_path, source_csv, grid, time):
     """Test single (bcfile) jons spectral boundary from timeseries param source."""
-    wb = BoundaryTimeseriesParamJons(
+    wb = BoundaryPointParamJons(
         source=source_csv,
         filelist=False,
         hm0="phs1",
@@ -307,7 +307,7 @@ def test_boundary_timeseries_param_jons_bcfile(tmp_path, source_csv, grid, time)
 
 def test_boundary_timeseries_param_jons_filelist(tmp_path, source_csv, grid, time):
     """Test multiple (filelist) jons spectral boundary from timeseries param source."""
-    wb = BoundaryTimeseriesParamJons(
+    wb = BoundaryPointParamJons(
         source=source_csv,
         hm0="phs1",
         tp="ptp1",
@@ -377,7 +377,7 @@ def test_boundary_station_spectra_jonstable(tmp_path, source_wavespectra, grid, 
 
 def test_boundary_timeseries_param_jonstable(tmp_path, source_csv, grid, time):
     """Test multiple (filelist) jons spectral boundary from timeseries param source."""
-    wb = BoundaryTimeseriesParamJonstable(
+    wb = BoundaryPointParamJonstable(
         source=source_csv,
         hm0="phs1",
         tp="ptp1",

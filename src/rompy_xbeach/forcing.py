@@ -16,7 +16,7 @@ from rompy.core.time import TimeRange
 from rompy.utils import load_entry_points
 
 from rompy_xbeach.source import SourceCRSOceantide
-from rompy_xbeach.data import BaseData, BaseDataGrid, BaseDataStation, BaseDataTimeseries
+from rompy_xbeach.data import BaseData, BaseDataGrid, BaseDataStation, BaseDataPoint
 from rompy_xbeach.grid import RegularGrid, Ori
 from rompy_xbeach.components.forcing import WindFile, TideFile
 
@@ -179,8 +179,8 @@ class WindStation(BaseDataStation, BaseWind):
     )
 
 
-class WindTimeseries(BaseDataTimeseries, BaseWind):
-    """Wind forcing from timeseries data.
+class WindPoint(BaseDataPoint, BaseWind):
+    """Wind forcing from point timeseries data.
 
     Namelist
     --------
@@ -189,8 +189,8 @@ class WindTimeseries(BaseDataTimeseries, BaseWind):
 
     """
 
-    model_type: Literal["wind_timeseries"] = Field(
-        default="wind_timeseries",
+    model_type: Literal["wind_point"] = Field(
+        default="wind_point",
         description="Model type discriminator",
     )
 
@@ -310,10 +310,10 @@ class TideGrid(BaseTide, BaseDataGrid):
 
 
 # SOURCES_TIDE_STATION = load_entry_points("rompy_xbeach.sources", "tide_station")
-from rompy_xbeach.source import SourceTideStationCSV
+from rompy_xbeach.source import SourceTidePointCSV
 
-class TideTimeseries(BaseTide, BaseDataTimeseries):
-    """Water level forcing from tide cons station.
+class TidePoint(BaseTide, BaseDataPoint):
+    """Water level forcing from single tide cons station.
 
     Namelist
     --------
@@ -326,10 +326,10 @@ class TideTimeseries(BaseTide, BaseDataTimeseries):
 
     """
 
-    model_type: Literal["tide_timeseries"] = Field(
-        default="tide_timeseries",
+    model_type: Literal["tide_point"] = Field(
+        default="tide_point",
         description="Model type discriminator",
     )
-    source: SourceTideStationCSV = Field(
+    source: SourceTidePointCSV = Field(
         description="Source of the tide data",
     )

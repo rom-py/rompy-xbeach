@@ -11,7 +11,7 @@ from rompy_xbeach.source import (
     SourceCRSIntake,
     SourceOceantide,
     SourceCRSOceantide,
-    SourceTideStationCSV
+    SourceTidePointCSV
 )
 
 
@@ -106,7 +106,7 @@ def test_source_crs_oceantide():
 
 
 def test_source_tide_station(tide_station_file):
-    source = SourceTideStationCSV(
+    source = SourceTidePointCSV(
         filename=tide_station_file, acol="amplitude", pcol="phase", ccol="constituent")
     ds = source.open()
     assert hasattr(ds, "tide")

@@ -294,8 +294,8 @@ class BaseData(DataGrid, ABC):
         return ds
 
 
-class BaseDataTimeseries(BaseData):
-    """Base class to construct XBeach input from timeseries type data."""
+class BaseDataPoint(BaseData):
+    """Base class to construct XBeach input from point timeseries type data."""
 
     source: SOURCES_TS = Field(
         description=(

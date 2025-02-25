@@ -11,7 +11,7 @@ from pydantic import Field, model_validator, field_validator
 from rompy.core.source import SourceTimeseriesCSV, SourceTimeseriesDataFrame
 from rompy.core.types import DatasetCoords, RompyBaseModel
 from rompy.core.time import TimeRange
-from rompy_xbeach.data import BaseDataStation, BaseDataTimeseries
+from rompy_xbeach.data import BaseDataStation, BaseDataPoint
 
 from rompy_xbeach.source import (
     SourceCRSFile,
@@ -109,8 +109,8 @@ class BoundaryBaseStation(BoundaryBase, BaseDataStation):
     """Base class to construct XBeach wave boundary from stations type data."""
 
 
-class BoundaryBaseTimeseries(BoundaryBase, BaseDataTimeseries):
-    """Base class to construct XBeach wave boundary from timeseries type data."""
+class BoundaryBasePoint(BoundaryBase, BaseDataPoint):
+    """Base class to construct XBeach wave boundary from point timeseries type data."""
 
 
 class SpectraMixin:
@@ -465,15 +465,15 @@ class BoundaryStationParamJons(ParamMixin, BoundaryJons, BoundaryBaseStation):
     )
 
 
-class BoundaryTimeseriesParamJons(ParamMixin, BoundaryJons, BoundaryBaseTimeseries):
-    """Wave boundary conditions from timeseries type parameters dataset."""
+class BoundaryPointParamJons(ParamMixin, BoundaryJons, BoundaryBasePoint):
+    """Wave boundary conditions from point timeseries type parameters dataset."""
 
-    model_type: Literal["timeseries_param_jons"] = Field(
-        default="timeseries_param_jons",
+    model_type: Literal["point_param_jons"] = Field(
+        default="point_param_jons",
         description="Model type discriminator",
     )
     source: SOURCE_TIMESERIES_TYPES = Field(
-        description="Dataset source reader for timeseries type data",
+        description="Dataset source reader for point timeseries type data",
         discriminator="model_type",
     )
 
@@ -509,20 +509,20 @@ class BoundaryStationParamJonstable(ParamMixin, BoundaryJonstable, BoundaryBaseS
         return self
 
 
-class BoundaryTimeseriesParamJonstable(ParamMixin, BoundaryJonstable, BoundaryBaseTimeseries):
-    """Wave boundary conditions from timeseries type parameters dataset such as CSV."""
+class BoundaryPointParamJonstable(ParamMixin, BoundaryJonstable, BoundaryBasePoint):
+    """Wave boundary conditions from point timeseries type parameters dataset."""
 
-    model_type: Literal["timeseries_param_jonstable"] = Field(
-        default="timeseries_param_jonstable",
+    model_type: Literal["point_param_jonstable"] = Field(
+        default="point_param_jonstable",
         description="Model type discriminator",
     )
     source: SOURCE_TIMESERIES_TYPES = Field(
-        description="Dataset source reader for timeseries type data",
+        description="Dataset source reader for point timeseries type data",
         discriminator="model_type",
     )
 
     @model_validator(mode="after")
-    def default_params(self) -> "BoundaryTimeseriesParamJonstable":
+    def default_params(self) -> "BoundaryPointParamJonstable":
         if self.gammajsp is None:
             logger.debug("Setting default value for gammajsp of 3.3")
             self.gammajsp = 3.3

@@ -260,8 +260,8 @@ class SourceCRSOceantide(SourceMixin, SourceOceantide):
     )
 
 
-class SourceTideStationCSV(SourceBase):
-    """Tide station source class."""
+class SourceTidePointCSV(SourceBase):
+    """Tide point source class."""
 
     model_type: Literal["tide_station"] = Field(
         default="tide_station",
@@ -286,7 +286,7 @@ class SourceTideStationCSV(SourceBase):
     )
 
     @model_validator(mode="after")
-    def validate_kwargs(self) -> "SourceTideStationCSV":
+    def validate_kwargs(self) -> "SourceTidePointCSV":
         """Validate the keyword arguments."""
         if "index_col" not in self.read_csv_kwargs:
             self.read_csv_kwargs["index_col"] = self.ccol

@@ -4,11 +4,11 @@ import numpy as np
 
 from rompy.core.time import TimeRange
 from rompy.core.source import SourceTimeseriesCSV, SourceTimeseriesDataFrame
-from rompy_xbeach.source import SourceCRSFile, SourceCRSOceantide, SourceTideStationCSV
+from rompy_xbeach.source import SourceCRSFile, SourceCRSOceantide, SourceTidePointCSV
 from rompy_xbeach.grid import RegularGrid
 
 from rompy_xbeach.components.forcing import Wind, WindFile
-from rompy_xbeach.forcing import WindGrid, WindStation, WindTimeseries, WindVector, WindScalar, TideGrid, TideTimeseries
+from rompy_xbeach.forcing import WindGrid, WindStation, WindPoint, WindVector, WindScalar, TideGrid, TidePoint
 
 
 HERE = Path(__file__).parent
@@ -150,7 +150,7 @@ def test_wind_station(tmp_path, source_wind_station, grid, time):
 
 
 def test_wind_timeseries(tmp_path, source_wind_timeseries, grid, time):
-    wind = WindTimeseries(
+    wind = WindPoint(
         source=source_wind_timeseries,
         wind_vars=WindVector(u="u10", v="v10"),
     )
@@ -161,7 +161,7 @@ def test_wind_timeseries(tmp_path, source_wind_timeseries, grid, time):
 def test_wind_timeseries_spd_dir(tmp_path, source_wind_timeseries, grid, time):
     # Extract the DataFrame object and test it with SourceTimeseriesDataFrame
     df = source_wind_timeseries._open_dataframe()
-    wind = WindTimeseries(
+    wind = WindPoint(
         source=SourceTimeseriesDataFrame(obj=df),
         wind_vars=WindScalar(spd="wspd", dir="wdir")
     )
@@ -170,7 +170,7 @@ def test_wind_timeseries_spd_dir(tmp_path, source_wind_timeseries, grid, time):
 
 
 def test_wind_timeseries_time_in_range(tmp_path, source_wind_timeseries, grid):
-    wind = WindTimeseries(
+    wind = WindPoint(
         source=source_wind_timeseries,
         wind_vars=WindScalar(spd="wspd", dir="wdir")
     )
@@ -192,9 +192,9 @@ def test_tide_grid(tmp_path, source_tide_grid, grid, time):
     assert namelist["tideloc"] == 1
 
 
-def test_tide_timeseries(tmp_path, grid, time):
-    source = SourceTideStationCSV(filename=HERE / "data/tide_cons_station.csv")
-    tide = TideTimeseries(source=source)
+def test_tide_point(tmp_path, grid, time):
+    source = SourceTidePointCSV(filename=HERE / "data/tide_cons_station.csv")
+    tide = TidePoint(source=source)
     namelist = tide.get(destdir=tmp_path, grid=grid, time=time)
     filename = tmp_path / namelist["zs0file"]
     assert filename.is_file()
