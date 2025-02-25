@@ -8,10 +8,10 @@ import numpy as np
 import xarray as xr
 from pydantic import Field, model_validator, field_validator
 
-
+from rompy.core.source import SourceTimeseriesCSV, SourceTimeseriesDataFrame
 from rompy.core.types import DatasetCoords, RompyBaseModel
 from rompy.core.time import TimeRange
-from rompy_xbeach.data import BaseDataStation
+from rompy_xbeach.data import BaseDataStation, BaseDataTimeseries
 
 from rompy_xbeach.source import (
     SourceCRSFile,
@@ -29,6 +29,11 @@ from rompy_xbeach.components.boundary import (
 
 logger = logging.getLogger(__name__)
 
+
+SOURCE_TIMESERIES_TYPES = Union[
+    SourceTimeseriesCSV,
+    SourceTimeseriesDataFrame,
+]
 
 SOURCE_PARAM_TYPES = Union[
     SourceCRSFile,
@@ -102,6 +107,10 @@ class BoundaryBase:
 
 class BoundaryBaseStation(BoundaryBase, BaseDataStation):
     """Base class to construct XBeach wave boundary from stations type data."""
+
+
+class BoundaryBaseTimeseries(BoundaryBase, BaseDataTimeseries):
+    """Base class to construct XBeach wave boundary from timeseries type data."""
 
 
 class SpectraMixin:
@@ -245,7 +254,7 @@ class FilelistMixin:
         return filename
 
 
-class BoundaryStationJons(FilelistMixin, BoundaryBaseStation, ABC):
+class BoundaryJons(FilelistMixin, ABC):
     """Base class for JONS wave boundary from station type dataset such as SMC."""
 
     id: Literal["jons"] = Field(default="jons", description="Boundary type identifier")
@@ -291,7 +300,7 @@ class BoundaryStationJons(FilelistMixin, BoundaryBaseStation, ABC):
         """
         pass
 
-    def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryStationJons":
+    def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryJons":
         """Instantiate the boundary object.
 
         Parameters
@@ -359,7 +368,7 @@ class BoundaryStationJons(FilelistMixin, BoundaryBaseStation, ABC):
         return {"wbctype": self.id, "bcfile": bcfile.name}
 
 
-class BoundaryStationJonstable(BoundaryBaseStation, ABC):
+class BoundaryJonstable(ABC):
     """Base class for JONSTABLE wave boundary from station type dataset such as SMC."""
 
     id: Literal["jonstable"] = Field(
@@ -438,7 +447,7 @@ class BoundaryStationJonstable(BoundaryBaseStation, ABC):
 # =====================================================================================
 # JONS bctype
 # =====================================================================================
-class BoundaryStationSpectraJons(SpectraMixin, BoundaryStationJons):
+class BoundaryStationSpectraJons(SpectraMixin, BoundaryJons, BoundaryBaseStation):
     """Wave boundary conditions from station type spectra dataset such as SMC."""
 
     model_type: Literal["station_spectra_jons"] = Field(
@@ -447,7 +456,7 @@ class BoundaryStationSpectraJons(SpectraMixin, BoundaryStationJons):
     )
 
 
-class BoundaryStationParamJons(ParamMixin, BoundaryStationJons):
+class BoundaryStationParamJons(ParamMixin, BoundaryJons, BoundaryBaseStation):
     """Wave boundary conditions from station type parameters dataset such as SMC."""
 
     model_type: Literal["station_param_jons"] = Field(
@@ -456,10 +465,23 @@ class BoundaryStationParamJons(ParamMixin, BoundaryStationJons):
     )
 
 
+class BoundaryTimeseriesParamJons(ParamMixin, BoundaryJons, BoundaryBaseTimeseries):
+    """Wave boundary conditions from timeseries type parameters dataset."""
+
+    model_type: Literal["timeseries_param_jons"] = Field(
+        default="timeseries_param_jons",
+        description="Model type discriminator",
+    )
+    source: SOURCE_TIMESERIES_TYPES = Field(
+        description="Dataset source reader for timeseries type data",
+        discriminator="model_type",
+    )
+
+
 # =====================================================================================
 # JONSTABLE bctype
 # =====================================================================================
-class BoundaryStationSpectraJonstable(SpectraMixin, BoundaryStationJonstable):
+class BoundaryStationSpectraJonstable(SpectraMixin, BoundaryJonstable, BoundaryBaseStation):
     """Wave boundary conditions from station type parameters dataset such as SMC."""
 
     model_type: Literal["station_spectra_jonstable"] = Field(
@@ -468,7 +490,7 @@ class BoundaryStationSpectraJonstable(SpectraMixin, BoundaryStationJonstable):
     )
 
 
-class BoundaryStationParamJonstable(ParamMixin, BoundaryStationJonstable):
+class BoundaryStationParamJonstable(ParamMixin, BoundaryJonstable, BoundaryBaseStation):
     """Wave boundary conditions from station type parameters dataset such as SMC."""
 
     model_type: Literal["station_param_jonstable"] = Field(
@@ -478,6 +500,29 @@ class BoundaryStationParamJonstable(ParamMixin, BoundaryStationJonstable):
 
     @model_validator(mode="after")
     def default_params(self) -> "BoundaryStationParamJonstable":
+        if self.gammajsp is None:
+            logger.debug("Setting default value for gammajsp of 3.3")
+            self.gammajsp = 3.3
+        if self.dspr is None:
+            logger.debug("Setting default value for dspr of 24.431 (s=10.0)")
+            self.dspr = 24.43100247268452
+        return self
+
+
+class BoundaryTimeseriesParamJonstable(ParamMixin, BoundaryJonstable, BoundaryBaseTimeseries):
+    """Wave boundary conditions from timeseries type parameters dataset such as CSV."""
+
+    model_type: Literal["timeseries_param_jonstable"] = Field(
+        default="timeseries_param_jonstable",
+        description="Model type discriminator",
+    )
+    source: SOURCE_TIMESERIES_TYPES = Field(
+        description="Dataset source reader for timeseries type data",
+        discriminator="model_type",
+    )
+
+    @model_validator(mode="after")
+    def default_params(self) -> "BoundaryTimeseriesParamJonstable":
         if self.gammajsp is None:
             logger.debug("Setting default value for gammajsp of 3.3")
             self.gammajsp = 3.3
@@ -508,7 +553,7 @@ class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStatio
         le=360.0,
     )
 
-    def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryStationJons":
+    def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryJons":
         """Instantiate the boundary object.
 
         Parameters

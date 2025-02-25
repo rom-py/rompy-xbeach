@@ -4,15 +4,17 @@ import xarray as xr
 from wavespectra import read_swan
 
 from rompy.core.time import TimeRange
-
+from rompy.core.source import SourceTimeseriesCSV
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.source import SourceCRSFile, SourceCRSWavespectra
 from rompy_xbeach.boundary import (
     BoundaryBaseStation,
     BoundaryStationParamJons,
+    BoundaryTimeseriesParamJons,
     BoundaryStationSpectraJons,
     BoundaryStationSpectraJonstable,
     BoundaryStationParamJonstable,
+    BoundaryTimeseriesParamJonstable,
     BoundaryStationSpectraSwan,
 )
 from rompy_xbeach.components.boundary import (
@@ -50,6 +52,11 @@ def source_file():
         kwargs=dict(engine="netcdf4"),
         crs=4326,
     )
+
+
+@pytest.fixture(scope="module")
+def source_csv():
+    yield SourceTimeseriesCSV(filename=HERE / "data/wave-params-20230101.csv")
 
 
 @pytest.fixture(scope="module")
@@ -163,7 +170,7 @@ def test_boundary_station_is_abstract(source_file):
 # JONS BCFILE
 # =====================================================================================
 def test_boundary_station_param_jons_bcfile(tmp_path, source_file, grid, time):
-    """Test single (bcfile) jons spectral boundary from param source."""
+    """Test single (bcfile) jons spectral boundary from stations param source."""
     wb = BoundaryStationParamJons(
         source=source_file,
         coords=dict(s="seapoint", x="longitude", y="latitude", t="time"),
@@ -277,6 +284,53 @@ def test_boundary_station_spectra_jons_filelist(
             assert keys in bcdata
 
 
+def test_boundary_timeseries_param_jons_bcfile(tmp_path, source_csv, grid, time):
+    """Test single (bcfile) jons spectral boundary from timeseries param source."""
+    wb = BoundaryTimeseriesParamJons(
+        source=source_csv,
+        filelist=False,
+        hm0="phs1",
+        tp="ptp1",
+        mainang="pdp1",
+        gammajsp="ppe1",
+        dspr="pspr1",
+    )
+    namelist = wb.get(destdir=tmp_path, grid=grid, time=time)
+    assert namelist["wbctype"] == "jons"
+    filename = tmp_path / namelist["bcfile"]
+    assert filename.is_file()
+    # Assert parameters defined in bcfile
+    bcdata = filename.read_text()
+    for keys in ["Hm0", "Tp", "mainang", "gammajsp", "s"]:
+        assert keys in bcdata
+
+
+def test_boundary_timeseries_param_jons_filelist(tmp_path, source_csv, grid, time):
+    """Test multiple (filelist) jons spectral boundary from timeseries param source."""
+    wb = BoundaryTimeseriesParamJons(
+        source=source_csv,
+        hm0="phs1",
+        tp="ptp1",
+        mainang="pdp1",
+        gammajsp="ppe1",
+        dspr="pspr1",
+    )
+    namelist = wb.get(destdir=tmp_path, grid=grid, time=time)
+    assert namelist["wbctype"] == "jons"
+    filelist = tmp_path / namelist["bcfile"]
+    lines = filelist.read_text().split("\n")
+    for line in lines[1:]:
+        if not line:
+            continue
+        # Assert bcfile created
+        filename = tmp_path / line.split()[-1]
+        assert filename.is_file()
+        # Assert parameters defined in bcfile
+        bcdata = filename.read_text()
+        for keys in ["Hm0", "Tp", "mainang", "gammajsp", "s"]:
+            assert keys in bcdata
+
+
 # =====================================================================================
 # JONSTABLE BCFILE
 # =====================================================================================
@@ -317,6 +371,28 @@ def test_boundary_station_spectra_jonstable(tmp_path, source_wavespectra, grid, 
     for line in bcdata[1:]:
         if not line:
             continue
+        params = line.split()
+        assert len(params) == 7
+
+
+def test_boundary_timeseries_param_jonstable(tmp_path, source_csv, grid, time):
+    """Test multiple (filelist) jons spectral boundary from timeseries param source."""
+    wb = BoundaryTimeseriesParamJonstable(
+        source=source_csv,
+        hm0="phs1",
+        tp="ptp1",
+        mainang="pdp1",
+        gammajsp="ppe1",
+        dspr="pspr1",
+    )
+    namelist = wb.get(destdir=tmp_path, grid=grid, time=time)
+    assert namelist["wbctype"] == "jonstable"
+    bcfile = tmp_path / namelist["bcfile"]
+    bcdata = bcfile.read_text().split("\n")
+    for line in bcdata[1:]:
+        if not line:
+            continue
+        # Assert all parameters defined in bcfile
         params = line.split()
         assert len(params) == 7
 
