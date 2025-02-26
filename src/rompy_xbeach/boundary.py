@@ -343,6 +343,7 @@ class BoundaryJons(FilelistMixin, ABC):
             Path to the boundary bcfile data.
 
         """
+        destdir = Path(destdir)
         ds = super().get(destdir, grid, time)
         if not self.filelist:
             # Write a single bcfile at the timerange start
