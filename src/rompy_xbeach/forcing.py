@@ -245,7 +245,7 @@ class BaseTide(BaseData):
         """Variable names in an Oceantide dataset should be fixed."""
         logger.debug("Setting oceantide variables")
         if self.variables:
-            logger.warning(f"Overwriting tide variables from to oceantide convention")
+            logger.debug(f"Overwriting tide variables to the oceantide convention")
         self.variables = ["h"]
         return self
 

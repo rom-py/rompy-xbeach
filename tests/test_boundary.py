@@ -284,7 +284,7 @@ def test_boundary_station_spectra_jons_filelist(
             assert keys in bcdata
 
 
-def test_boundary_timeseries_param_jons_bcfile(tmp_path, source_csv, grid, time):
+def test_boundary_point_param_jons_bcfile(tmp_path, source_csv, grid, time):
     """Test single (bcfile) jons spectral boundary from timeseries param source."""
     wb = BoundaryPointParamJons(
         source=source_csv,
@@ -305,7 +305,7 @@ def test_boundary_timeseries_param_jons_bcfile(tmp_path, source_csv, grid, time)
         assert keys in bcdata
 
 
-def test_boundary_timeseries_param_jons_filelist(tmp_path, source_csv, grid, time):
+def test_boundary_point_param_jons_filelist(tmp_path, source_csv, grid, time):
     """Test multiple (filelist) jons spectral boundary from timeseries param source."""
     wb = BoundaryPointParamJons(
         source=source_csv,
@@ -375,7 +375,7 @@ def test_boundary_station_spectra_jonstable(tmp_path, source_wavespectra, grid, 
         assert len(params) == 7
 
 
-def test_boundary_timeseries_param_jonstable(tmp_path, source_csv, grid, time):
+def test_boundary_point_param_jonstable(tmp_path, source_csv, grid, time):
     """Test multiple (filelist) jons spectral boundary from timeseries param source."""
     wb = BoundaryPointParamJonstable(
         source=source_csv,

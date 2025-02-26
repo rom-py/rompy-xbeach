@@ -375,7 +375,7 @@ class BoundaryJonstable(ABC):
         default="jonstable", description="Boundary type identifier"
     )
 
-    def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryStationJons":
+    def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryJonstable":
         """Instantiate the boundary object.
 
         Parameters
