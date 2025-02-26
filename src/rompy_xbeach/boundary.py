@@ -246,7 +246,7 @@ class FilelistMixin:
             Path to the filelist file.
 
         """
-        filename = destdir / f"{self.id}-filelist.txt"
+        filename = Path(destdir) / f"{self.id}-filelist.txt"
         with open(filename, "w") as f:
             f.write("FILELIST\n")
             for bcfile, duration in zip(bcfiles, durations):
@@ -343,7 +343,6 @@ class BoundaryJons(FilelistMixin, ABC):
             Path to the boundary bcfile data.
 
         """
-        destdir = Path(destdir)
         ds = super().get(destdir, grid, time)
         if not self.filelist:
             # Write a single bcfile at the timerange start
