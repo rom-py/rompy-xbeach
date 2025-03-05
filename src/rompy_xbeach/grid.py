@@ -223,7 +223,14 @@ class RegularGrid(BaseGrid):
     @cached_property
     def transform(self):
         """Cartopy transformation for the grid."""
-        return ccrs.epsg(self.crs.to_epsg())
+        _epsg = self.crs.to_epsg()
+        _crs = CRS.from_epsg(_epsg)
+        if _crs.is_projected:
+            return ccrs.epsg(_epsg)
+        elif _crs.is_geographic:
+            return ccrs.PlateCarree()
+        else:
+            raise ValueError(f"Unsupported CRS: {_crs}")
 
     @cached_property
     def projection(self):
