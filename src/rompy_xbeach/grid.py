@@ -92,10 +92,16 @@ class RegularGrid(BaseGrid):
         description="Angle of x-axis from east in degrees",
     )
     dx: float = Field(
-        description="Grid spacing in the x-direction in meters",
+        description=(
+            "Grid spacing in the x-direction, for projected CRS, this value is "
+            "defined in meters, for geographic CRS, it is defined in degrees"
+        ),
     )
     dy: float = Field(
-        description="Grid spacing in the y-direction in meters",
+        description=(
+            "Grid spacing in the y-direction, for projected CRS, this value is "
+            "defined in meters, for geographic CRS, it is defined in degrees"
+        ),
     )
     nx: int = Field(
         description=(
