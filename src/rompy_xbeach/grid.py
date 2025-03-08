@@ -226,17 +226,28 @@ class RegularGrid(BaseGrid):
         """Coordinates at the centre of the grid."""
         return float(self.x.mean()), float(self.y.mean())
 
+
     @cached_property
     def transform(self):
         """Cartopy transformation for the grid."""
         _epsg = self.crs.to_epsg()
-        _crs = CRS.from_epsg(_epsg)
-        if _crs.is_projected:
-            return ccrs.epsg(_epsg)
-        elif _crs.is_geographic:
+
+        if _epsg is not None:
+            return ccrs.epsg(_epsg)  # If EPSG exists, use it
+    
+        # If no EPSG, use Cartopy's Stereographic projection
+        elif "stere" in self.crs.to_proj4():
+            return ccrs.Stereographic(
+                central_longitude=self.ori.x, 
+                central_latitude=self.ori.y
+            )
+
+        # If CRS is geographic (lat/lon), use PlateCarree
+        elif self.crs.is_geographic:
             return ccrs.PlateCarree()
+
         else:
-            raise ValueError(f"Unsupported CRS: {_crs}")
+            raise ValueError(f"Unsupported CRS: {self.crs}")
 
     @cached_property
     def projection(self):
@@ -437,7 +448,7 @@ class RegularGrid(BaseGrid):
 
         # set grid lines
         if set_gridlines is not None:
-            ax.gridlines(crs=self.transform, linewidth=0.5, color="gray", alpha=0.5)
+            ax.gridlines(crs=self.transform, draw_labels=True, linewidth=0.5, color="gray", alpha=0.5)
 
         return ax
 
