@@ -169,6 +169,28 @@ def test_boundary_station_is_abstract(source_file):
 # =====================================================================================
 # JONS BCFILE
 # =====================================================================================
+def test_boundary_jons_bctype(tmp_path, source_file, grid, time):
+    """Test bctype can be defined as either jons or parametric."""
+    kwargs = dict(
+        source=source_file,
+        coords=dict(s="seapoint", x="longitude", y="latitude", t="time"),
+        filelist=False,
+        hm0="phs1",
+        tp="ptp1",
+        mainang="pdp1",
+        gammajsp="ppe1",
+        dspr="pspr1",
+    )
+    # Jons
+    wb = BoundaryStationParamJons(**kwargs)
+    namelist = wb.get(destdir=tmp_path, grid=grid, time=time)
+    assert namelist["wbctype"] == "jons"
+    # Parametric
+    wb = BoundaryStationParamJons(id="parametric", **kwargs)
+    namelist = wb.get(destdir=tmp_path, grid=grid, time=time)
+    assert namelist["wbctype"] == "parametric"
+
+
 def test_boundary_station_param_jons_bcfile(tmp_path, source_file, grid, time):
     """Test single (bcfile) jons spectral boundary from stations param source."""
     wb = BoundaryStationParamJons(
