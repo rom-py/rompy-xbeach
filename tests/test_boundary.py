@@ -189,6 +189,9 @@ def test_boundary_jons_bctype(tmp_path, source_file, grid, time):
     wb = BoundaryStationParamJons(id="parametric", **kwargs)
     namelist = wb.get(destdir=tmp_path, grid=grid, time=time)
     assert namelist["wbctype"] == "parametric"
+    # Unsupported
+    with pytest.raises(ValueError):
+        wb = BoundaryStationParamJons(id="unsupported", **kwargs)
 
 
 def test_boundary_station_param_jons_bcfile(tmp_path, source_file, grid, time):
