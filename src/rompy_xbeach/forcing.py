@@ -22,6 +22,7 @@ from rompy_xbeach.components.forcing import WindFile, TideFile
 
 logger = logging.getLogger(__name__)
 
+SOURCES_TS = Union[load_entry_points("rompy.source", etype="timeseries")]
 
 # =====================================================================================
 # Wind
@@ -56,8 +57,8 @@ class WindScalar(RompyBaseModel):
     )
 
 
-class BaseWind(BaseData, ABC):
-    """Wind forcing from gridded data."""
+class WindMixin:
+    """Wind specific functionality."""
 
     id: Literal["wind"] = Field(
         default="wind",
@@ -73,7 +74,7 @@ class BaseWind(BaseData, ABC):
         """Set the variables attribute based on the wind_vars attribute."""
         logger.debug("Setting wind variables")
         if self.variables:
-            logger.warning(f"Overwriting wind variables from {self.wind_vars}")
+            logger.debug(f"Overwriting wind variables from {self.wind_vars}")
         # Add the coordinates if stations
         variables = []
         if self.coords.x in self.ds.data_vars and self.coords.y in self.ds.data_vars:
@@ -147,7 +148,7 @@ class BaseWind(BaseData, ABC):
         return {"windfile": filename}
 
 
-class WindGrid(BaseDataGrid, BaseWind):
+class WindGrid(WindMixin, BaseDataGrid):
     """Wind forcing from gridded data.
 
     Namelist
@@ -163,7 +164,7 @@ class WindGrid(BaseDataGrid, BaseWind):
     )
 
 
-class WindStation(BaseDataStation, BaseWind):
+class WindStation(WindMixin, BaseDataStation):
     """Wind forcing from station data.
 
     Namelist
@@ -179,7 +180,7 @@ class WindStation(BaseDataStation, BaseWind):
     )
 
 
-class WindPoint(BaseDataPoint, BaseWind):
+class WindPoint(WindMixin, BaseDataPoint):
     """Wind forcing from point timeseries data.
 
     Namelist

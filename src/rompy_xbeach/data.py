@@ -299,8 +299,7 @@ class BaseDataPoint(BaseData):
 
     source: SOURCES_TS = Field(
         description=(
-            "Source reader, must return a dataset with "
-            "the rioxarray accessor in the open method"
+            "Source reader, must return an xarray timeseries dataset in the open method"
         ),
     )
 
