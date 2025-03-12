@@ -7,19 +7,11 @@ from pydantic import Field, field_validator, model_validator, field_serializer
 
 from rompy.core.types import RompyBaseModel
 from rompy.core.time import TimeRange
+from rompy.utils import load_entry_points
+
 from rompy_xbeach.types import XBeachBaseConfig, WbcEnum
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.data import XBeachBathy
-from rompy_xbeach.forcing import WindGrid, WindStation, WindPoint, TideConsGrid, TideConsPoint
-from rompy_xbeach.boundary import (
-    BoundaryStationSpectraJons,
-    BoundaryStationParamJons,
-    BoundaryPointParamJons,
-    BoundaryStationSpectraJonstable,
-    BoundaryStationParamJonstable,
-    BoundaryPointParamJonstable,
-    BoundaryStationSpectraSwan,
-)
 
 
 logger = logging.getLogger(__name__)
@@ -33,30 +25,15 @@ HERE = Path(__file__).parent
 
 
 WindType = Annotated[
-    Union[
-        WindGrid,
-        WindStation,
-        WindPoint,
-    ],
+    Union[load_entry_points("xbeach.data", etype="wind")],
     Field(description="Wind input data", discriminator="model_type"),
 ]
 WaveType = Annotated[
-    Union[
-        BoundaryStationSpectraJons,
-        BoundaryStationParamJons,
-        BoundaryPointParamJons,
-        BoundaryStationSpectraJonstable,
-        BoundaryStationParamJonstable,
-        BoundaryPointParamJonstable,
-        BoundaryStationSpectraSwan,
-    ],
+    Union[load_entry_points("xbeach.data", etype="wave")],
     Field(description="Wave input data", discriminator="model_type"),
 ]
 TideType = Annotated[
-    Union[
-        TideConsGrid,
-        TideConsPoint,
-    ],
+    Union[load_entry_points("xbeach.data", etype="tide")],
     Field(description="Tide input data", discriminator="model_type"),
 ]
 
