@@ -325,7 +325,7 @@ class BaseDataStation(BaseData):
 
     @model_validator(mode="after")
     def validate_coords(self) -> "BaseDataStation":
-        ds = self.ds.copy()
+        ds = self.ds.copy().reset_coords()
         for coord in [self.coords.t, self.coords.s]:
             if coord not in ds.dims:
                 raise ValueError(
