@@ -4,11 +4,11 @@ import numpy as np
 
 from rompy.core.time import TimeRange
 from rompy.core.source import SourceTimeseriesCSV, SourceTimeseriesDataFrame
-from rompy_xbeach.source import SourceCRSFile, SourceCRSOceantide, SourceTidePointCSV
+from rompy_xbeach.source import SourceCRSFile, SourceCRSOceantide, SourceTideConsPointCSV
 from rompy_xbeach.grid import RegularGrid
 
 from rompy_xbeach.components.forcing import Wind, WindFile
-from rompy_xbeach.forcing import WindGrid, WindStation, WindPoint, WindVector, WindScalar, TideGrid, TidePoint
+from rompy_xbeach.forcing import WindGrid, WindStation, WindPoint, WindVector, WindScalar, TideConsGrid, TideConsPoint
 
 
 HERE = Path(__file__).parent
@@ -180,7 +180,7 @@ def test_wind_timeseries_time_in_range(tmp_path, source_wind_timeseries, grid):
 
 
 def test_tide_grid(tmp_path, source_tide_grid, grid, time):
-    tide = TideGrid(
+    tide = TideConsGrid(
         source=source_tide_grid,
         coords=dict(x="lon", y="lat"),
     )
@@ -193,8 +193,8 @@ def test_tide_grid(tmp_path, source_tide_grid, grid, time):
 
 
 def test_tide_point(tmp_path, grid, time):
-    source = SourceTidePointCSV(filename=HERE / "data/tide_cons_station.csv")
-    tide = TidePoint(source=source)
+    source = SourceTideConsPointCSV(filename=HERE / "data/tide_cons_station.csv")
+    tide = TideConsPoint(source=source)
     namelist = tide.get(destdir=tmp_path, grid=grid, time=time)
     filename = tmp_path / namelist["zs0file"]
     assert filename.is_file()

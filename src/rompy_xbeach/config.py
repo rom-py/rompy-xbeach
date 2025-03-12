@@ -10,7 +10,7 @@ from rompy.core.time import TimeRange
 from rompy_xbeach.types import XBeachBaseConfig, WbcEnum
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.data import XBeachBathy
-from rompy_xbeach.forcing import WindGrid, WindStation, WindPoint, TideGrid, TidePoint
+from rompy_xbeach.forcing import WindGrid, WindStation, WindPoint, TideConsGrid, TideConsPoint
 from rompy_xbeach.boundary import (
     BoundaryStationSpectraJons,
     BoundaryStationParamJons,
@@ -54,8 +54,8 @@ WaveType = Annotated[
 ]
 TideType = Annotated[
     Union[
-        TideGrid,
-        TidePoint,
+        TideConsGrid,
+        TideConsPoint,
     ],
     Field(description="Tide input data", discriminator="model_type"),
 ]

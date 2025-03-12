@@ -199,8 +199,8 @@ class WindPoint(WindMixin, BaseDataPoint):
 # =====================================================================================
 # Water level
 # =====================================================================================
-class BaseTide(BaseData):
-    """Base class for Water level forcing from tide based on oceantide.
+class OceantideMixin:
+    """Mixin class for Water level forcing from tide based on oceantide.
 
     Namelist
     --------
@@ -213,8 +213,8 @@ class BaseTide(BaseData):
 
     """
 
-    id: Literal["tide"] = Field(
-        default="tide",
+    id: Literal["oceantide"] = Field(
+        default="oceantide",
         description="Identifier for the tide forcing",
     )
     source: SourceCRSOceantide = Field(
@@ -290,8 +290,8 @@ class BaseTide(BaseData):
         return {"zs0file": filename, "tideloc": self.tideloc, "tidelen": ds.time.size}
 
 
-class TideGrid(BaseTide, BaseDataGrid):
-    """Water level forcing from gridded tide cons.
+class TideConsGrid(OceantideMixin, BaseDataGrid):
+    """Water level forcing from gridded tide cons processed with oceantide.
 
     Namelist
     --------
@@ -304,17 +304,17 @@ class TideGrid(BaseTide, BaseDataGrid):
 
     """
 
-    model_type: Literal["tide_grid"] = Field(
-        default="tide_grid",
+    model_type: Literal["tide_cons_grid"] = Field(
+        default="tide_cons_grid",
         description="Model type discriminator",
     )
 
 
 # SOURCES_TIDE_STATION = load_entry_points("rompy_xbeach.sources", "tide_station")
-from rompy_xbeach.source import SourceTidePointCSV
+from rompy_xbeach.source import SourceTideConsPointCSV
 
-class TidePoint(BaseTide, BaseDataPoint):
-    """Water level forcing from single tide cons station.
+class TideConsPoint(OceantideMixin, BaseDataPoint):
+    """Water level forcing from single tide cons point processed with oceantide.
 
     Namelist
     --------
@@ -327,10 +327,10 @@ class TidePoint(BaseTide, BaseDataPoint):
 
     """
 
-    model_type: Literal["tide_point"] = Field(
-        default="tide_point",
+    model_type: Literal["tide_cons_point"] = Field(
+        default="tide_cons_point",
         description="Model type discriminator",
     )
-    source: SourceTidePointCSV = Field(
+    source: SourceTideConsPointCSV = Field(
         description="Source of the tide data",
     )

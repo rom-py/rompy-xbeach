@@ -260,11 +260,11 @@ class SourceCRSOceantide(SourceMixin, SourceOceantide):
     )
 
 
-class SourceTidePointCSV(SourceBase):
+class SourceTideConsPointCSV(SourceBase):
     """Tide point source class."""
 
-    model_type: Literal["tide_station"] = Field(
-        default="tide_station",
+    model_type: Literal["tide_cons_point_csv"] = Field(
+        default="tide_cons_point_csv",
         description="Model type discriminator",
     )
     filename: str | Path = Field(description="Path to the csv stations file")
@@ -286,7 +286,7 @@ class SourceTidePointCSV(SourceBase):
     )
 
     @model_validator(mode="after")
-    def validate_kwargs(self) -> "SourceTidePointCSV":
+    def validate_kwargs(self) -> "SourceTideConsPointCSV":
         """Validate the keyword arguments."""
         if "index_col" not in self.read_csv_kwargs:
             self.read_csv_kwargs["index_col"] = self.ccol
