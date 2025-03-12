@@ -40,13 +40,30 @@ rompy_xbeach = "rompy_xbeach.cli:app"
 [project.entry-points."rompy.config"]
 xbeach = "rompy_xbeach.config:Config"
 
+[project.entry-points."xbeach.data"]
+"wind_grid:wind" = "rompy_xbeach.forcing:WindGrid"
+"wind_station:wind" = "rompy_xbeach.forcing:WindStation"
+"wind_point:wind" = "rompy_xbeach.forcing:WindPoint"
+"tide_cons_grid:tide" = "rompy_xbeach.forcing:TideConsGrid"
+"tide_cons_point:tide" = "rompy_xbeach.forcing:TideConsPoint"
+"water_level_grid:tide" = "rompy_xbeach.forcing:WaterLevelGrid"
+"water_level_station:tide" = "rompy_xbeach.forcing:WaterLevelStation"
+"water_level_point:tide" = "rompy_xbeach.forcing:WaterLevelPoint"
+"boundary_station_spectra_jons:wave" = "rompy_xbeach.boundary:BoundaryStationSpectraJons"
+"boundary_station_param_jons:wave" = "rompy_xbeach.boundary:BoundaryStationParamJons"
+"boundary_point_param_jons:wave" = "rompy_xbeach.boundary:BoundaryPointParamJons"
+"boundary_station_spectra_jonstable:wave" = "rompy_xbeach.boundary:BoundaryStationSpectraJonstable"
+"boundary_station_param_jonstable:wave" = "rompy_xbeach.boundary:BoundaryStationParamJonstable"
+"boundary_point_param_jonstable:wave" = "rompy_xbeach.boundary:BoundaryPointParamJonstable"
+"boundary_station_spectra_swan:wave" = "rompy_xbeach.boundary:BoundaryStationSpectraSwan"
+
 [project.entry-points."xbeach.source"]
 "geotiff:crs" = "rompy_xbeach.source:SourceGeotiff"
 "xyz:crs" = "rompy_xbeach.source:SourceXYZ"
 "dataset:crs" = "rompy_xbeach.source:SourceCRSDataset"
 "file:crs" = "rompy_xbeach.source:SourceCRSFile"
 "intake:crs" = "rompy_xbeach.source:SourceCRSIntake"
-"tide_point_csv:tide_point" = "rompy_xbeach.source:SourceTidePointCSV"
+"tide_cons_point_csv:tide_cons_point" = "rompy_xbeach.source:SourceTideConsPointCSV"
 
 [project.entry-points."xbeach.interpolator"]
 regular_grid = "rompy_xbeach.interpolate:RegularGridInterpolator"

@@ -299,8 +299,7 @@ class BaseDataPoint(BaseData):
 
     source: SOURCES_TS = Field(
         description=(
-            "Source reader, must return a dataset with "
-            "the rioxarray accessor in the open method"
+            "Source reader, must return an xarray timeseries dataset in the open method"
         ),
     )
 
@@ -326,7 +325,7 @@ class BaseDataStation(BaseData):
 
     @model_validator(mode="after")
     def validate_coords(self) -> "BaseDataStation":
-        ds = self.ds.copy()
+        ds = self.ds.copy().reset_coords()
         for coord in [self.coords.t, self.coords.s]:
             if coord not in ds.dims:
                 raise ValueError(

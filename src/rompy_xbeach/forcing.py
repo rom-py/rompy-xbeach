@@ -15,13 +15,14 @@ from rompy.core.types import RompyBaseModel
 from rompy.core.time import TimeRange
 from rompy.utils import load_entry_points
 
-from rompy_xbeach.source import SourceCRSOceantide
-from rompy_xbeach.data import BaseData, BaseDataGrid, BaseDataStation, BaseDataPoint
+from rompy_xbeach.source import SourceCRSOceantide, SourceTideConsPointCSV
+from rompy_xbeach.data import BaseDataGrid, BaseDataStation, BaseDataPoint
 from rompy_xbeach.grid import RegularGrid, Ori
 from rompy_xbeach.components.forcing import WindFile, TideFile
 
 logger = logging.getLogger(__name__)
 
+SOURCES_TS = Union[load_entry_points("rompy.source", etype="timeseries")]
 
 # =====================================================================================
 # Wind
@@ -56,8 +57,8 @@ class WindScalar(RompyBaseModel):
     )
 
 
-class BaseWind(BaseData, ABC):
-    """Wind forcing from gridded data."""
+class WindMixin:
+    """Wind specific functionality."""
 
     id: Literal["wind"] = Field(
         default="wind",
@@ -73,7 +74,7 @@ class BaseWind(BaseData, ABC):
         """Set the variables attribute based on the wind_vars attribute."""
         logger.debug("Setting wind variables")
         if self.variables:
-            logger.warning(f"Overwriting wind variables from {self.wind_vars}")
+            logger.debug(f"Overwriting wind variables from {self.wind_vars}")
         # Add the coordinates if stations
         variables = []
         if self.coords.x in self.ds.data_vars and self.coords.y in self.ds.data_vars:
@@ -147,7 +148,7 @@ class BaseWind(BaseData, ABC):
         return {"windfile": filename}
 
 
-class WindGrid(BaseDataGrid, BaseWind):
+class WindGrid(WindMixin, BaseDataGrid):
     """Wind forcing from gridded data.
 
     Namelist
@@ -163,7 +164,7 @@ class WindGrid(BaseDataGrid, BaseWind):
     )
 
 
-class WindStation(BaseDataStation, BaseWind):
+class WindStation(WindMixin, BaseDataStation):
     """Wind forcing from station data.
 
     Namelist
@@ -179,7 +180,7 @@ class WindStation(BaseDataStation, BaseWind):
     )
 
 
-class WindPoint(BaseDataPoint, BaseWind):
+class WindPoint(WindMixin, BaseDataPoint):
     """Wind forcing from point timeseries data.
 
     Namelist
@@ -198,8 +199,8 @@ class WindPoint(BaseDataPoint, BaseWind):
 # =====================================================================================
 # Water level
 # =====================================================================================
-class BaseTide(BaseData):
-    """Base class for Water level forcing from tide based on oceantide.
+class ZS0Mixin:
+    """Mixin class for zs0file parameters.
 
     Namelist
     --------
@@ -216,9 +217,6 @@ class BaseTide(BaseData):
         default="tide",
         description="Identifier for the tide forcing",
     )
-    source: SourceCRSOceantide = Field(
-        description="Source of the tide data",
-    )
     tideloc: Literal[0, 1, 2, 4] = Field(
         default=1,
         description="Number of corner points on which a tide time series is specified",
@@ -226,10 +224,6 @@ class BaseTide(BaseData):
     freq: str = Field(
         default="1h",
         description="Frequency for generating the tide timeseries from constituents",
-    )
-    variables: list[str] = Field(
-        default=["h"],
-        description="Variables to extract from the dataset",
     )
 
     @field_validator("tideloc")
@@ -240,8 +234,95 @@ class BaseTide(BaseData):
             raise NotImplementedError("Only tideloc=1 is currently implemented")
         return v
 
+
+class WaterLevelBase(ZS0Mixin):
+    """Mixin class for Water level forcing from timeseries data."""
+
+    variables: list[str] = Field(
+        default=["h"],
+        description="Variables to extract from the dataset",
+        min_length=1,
+        max_length=1,
+    )
+
+    @property
+    def h(self):
+        return self.variables[0]
+
+    def get(
+        self, destdir: str | Path, grid: RegularGrid, time: Optional[TimeRange] = None
+    ) -> dict:
+        """Generate the tide file.
+
+        Parameters
+        ----------
+        destdir : str | Path
+            Destination directory for the netcdf file.
+        grid : RegularGrid
+            Grid instance to use for selecting the boundary points.
+        time: TimeRange, optional
+            The times to filter the data to, only used if `self.crop_data` is True.
+
+        Returns
+        -------
+        outfile : Path
+            Path to the boundary bcfile data.
+
+        """
+        # Select the cons data at the grid location
+        ds = super().get(destdir, grid, time=None)
+
+        # Write the data
+        filename = f"{self.id}-{time.start:%Y%m%dT%H%M%S}-{time.end:%Y%m%dT%H%M%S}.txt"
+        times = ds.time.to_index().to_pydatetime()
+        logger.debug(f"Creating wind file {filename} with times {times}")
+        tf = TideFile(
+            filename=filename,
+            tsec=[(t - times[0]).total_seconds() for t in times],
+            zs=ds[self.h].squeeze().values,
+        )
+        tf.write(destdir)
+
+        return {"zs0file": filename, "tideloc": self.tideloc, "tidelen": ds.time.size}
+
+
+class WaterLevelGrid(WaterLevelBase, BaseDataGrid):
+    """Water level forcing from gridded timeseries."""
+
+    model_type: Literal["water_level_grid"] = Field(
+        default="water_level_grid",
+        description="Model type discriminator",
+    )
+
+
+class WaterLevelStation(WaterLevelBase, BaseDataStation):
+    """Water level forcing from station data."""
+
+    model_type: Literal["water_level_station"] = Field(
+        default="water_level_station",
+        description="Model type discriminator",
+    )
+
+
+class WaterLevelPoint(WaterLevelBase, BaseDataPoint):
+    """Water level forcing from point timeseries data."""
+
+    model_type: Literal["water_level_point"] = Field(
+        default="water_level_point",
+        description="Model type discriminator",
+    )
+
+
+class TideConsBase(ZS0Mixin):
+    """Mixin class to generate timeseries from cons using oceantide."""
+
+    variables: list[str] = Field(
+        default=["h"],
+        description="Variables to extract from the dataset",
+    )
+
     @model_validator(mode="after")
-    def set_variables(self):
+    def set_variables(self) -> "TideConsBase":
         """Variable names in an Oceantide dataset should be fixed."""
         logger.debug("Setting oceantide variables")
         if self.variables:
@@ -289,47 +370,25 @@ class BaseTide(BaseData):
         return {"zs0file": filename, "tideloc": self.tideloc, "tidelen": ds.time.size}
 
 
-class TideGrid(BaseTide, BaseDataGrid):
-    """Water level forcing from gridded tide cons.
+class TideConsGrid(TideConsBase, BaseDataGrid):
+    """Water level forcing from gridded tide cons processed with oceantide."""
 
-    Namelist
-    --------
-    - zs0file : str
-        Name of tide boundary condition series.
-    - tideloc : int
-        Number of corner points on which a tide time series is specified.
-    - tidelen : int
-        Number of time steps in the tide time series.
-
-    """
-
-    model_type: Literal["tide_grid"] = Field(
-        default="tide_grid",
+    model_type: Literal["tide_cons_grid"] = Field(
+        default="tide_cons_grid",
         description="Model type discriminator",
+    )
+    source: SourceCRSOceantide = Field(
+        description="Source of the tide data",
     )
 
 
-# SOURCES_TIDE_STATION = load_entry_points("rompy_xbeach.sources", "tide_station")
-from rompy_xbeach.source import SourceTidePointCSV
+class TideConsPoint(TideConsBase, BaseDataPoint):
+    """Water level forcing from single tide cons point processed with oceantide."""
 
-class TidePoint(BaseTide, BaseDataPoint):
-    """Water level forcing from single tide cons station.
-
-    Namelist
-    --------
-    - zs0file : str
-        Name of tide boundary condition series.
-    - tideloc : int
-        Number of corner points on which a tide time series is specified.
-    - tidelen : int
-        Number of time steps in the tide time series.
-
-    """
-
-    model_type: Literal["tide_point"] = Field(
-        default="tide_point",
+    model_type: Literal["tide_cons_point"] = Field(
+        default="tide_cons_point",
         description="Model type discriminator",
     )
-    source: SourceTidePointCSV = Field(
+    source: SourceTideConsPointCSV = Field(
         description="Source of the tide data",
     )
