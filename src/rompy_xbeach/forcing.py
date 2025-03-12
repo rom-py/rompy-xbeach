@@ -298,8 +298,8 @@ class WaterLevelGrid(WaterLevelBase, BaseDataGrid):
 class WaterLevelStation(WaterLevelBase, BaseDataStation):
     """Water level forcing from station data."""
 
-    model_type: Literal["water_level_grid"] = Field(
-        default="water_level_grid",
+    model_type: Literal["water_level_station"] = Field(
+        default="water_level_station",
         description="Model type discriminator",
     )
 
