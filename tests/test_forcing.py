@@ -4,11 +4,26 @@ import numpy as np
 
 from rompy.core.time import TimeRange
 from rompy.core.source import SourceTimeseriesCSV, SourceTimeseriesDataFrame
-from rompy_xbeach.source import SourceCRSFile, SourceCRSOceantide, SourceTideConsPointCSV
+from rompy_xbeach.source import (
+    SourceCRSFile,
+    SourceCRSOceantide,
+    SourceTideConsPointCSV,
+)
 from rompy_xbeach.grid import RegularGrid
 
 from rompy_xbeach.components.forcing import Wind, WindFile
-from rompy_xbeach.forcing import WindGrid, WindStation, WindPoint, WindVector, WindScalar, TideConsGrid, TideConsPoint
+from rompy_xbeach.forcing import (
+    WindGrid,
+    WindStation,
+    WindPoint,
+    WindVector,
+    WindScalar,
+    TideConsGrid,
+    TideConsPoint,
+    WaterLevelGrid,
+    WaterLevelStation,
+    WaterLevelPoint,
+)
 
 
 HERE = Path(__file__).parent
@@ -71,6 +86,37 @@ def source_tide_grid():
         x_dim="lon",
         y_dim="lat",
     )
+
+
+@pytest.fixture(scope="module")
+def source_tide_point():
+    yield SourceTideConsPointCSV(filename=HERE / "data/tide_cons_station.csv")
+
+
+@pytest.fixture(scope="module")
+def source_water_level_grid():
+    yield SourceCRSFile(
+        uri=HERE / "data/ssh_gridded.nc",
+        kwargs=dict(engine="netcdf4"),
+        crs=4326,
+        x_dim="lon",
+        y_dim="lat",
+    )
+
+
+@pytest.fixture(scope="module")
+def source_water_level_station():
+    yield SourceCRSFile(
+        uri=HERE / "data/ssh_stations.nc",
+        crs=4326,
+        x_dim="lon",
+        y_dim="lat",
+    )
+
+
+@pytest.fixture(scope="module")
+def source_water_level_timeseries():
+    yield SourceTimeseriesCSV(filename=HERE / "data/ssh.csv", tcol="time")
 
 
 # =====================================================================================
@@ -163,7 +209,7 @@ def test_wind_timeseries_spd_dir(tmp_path, source_wind_timeseries, grid, time):
     df = source_wind_timeseries._open_dataframe()
     wind = WindPoint(
         source=SourceTimeseriesDataFrame(obj=df),
-        wind_vars=WindScalar(spd="wspd", dir="wdir")
+        wind_vars=WindScalar(spd="wspd", dir="wdir"),
     )
     windfile = wind.get(destdir=tmp_path, grid=grid, time=time)
     assert (tmp_path / windfile["windfile"]).is_file()
@@ -171,33 +217,62 @@ def test_wind_timeseries_spd_dir(tmp_path, source_wind_timeseries, grid, time):
 
 def test_wind_timeseries_time_in_range(tmp_path, source_wind_timeseries, grid):
     wind = WindPoint(
-        source=source_wind_timeseries,
-        wind_vars=WindScalar(spd="wspd", dir="wdir")
+        source=source_wind_timeseries, wind_vars=WindScalar(spd="wspd", dir="wdir")
     )
     time = TimeRange(start="1900-01-01T00", end="1900-01-01T12", interval="1h")
     with pytest.raises(ValueError):
         wind.get(destdir=tmp_path, grid=grid, time=time)
 
 
-def test_tide_grid(tmp_path, source_tide_grid, grid, time):
-    tide = TideConsGrid(
-        source=source_tide_grid,
-        coords=dict(x="lon", y="lat"),
-    )
-    namelist = tide.get(destdir=tmp_path, grid=grid, time=time)
+@pytest.mark.parametrize(
+    "source_fixture,forcing_class,coords,variables",
+    [
+        (
+            "source_tide_grid",
+            TideConsGrid,
+            {"x": "lon", "y": "lat"},
+            None,
+        ),
+        (
+            "source_tide_point",
+            TideConsPoint,
+            {},
+            None,
+        ),
+        (
+            "source_water_level_grid",
+            WaterLevelGrid,
+            {"x": "lon", "y": "lat"},
+            ["ssh"],
+        ),
+        (
+            "source_water_level_station",
+            WaterLevelStation,
+            {"s": "site", "x": "lon", "y": "lat"},
+            ["ssh"],
+        ),
+        (
+            "source_water_level_timeseries",
+            WaterLevelPoint,
+            {},
+            ["ssh"],
+        ),
+    ],
+)
+def test_water_level_forcing(
+    tmp_path, source_fixture, forcing_class, coords, variables, grid, time, request
+):
+    """Test water level forcing classes with different sources and configurations."""
+    source = request.getfixturevalue(source_fixture)
+    kwargs = {"source": source, "coords": coords}
+    if variables is not None:
+        kwargs["variables"] = variables
+
+    forcing = forcing_class(**kwargs)
+    namelist = forcing.get(destdir=tmp_path, grid=grid, time=time)
+    
     filename = tmp_path / namelist["zs0file"]
     assert filename.is_file()
-    tidedata = np.loadtxt(filename)
-    assert namelist["tidelen"] == tidedata.shape[0]
-    assert namelist["tideloc"] == 1
-
-
-def test_tide_point(tmp_path, grid, time):
-    source = SourceTideConsPointCSV(filename=HERE / "data/tide_cons_station.csv")
-    tide = TideConsPoint(source=source)
-    namelist = tide.get(destdir=tmp_path, grid=grid, time=time)
-    filename = tmp_path / namelist["zs0file"]
-    assert filename.is_file()
-    tidedata = np.loadtxt(filename)
-    assert namelist["tidelen"] == tidedata.shape[0]
+    data = np.loadtxt(filename)
+    assert namelist["tidelen"] == data.shape[0]
     assert namelist["tideloc"] == 1
