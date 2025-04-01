@@ -39,6 +39,7 @@ def validate_crs(crs: Optional[CRS_TYPES]) -> CRS:
     return CRS.from_user_input(crs)
 
 
+
 class Ori(RompyBaseModel):
     """Origin of the grid in geographic space."""
 
@@ -232,7 +233,7 @@ class RegularGrid(BaseGrid):
         """Cartopy transformation for the grid."""
         _epsg = self.crs.to_epsg()
 
-        if _epsg is not None:
+        if _epsg is not None and self.crs.is_projected:
             return ccrs.epsg(_epsg)  # If EPSG exists, use it
     
         # If no EPSG, use Cartopy's Stereographic projection
