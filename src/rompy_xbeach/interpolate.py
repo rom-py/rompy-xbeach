@@ -2,10 +2,11 @@ from pydantic import Field
 from typing import Literal, Optional
 from abc import ABC, abstractmethod
 import numpy as np
+import logging
 from pydantic_numpy.typing import Np1DArray, Np2DArray
 
 from rompy.core.types import RompyBaseModel
-
+logger = logging.getLogger(__name__)
 
 class BaseInterpolator(ABC, RompyBaseModel):
     """Base interpolator class."""
@@ -90,6 +91,10 @@ class RegularGridInterpolator(BaseInterpolator):
 
         """
         from scipy.interpolate import RegularGridInterpolator
-
-        interp = RegularGridInterpolator(points=(y, x), values=data, **self.kwargs)
-        return interp((yi, xi))
+        try:
+            interp = RegularGridInterpolator(points=(y, x), values=data, **self.kwargs)
+            return interp((yi, xi))
+        except ValueError as e:
+            interp = RegularGridInterpolator(points=(y, x), values=data, bounds_error=False, fill_value=None,  **self.kwargs)
+            logging.warning(f"Interpolating grid failed {e}, allowing out of bounds data to be extrapolated")
+            return interp((yi, xi))
