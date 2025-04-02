@@ -524,6 +524,14 @@ class XBeachBathy(XBeachDataGrid):
         description="Method to extend the data seaward",
         discriminator="model_type",
     )
+    interpolate_na: bool = Field(
+        default=True,
+        description="Interpolate NaN values in the source data",
+    )
+    interpolate_na_kwargs: dict = Field(
+        default_factory=dict,
+        description="Keyword arguments for the interpolate_na method",
+    )
 
     @model_validator(mode="after")
     def single_variable(self) -> "XBeachBathy":
@@ -611,6 +619,12 @@ class XBeachBathy(XBeachDataGrid):
             dset = self.ds.rio.reproject(grid.crs).rename(x=self.x_dim, y=self.y_dim)
         else:
             dset = self.ds.copy()
+
+        # Interpolate nan values
+        if self.interpolate_na:
+            dset = dset.sortby([self.x_dim, self.y_dim]).interpolate_na(
+                dim=self.x_dim, **self.interpolate_na_kwargs
+            ).interpolate_na(dim=self.y_dim, **self.interpolate_na_kwargs)
 
         # Interpolate to the model grid
         variable = self.variables[0]
