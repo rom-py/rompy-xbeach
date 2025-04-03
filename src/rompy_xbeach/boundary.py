@@ -484,7 +484,9 @@ class BoundaryPointParamJons(ParamMixin, BoundaryJons, BoundaryBasePoint):
 # =====================================================================================
 # JONSTABLE bctype
 # =====================================================================================
-class BoundaryStationSpectraJonstable(SpectraMixin, BoundaryJonstable, BoundaryBaseStation):
+class BoundaryStationSpectraJonstable(
+    SpectraMixin, BoundaryJonstable, BoundaryBaseStation
+):
     """Wave boundary conditions from station type parameters dataset such as SMC."""
 
     model_type: Literal["station_spectra_jonstable"] = Field(

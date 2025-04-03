@@ -1,7 +1,6 @@
 from pydantic import Field
-from typing import Literal, Optional
+from typing import Literal
 from abc import ABC, abstractmethod
-import numpy as np
 from pydantic_numpy.typing import Np1DArray, Np2DArray
 
 from rompy.core.types import RompyBaseModel
@@ -90,6 +89,10 @@ class RegularGridInterpolator(BaseInterpolator):
 
         """
         from scipy.interpolate import RegularGridInterpolator
+<<<<<<< HEAD
+=======
+
+>>>>>>> main
         try:
             interp = RegularGridInterpolator(points=(y, x), values=data, **self.kwargs)
             return interp((yi, xi))
@@ -100,6 +103,11 @@ class RegularGridInterpolator(BaseInterpolator):
                 f"while the target grid extends over x=({xi.min()} to {xi.max()}) and "
                 f"y=({yi.min()} to {yi.max()}).\nYou can set the extrapolation "
                 f"parameters in the interpolator kwargs to overcome this issue, for "
+<<<<<<< HEAD
                 "example:\n\t""interpolator = RegularGridInterpolator"
+=======
+                "example:\n\t"
+                "interpolator = RegularGridInterpolator"
+>>>>>>> main
                 "(kwargs={'bounds_error': False, 'fill_value': None})"
             ) from e

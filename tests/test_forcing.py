@@ -270,7 +270,7 @@ def test_water_level_forcing(
 
     forcing = forcing_class(**kwargs)
     namelist = forcing.get(destdir=tmp_path, grid=grid, time=time)
-    
+
     filename = tmp_path / namelist["zs0file"]
     assert filename.is_file()
     data = np.loadtxt(filename)

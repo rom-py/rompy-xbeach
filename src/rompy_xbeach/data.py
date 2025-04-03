@@ -622,9 +622,11 @@ class XBeachBathy(XBeachDataGrid):
 
         # Interpolate nan values
         if self.interpolate_na:
-            dset = dset.sortby([self.x_dim, self.y_dim]).interpolate_na(
-                dim=self.x_dim, **self.interpolate_na_kwargs
-            ).interpolate_na(dim=self.y_dim, **self.interpolate_na_kwargs)
+            dset = (
+                dset.sortby([self.x_dim, self.y_dim])
+                .interpolate_na(dim=self.x_dim, **self.interpolate_na_kwargs)
+                .interpolate_na(dim=self.y_dim, **self.interpolate_na_kwargs)
+            )
 
         # Interpolate to the model grid
         variable = self.variables[0]
