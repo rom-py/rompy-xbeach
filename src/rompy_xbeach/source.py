@@ -307,5 +307,5 @@ class SourceTideConsPointCSV(SourceBase):
     def _open(self) -> xr.Dataset:
         """Interpolate the xyz data onto a regular grid."""
         df = self._open_dataframe()
-        ds =self._to_oceantide(df)
+        ds = self._to_oceantide(df)
         return ds

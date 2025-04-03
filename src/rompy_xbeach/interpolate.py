@@ -89,6 +89,7 @@ class RegularGridInterpolator(BaseInterpolator):
 
         """
         from scipy.interpolate import RegularGridInterpolator
+
         try:
             interp = RegularGridInterpolator(points=(y, x), values=data, **self.kwargs)
             return interp((yi, xi))
@@ -99,6 +100,7 @@ class RegularGridInterpolator(BaseInterpolator):
                 f"while the target grid extends over x=({xi.min()} to {xi.max()}) and "
                 f"y=({yi.min()} to {yi.max()}).\nYou can set the extrapolation "
                 f"parameters in the interpolator kwargs to overcome this issue, for "
-                "example:\n\t""interpolator = RegularGridInterpolator"
+                "example:\n\t"
+                "interpolator = RegularGridInterpolator"
                 "(kwargs={'bounds_error': False, 'fill_value': None})"
             ) from e

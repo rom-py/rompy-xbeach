@@ -123,11 +123,7 @@ def test_xbeach_bathy_fillna(source, tmp_path):
         crs="28350",
     )
     data = XBeachBathy(
-        source=source,
-        posdwn=False,
-        left=5,
-        right=5,
-        interpolate_na=False
+        source=source, posdwn=False, left=5, right=5, interpolate_na=False
     )
     xfile, yfile, datafile, grid = data.get(destdir=tmp_path, grid=grid)
     data = np.loadtxt(datafile)

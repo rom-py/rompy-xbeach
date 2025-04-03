@@ -39,7 +39,6 @@ def validate_crs(crs: Optional[CRS_TYPES]) -> CRS:
     return CRS.from_user_input(crs)
 
 
-
 class Ori(RompyBaseModel):
     """Origin of the grid in geographic space."""
 
@@ -227,20 +226,19 @@ class RegularGrid(BaseGrid):
         """Coordinates at the centre of the grid."""
         return float(self.x.mean()), float(self.y.mean())
 
-
     @cached_property
     def transform(self):
         """Cartopy transformation for the grid."""
         _epsg = self.crs.to_epsg()
 
+        # If EPSG exists, use it
         if _epsg is not None and self.crs.is_projected:
-            return ccrs.epsg(_epsg)  # If EPSG exists, use it
-    
+            return ccrs.epsg(_epsg)
+
         # If no EPSG, use Cartopy's Stereographic projection
         elif "stere" in self.crs.to_proj4():
             return ccrs.Stereographic(
-                central_longitude=self.ori.x, 
-                central_latitude=self.ori.y
+                central_longitude=self.ori.x, central_latitude=self.ori.y
             )
 
         # If CRS is geographic (lat/lon), use PlateCarree
@@ -449,7 +447,13 @@ class RegularGrid(BaseGrid):
 
         # set grid lines
         if set_gridlines is not None:
-            ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True, linewidth=0.5, color="gray", alpha=0.5)
+            ax.gridlines(
+                crs=ccrs.PlateCarree(),
+                draw_labels=True,
+                linewidth=0.5,
+                color="gray",
+                alpha=0.5,
+            )
 
         return ax
 
