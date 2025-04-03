@@ -63,8 +63,8 @@ class GeoPoint(RompyBaseModel):
         return d
 
     def __repr__(self) -> str:
-        epsg = str(self.crs) if self.crs is not None else None
-        return f"{self.__class__.__name__}(x={self.x}, y={self.y}, crs='{epsg}')"
+        crs = str(self.crs) if self.crs is not None else None
+        return f"{self.__class__.__name__}(x={self.x}, y={self.y}, crs='{crs}')"
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -72,7 +72,7 @@ class GeoPoint(RompyBaseModel):
     def reproject(self, crs: CRS_TYPES) -> "GeoPoint":
         """Transform the origin to a new coordinate reference system."""
         if self.crs is None:
-            raise ValueError("No CRS defined for the origin")
+            raise ValueError(f"No CRS defined, cannot reproject onto {crs}")
         transformer = Transformer.from_crs(self.crs, crs, always_xy=True)
         x, y = transformer.transform(self.x, self.y)
         return GeoPoint(x=x, y=y, crs=str(crs))
