@@ -69,13 +69,13 @@ class Ori(RompyBaseModel):
     def __str__(self) -> str:
         return self.__repr__()
 
-    def reproject(self, epsg: int) -> "Ori":
+    def reproject(self, crs: CRS_TYPES) -> "Ori":
         """Transform the origin to a new coordinate reference system."""
         if self.crs is None:
             raise ValueError("No CRS defined for the origin")
-        transformer = Transformer.from_crs(self.crs, epsg, always_xy=True)
+        transformer = Transformer.from_crs(self.crs, crs, always_xy=True)
         x, y = transformer.transform(self.x, self.y)
-        return Ori(x=x, y=y, crs=str(epsg))
+        return Ori(x=x, y=y, crs=str(crs))
 
 
 class RegularGrid(BaseGrid):
