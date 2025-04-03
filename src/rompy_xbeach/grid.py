@@ -263,8 +263,7 @@ class RegularGrid(BaseGrid):
     def expand(self, left=0, right=0, back=0, front=0) -> "RegularGrid":
         """Expand the grid boundaries."""
         x, y = self._generate(left, right, back, front)
-        crs = self.crs.to_epsg()
-        ori = Ori(x=x[0, 0], y=y[0, 0], crs=crs).reproject(self.ori.crs.to_epsg())
+        ori = Ori(x=x[0, 0], y=y[0, 0], crs=self.crs).reproject(self.ori.crs.to_epsg())
         return RegularGrid(
             ori=ori,
             alfa=self.alfa,
@@ -272,7 +271,7 @@ class RegularGrid(BaseGrid):
             dy=self.dy,
             nx=self.nx + back + front,
             ny=self.ny + left + right,
-            crs=crs,
+            crs=self.crs,
         )
 
     def _generate(
