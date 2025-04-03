@@ -130,10 +130,12 @@ class SourceXYZ(SourceBase):
         logger.info(f"Interpolating onto a grid of shape ({len(ygrid)}, {len(xgrid)})")
 
         # Interpolate the data
+        grid_x, grid_y = np.meshgrid(xgrid, ygrid)
+
         zgrid = griddata(
             points=(df.x, df.y),
             values=df.z,
-            xi=np.meshgrid(xgrid, ygrid),
+            xi=(grid_x, grid_y)
             **self.griddata_kwargs,
         )
 
