@@ -22,7 +22,7 @@ from rompy.utils import load_entry_points
 from rompy.core.types import RompyBaseModel
 from rompy.core.data import DataGrid
 from rompy.core.time import TimeRange
-from rompy_xbeach.grid import RegularGrid, Ori
+from rompy_xbeach.grid import RegularGrid, GeoPoint
 
 
 logger = logging.getLogger(__name__)
@@ -249,7 +249,7 @@ class BaseData(DataGrid, ABC):
             raise NotImplementedError("Location 'grid' not implemented")
         else:
             x, y = getattr(grid, self.location)
-            bnd = Ori(x=x, y=y, crs=grid.crs).reproject(self.crs)
+            bnd = GeoPoint(x=x, y=y, crs=grid.crs).reproject(self.crs)
             return [bnd.x], [bnd.y]
 
     @abstractmethod

@@ -5,7 +5,7 @@ import xarray as xr
 
 from rompy_xbeach.source import SourceGeotiff
 from rompy_xbeach.data import XBeachBathy
-from rompy_xbeach.grid import RegularGrid, Ori
+from rompy_xbeach.grid import RegularGrid, GeoPoint
 
 HERE = Path(__file__).parent
 
@@ -13,7 +13,7 @@ HERE = Path(__file__).parent
 @pytest.fixture
 def grid():
     grid = RegularGrid(
-        ori=Ori(x=115.594239, y=-32.641104, crs="epsg:4326"),
+        ori=GeoPoint(x=115.594239, y=-32.641104, crs="epsg:4326"),
         alfa=347,
         dx=10,
         dy=15,

@@ -17,7 +17,7 @@ from rompy.utils import load_entry_points
 
 from rompy_xbeach.source import SourceCRSOceantide, SourceTideConsPointCSV
 from rompy_xbeach.data import BaseDataGrid, BaseDataStation, BaseDataPoint
-from rompy_xbeach.grid import RegularGrid, Ori
+from rompy_xbeach.grid import RegularGrid, GeoPoint
 from rompy_xbeach.components.forcing import WindFile, TideFile
 
 logger = logging.getLogger(__name__)

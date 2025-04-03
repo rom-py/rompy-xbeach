@@ -19,7 +19,7 @@ from rompy_xbeach.source import (
     SourceCRSDataset,
     SourceCRSWavespectra,
 )
-from rompy_xbeach.grid import RegularGrid, Ori
+from rompy_xbeach.grid import RegularGrid, GeoPoint
 from rompy_xbeach.components.boundary import (
     WaveBoundaryJons,
     WaveBoundaryJonstable,

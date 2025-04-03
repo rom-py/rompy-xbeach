@@ -15,8 +15,7 @@ from rompy.core.time import TimeRange
 from rompy.core.boundary import BoundaryWaveStation
 
 from rompy_xbeach.source import SourceCRSFile, SourceCRSIntake, SourceCRSDataset
-from rompy_xbeach.grid import RegularGrid, Ori
-
+from rompy_xbeach.grid import RegularGrid, GeoPoint
 
 logger = logging.getLogger(__name__)
 

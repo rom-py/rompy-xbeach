@@ -39,7 +39,7 @@ def validate_crs(crs: Optional[CRS_TYPES]) -> CRS:
     return CRS.from_user_input(crs)
 
 
-class Ori(RompyBaseModel):
+class GeoPoint(RompyBaseModel):
     """Origin of the grid in geographic space."""
 
     x: float = Field(
@@ -69,13 +69,13 @@ class Ori(RompyBaseModel):
     def __str__(self) -> str:
         return self.__repr__()
 
-    def reproject(self, crs: CRS_TYPES) -> "Ori":
+    def reproject(self, crs: CRS_TYPES) -> "GeoPoint":
         """Transform the origin to a new coordinate reference system."""
         if self.crs is None:
             raise ValueError("No CRS defined for the origin")
         transformer = Transformer.from_crs(self.crs, crs, always_xy=True)
         x, y = transformer.transform(self.x, self.y)
-        return Ori(x=x, y=y, crs=str(crs))
+        return GeoPoint(x=x, y=y, crs=str(crs))
 
 
 class RegularGrid(BaseGrid):
@@ -85,7 +85,7 @@ class RegularGrid(BaseGrid):
         default="regular",
         description="Model type discriminator",
     )
-    ori: Ori = Field(
+    ori: GeoPoint = Field(
         description="Origin of the grid in geographic space",
     )
     alfa: float = Field(
@@ -273,7 +273,7 @@ class RegularGrid(BaseGrid):
     def expand(self, left=0, right=0, back=0, front=0) -> "RegularGrid":
         """Expand the grid boundaries."""
         x, y = self._generate(left, right, back, front)
-        ori = Ori(x=x[0, 0], y=y[0, 0], crs=self.crs).reproject(self.ori.crs.to_epsg())
+        ori = GeoPoint(x=x[0, 0], y=y[0, 0], crs=self.crs).reproject(self.ori.crs.to_epsg())
         return RegularGrid(
             ori=ori,
             alfa=self.alfa,

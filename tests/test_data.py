@@ -4,7 +4,7 @@ import numpy as np
 
 from rompy_xbeach.data import XBeachDataGrid, XBeachBathy, SeawardExtensionLinear
 from rompy_xbeach.source import SourceGeotiff
-from rompy_xbeach.grid import Ori, RegularGrid
+from rompy_xbeach.grid import GeoPoint, RegularGrid
 
 
 HERE = Path(__file__).parent
@@ -71,7 +71,7 @@ def test_xbeach_bathy_get(source, tmp_path):
         right=5,
     )
     grid = RegularGrid(
-        ori=Ori(x=115.594239, y=-32.641104, crs="epsg:4326"),
+        ori=GeoPoint(x=115.594239, y=-32.641104, crs="epsg:4326"),
         alfa=347.0,
         dx=10,
         dy=15,
@@ -84,7 +84,7 @@ def test_xbeach_bathy_get(source, tmp_path):
 
 def test_xbeach_bathy_extend_seaward_linear(source, tmp_path):
     grid = RegularGrid(
-        ori=Ori(x=115.594239, y=-32.641104, crs="epsg:4326"),
+        ori=GeoPoint(x=115.594239, y=-32.641104, crs="epsg:4326"),
         alfa=347.0,
         dx=10,
         dy=15,
@@ -114,7 +114,7 @@ def test_xbeach_bathy_extend_seaward_linear(source, tmp_path):
 
 def test_xbeach_bathy_fillna(source, tmp_path):
     grid = RegularGrid(
-        ori=Ori(x=115.594239, y=-32.641104, crs="epsg:4326"),
+        ori=GeoPoint(x=115.594239, y=-32.641104, crs="epsg:4326"),
         alfa=347.0,
         dx=10,
         dy=15,
