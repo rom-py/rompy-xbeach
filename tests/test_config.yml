@@ -56,7 +56,7 @@ input:
       u: uwnd
       v: vwnd
   tide:
-    model_type: tide_grid
+    model_type: tide_cons_grid
     source:
       model_type: oceantide
       reader: read_otis_binary

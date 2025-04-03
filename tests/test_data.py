@@ -1,5 +1,6 @@
 from pathlib import Path
 import pytest
+import numpy as np
 
 from rompy_xbeach.data import XBeachDataGrid, XBeachBathy, SeawardExtensionLinear
 from rompy_xbeach.source import SourceGeotiff
@@ -109,3 +110,41 @@ def test_xbeach_bathy_extend_seaward_linear(source, tmp_path):
     )
     xfile1, yfile1, datafile1, grid1 = data1.get(destdir=tmp_path, grid=grid)
     xfile1, yfile2, datafile2, grid2 = data1.get(destdir=tmp_path, grid=grid)
+
+
+def test_xbeach_bathy_fillna(source, tmp_path):
+    grid = RegularGrid(
+        ori=Ori(x=115.594239, y=-32.641104, crs="epsg:4326"),
+        alfa=347.0,
+        dx=10,
+        dy=15,
+        nx=230,
+        ny=220,
+        crs="28350",
+    )
+    data = XBeachBathy(
+        source=source,
+        posdwn=False,
+        left=5,
+        right=5,
+        interpolate_na=False
+    )
+    xfile, yfile, datafile, grid = data.get(destdir=tmp_path, grid=grid)
+    data = np.loadtxt(datafile)
+    assert np.isnan(data).any()
+    data = XBeachBathy(
+        source=source,
+        posdwn=False,
+        left=5,
+        right=5,
+        interpolate_na=True,
+        interpolate_na_kwargs={"method": "linear"},
+    )
+    xfile, yfile, datafile, grid = data.get(destdir=tmp_path, grid=grid)
+    data = np.loadtxt(datafile)
+    assert not np.isnan(data).any()
+    # import matplotlib.pyplot as plt
+    # import xarray as xr
+    # dset = xr.Dataset.xbeach.from_xbeach(datafile, grid)
+    # dset.xbeach.plot_model_bathy(grid, posdwn=False)
+    # plt.show()
