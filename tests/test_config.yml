@@ -15,7 +15,7 @@ bathy:
   model_type: xbeach_bathy
   source:
     model_type: geotiff
-    filename: /source/csiro/rompy-xbeach/tests/data/bathy.tif
+    filename: ./data/bathy.tif
   posdwn: False
   interpolator:
     model_type: scipy_regular_grid
@@ -34,7 +34,7 @@ input:
     model_type: station_param_jonstable
     source:
       model_type: file
-      uri: /source/csiro/rompy-xbeach/tests/data/smc-params-20230101.nc
+      uri: ./data/smc-params-20230101.nc
       crs: 4326
     coords:
       s: seapoint
@@ -47,7 +47,7 @@ input:
     model_type: wind_station
     source:
       model_type: file
-      uri: /source/csiro/rompy-xbeach/tests/data/smc-params-20230101.nc
+      uri: ./data/smc-params-20230101.nc
       crs: 4326
     coords:
       s: seapoint
@@ -61,9 +61,9 @@ input:
       model_type: oceantide
       reader: read_otis_binary
       kwargs:
-        gfile: /source/csiro/rompy-xbeach/tests/data/swaus_tide_cons/grid_m2s2n2k2k1o1p1q1mmmf
-        hfile: /source/csiro/rompy-xbeach/tests/data/swaus_tide_cons/h_m2s2n2k2k1o1p1q1mmmf
-        ufile: /source/csiro/rompy-xbeach/tests/data/swaus_tide_cons/u_m2s2n2k2k1o1p1q1mmmf
+        gfile: ./data/swaus_tide_cons/grid_m2s2n2k2k1o1p1q1mmmf
+        hfile: ./data/swaus_tide_cons/h_m2s2n2k2k1o1p1q1mmmf
+        ufile: ./data/swaus_tide_cons/u_m2s2n2k2k1o1p1q1mmmf
       crs: 4326
     coords:
       x: lon
@@ -110,4 +110,3 @@ tstart: 0.0
 tintm: 3600.0
 outputformat: netcdf
 ncfilename: xboutput_test.nc
-# nmeanvar: 14
