@@ -138,7 +138,7 @@ class SourceXYZ(SourceBase):
 
         # Create the dataset
         ds = xr.Dataset(
-            data_vars={"z": (["y", "x"], zgrid)}, coords={"y": ygrid, "x": xgrid}
+            data_vars={"data": (["y", "x"], zgrid)}, coords={"y": ygrid, "x": xgrid}
         )
         return ds.rio.write_crs(self.crs)
 
