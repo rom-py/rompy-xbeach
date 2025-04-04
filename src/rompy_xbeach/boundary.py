@@ -9,7 +9,7 @@ import xarray as xr
 from pydantic import Field, model_validator, field_validator
 
 from rompy.core.source import SourceTimeseriesCSV, SourceTimeseriesDataFrame
-from rompy.core.types import DatasetCoords, RompyBaseModel
+from rompy.core.types import DatasetCoords
 from rompy.core.time import TimeRange
 from rompy_xbeach.data import BaseDataStation, BaseDataPoint
 
@@ -19,7 +19,7 @@ from rompy_xbeach.source import (
     SourceCRSDataset,
     SourceCRSWavespectra,
 )
-from rompy_xbeach.grid import RegularGrid, GeoPoint
+from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.components.boundary import (
     WaveBoundaryJons,
     WaveBoundaryJonstable,

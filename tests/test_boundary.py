@@ -1,6 +1,5 @@
 from pathlib import Path
 import pytest
-import xarray as xr
 from wavespectra import read_swan
 
 from rompy.core.time import TimeRange

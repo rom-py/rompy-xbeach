@@ -1,10 +1,8 @@
 """XBeach forcing."""
 
-from abc import ABC, abstractmethod
 from typing import Literal, Union, Optional
 from pathlib import Path
 import logging
-import numpy as np
 import pandas as pd
 import xarray as xr
 from wavespectra.core.utils import uv_to_spddir
@@ -17,7 +15,7 @@ from rompy.utils import load_entry_points
 
 from rompy_xbeach.source import SourceCRSOceantide, SourceTideConsPointCSV
 from rompy_xbeach.data import BaseDataGrid, BaseDataStation, BaseDataPoint
-from rompy_xbeach.grid import RegularGrid, GeoPoint
+from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.components.forcing import WindFile, TideFile
 
 logger = logging.getLogger(__name__)
@@ -327,7 +325,7 @@ class TideConsBase(ZS0Mixin):
         """Variable names in an Oceantide dataset should be fixed."""
         logger.debug("Setting oceantide variables")
         if self.variables:
-            logger.debug(f"Overwriting tide variables to the oceantide convention")
+            logger.debug("Overwriting tide variables to the oceantide convention")
         self.variables = ["h"]
         return self
 

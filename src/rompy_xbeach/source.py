@@ -2,9 +2,8 @@
 
 import logging
 from pathlib import Path
-from typing import Literal, Union, Optional
+from typing import Literal, Union
 from pydantic import Field, field_validator, model_validator, ConfigDict
-import cartopy.crs as ccrs
 import numpy as np
 import pandas as pd
 import xarray as xr

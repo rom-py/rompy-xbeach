@@ -9,11 +9,10 @@ import numpy as np
 import xarray as xr
 from importlib.metadata import entry_points
 
-import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 
-from pydantic import Field, model_validator, ConfigDict
+from pydantic import Field, model_validator
 from pydantic_numpy.typing import Np2DArray
 
 from wavespectra.core import select
