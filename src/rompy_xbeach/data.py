@@ -695,7 +695,7 @@ class XBeach_accessor(object):
 
         """
 
-        fig = plt.figure(figsize=figsize)
+        plt.figure(figsize=figsize)
         gs = gridspec.GridSpec(2, 2, height_ratios=[1.5, 1], width_ratios=[1, 1])
         dep = self._obj[variable]
 
