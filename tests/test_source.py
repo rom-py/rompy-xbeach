@@ -1,6 +1,5 @@
 from pathlib import Path
 import pytest
-import pandas as pd
 import xarray as xr
 
 from rompy_xbeach.source import (

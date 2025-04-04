@@ -1,21 +1,16 @@
 """XBeach wave boundary conditions."""
 
 from abc import ABC, abstractmethod
-from typing import Literal, Union, Optional, Annotated
+from typing import Literal, Optional, Annotated
 from pathlib import Path
 import logging
 import numpy as np
 import xarray as xr
-import wavespectra
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import Field, model_validator
 from pydantic_numpy.typing import Np1DArray, Np2DArray
 
 from rompy.core.types import RompyBaseModel
-from rompy.core.time import TimeRange
-from rompy.core.boundary import BoundaryWaveStation
 
-from rompy_xbeach.source import SourceCRSFile, SourceCRSIntake, SourceCRSDataset
-from rompy_xbeach.grid import RegularGrid, GeoPoint
 
 logger = logging.getLogger(__name__)
 

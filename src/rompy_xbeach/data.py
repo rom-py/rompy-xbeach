@@ -9,11 +9,10 @@ import numpy as np
 import xarray as xr
 from importlib.metadata import entry_points
 
-import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 
-from pydantic import Field, model_validator, ConfigDict
+from pydantic import Field, model_validator
 from pydantic_numpy.typing import Np2DArray
 
 from wavespectra.core import select
@@ -696,7 +695,7 @@ class XBeach_accessor(object):
 
         """
 
-        fig = plt.figure(figsize=figsize)
+        plt.figure(figsize=figsize)
         gs = gridspec.GridSpec(2, 2, height_ratios=[1.5, 1], width_ratios=[1, 1])
         dep = self._obj[variable]
 

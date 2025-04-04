@@ -1,7 +1,7 @@
 """XBeach wave boundary conditions."""
 
 import logging
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Optional, Union
 from pathlib import Path
 from pydantic import Field, model_validator

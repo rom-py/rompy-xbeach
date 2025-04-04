@@ -3,13 +3,13 @@
 import logging
 from pathlib import Path
 from typing import Literal, Optional, Union, Annotated
-from pydantic import Field, field_validator, model_validator, field_serializer
+from pydantic import Field, field_serializer
 
 from rompy.core.types import RompyBaseModel
 from rompy.core.time import TimeRange
 from rompy.utils import load_entry_points
 
-from rompy_xbeach.types import XBeachBaseConfig, WbcEnum
+from rompy_xbeach.types import XBeachBaseConfig
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.data import XBeachBathy
 
