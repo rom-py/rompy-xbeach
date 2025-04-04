@@ -448,7 +448,7 @@ class RegularGrid(BaseGrid):
         if set_gridlines is not None:
             ax.gridlines(
                 crs=ccrs.PlateCarree(),
-                draw_labels=True,
+                draw_labels=False,
                 linewidth=0.5,
                 color="gray",
                 alpha=0.5,
