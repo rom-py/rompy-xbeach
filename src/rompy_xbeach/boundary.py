@@ -105,6 +105,10 @@ class BoundaryBase:
     )
 
 
+class BoundaryBaseGrid(BoundaryBase, BaseDataGrid):
+    """Base class to construct XBeach wave boundary from gridded data."""
+
+
 class BoundaryBaseStation(BoundaryBase, BaseDataStation):
     """Base class to construct XBeach wave boundary from stations type data."""
 
@@ -378,6 +382,16 @@ class BoundaryJonstable(ABC):
         default="jonstable", description="Boundary type identifier"
     )
 
+    @model_validator(mode="after")
+    def default_params(self) -> "BoundaryStationParamJonstable":
+        if hasattr(self, "gammajsp") and self.gammajsp is None:
+            logger.debug("Setting default value for gammajsp of 3.3")
+            self.gammajsp = 3.3
+        if hasattr(self, "dspr") and self.dspr is None:
+            logger.debug("Setting default value for dspr of 24.431 (s=10.0)")
+            self.dspr = 24.43100247268452
+        return self
+
     def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryJonstable":
         """Instantiate the boundary object.
 
@@ -503,16 +517,6 @@ class BoundaryStationParamJonstable(ParamMixin, BoundaryJonstable, BoundaryBaseS
         description="Model type discriminator",
     )
 
-    @model_validator(mode="after")
-    def default_params(self) -> "BoundaryStationParamJonstable":
-        if self.gammajsp is None:
-            logger.debug("Setting default value for gammajsp of 3.3")
-            self.gammajsp = 3.3
-        if self.dspr is None:
-            logger.debug("Setting default value for dspr of 24.431 (s=10.0)")
-            self.dspr = 24.43100247268452
-        return self
-
 
 class BoundaryPointParamJonstable(ParamMixin, BoundaryJonstable, BoundaryBasePoint):
     """Wave boundary conditions from point timeseries type parameters dataset."""
@@ -526,71 +530,24 @@ class BoundaryPointParamJonstable(ParamMixin, BoundaryJonstable, BoundaryBasePoi
         discriminator="model_type",
     )
 
-    @model_validator(mode="after")
-    def default_params(self) -> "BoundaryPointParamJonstable":
-        if self.gammajsp is None:
-            logger.debug("Setting default value for gammajsp of 3.3")
-            self.gammajsp = 3.3
-        if self.dspr is None:
-            logger.debug("Setting default value for dspr of 24.431 (s=10.0)")
-            self.dspr = 24.43100247268452
-        return self
 
-class BoundaryGridParamJonstable(ParamMixin, BoundaryJonstable, BaseDataGrid):
-    """
-    Generate XBeach JONSTABLE wave boundary conditions from gridded parameter data.
+class BoundaryGridParamJonstable(ParamMixin, BoundaryJonstable, BoundaryBaseGrid):
+    """Generate XBeach JONSTABLE wave boundary conditions from gridded parameter data.
 
-    This class reads wave parameters (Hm0, Tp, Dir, Spread, Gamma) from a
-    gridded data source, selects/interpolates the data
-    at the offshore boundary location of the XBeach grid, and writes the
-    time-varying parameters to a JONSTABLE format file (`bcfile`).
+    This class reads wave parameters (Hm0, Tp, Dir, Spread, Gamma) from a gridded data
+    source, selects/interpolates the data at the offshore boundary location of the
+    XBeach grid, and writes the time-varying parameters to a JONSTABLE format file (`bcfile`).
 
-    Inherits spatial selection from BaseDataGrid, parameter handling from
-    ParamMixin, and JONSTABLE file writing logic from BoundaryJonstable.
+    Inherits spatial selection from BoundaryBaseGrid/BaseDataGrid, parameter handling
+    from ParamMixin, and JONSTABLE file writing logic from BoundaryJonstable.
+
     """
 
     model_type: Literal["grid_param_jonstable"] = Field(
         default="grid_param_jonstable",
         description="Model type discriminator",
     )
-  
-    location: Literal["centre", "offshore", "grid"] = Field(
-        default="offshore",
-        description=(
-            "Location relative to the XBeach grid to extract the boundary data: "
-            "'offshore' extracts data at the middle of the offshore grid boundary."
-        ),
-    )
-    coords: DatasetCoords = Field(
-        default=DatasetCoords(t="time", x="longitude", y="latitude"),
-        description="Names of the coordinates in the source dataset",
-    )
 
-    dbtc: Annotated[Optional[float], Field(
-        default=1.0,
-        description=(
-            "Timestep (s) used to describe time series of wave energy and long wave "
-            "flux at offshore boundary"
-        ),
-        ge=0.1,
-        le=2.0,
-        examples=[1.0],
-    )] = 1.0 # Set default value explicitly too
-
-
-    # sel_method: Literal["interp", "sel"] = Field(...)
-    # sel_method_kwargs: dict = Field(...)
-
-    @model_validator(mode="after")
-    def default_params(self) -> "BoundaryGridParamJonstable":
-        """Sets default Jonswap parameters if not specified."""
-        if self.gammajsp is None:
-            logger.debug("Setting default value for gammajsp of 3.3")
-            self.gammajsp = 3.3
-        if self.dspr is None:
-            logger.debug("Setting default value for dspr of 24.431 (s=10.0)")
-            self.dspr = 24.43100247268452
-        return self
 
 # =====================================================================================
 # SWAN bctype
