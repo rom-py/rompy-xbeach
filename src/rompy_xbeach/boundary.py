@@ -495,6 +495,15 @@ class BoundaryPointParamJons(ParamMixin, BoundaryJons, BoundaryBasePoint):
     )
 
 
+class BoundaryGridParamJons(ParamMixin, BoundaryJons, BoundaryBaseGrid):
+    """Wave boundary conditions from grid type parameters dataset."""
+
+    model_type: Literal["grid_param_jons"] = Field(
+        default="grid_param_jons",
+        description="Model type discriminator",
+    )
+
+
 # =====================================================================================
 # JONSTABLE bctype
 # =====================================================================================
