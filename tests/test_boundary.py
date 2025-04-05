@@ -12,9 +12,11 @@ from rompy_xbeach.boundary import (
     BoundaryStationParamJons,
     BoundaryPointParamJons,
     BoundaryStationSpectraJons,
+    BoundaryGridParamJons,
     BoundaryStationSpectraJonstable,
     BoundaryStationParamJonstable,
     BoundaryPointParamJonstable,
+    BoundaryGridParamJonstable,
     BoundaryStationSpectraSwan,
 )
 from rompy_xbeach.components.boundary import (
@@ -49,6 +51,15 @@ def grid():
 def source_file():
     yield SourceCRSFile(
         uri=HERE / "data/smc-params-20230101.nc",
+        kwargs=dict(engine="netcdf4"),
+        crs=4326,
+    )
+
+
+@pytest.fixture(scope="module")
+def source_gridded_file():
+    yield SourceCRSFile(
+        uri=HERE / "data/gridded_wave_parameters.nc",
         kwargs=dict(engine="netcdf4"),
         crs=4326,
     )
@@ -169,6 +180,23 @@ def test_boundary_station_is_abstract(source_file):
 # =====================================================================================
 # JONS BCFILE
 # =====================================================================================
+def test_boundary_grid_jons_bctype(tmp_path, source_gridded_file, grid, time):
+    """Test bctype can be defined as either jons or parametric."""
+    kwargs = dict(
+        source=source_gridded_file,
+        coords=dict(x="longitude", y="latitude", t="time"),
+        hm0="phs1",
+        tp="ptp1",
+        mainang="pdp1",
+        gammajsp="ppe1",
+        dspr="pspr1",
+        filelist=False,
+    )
+    wb = BoundaryGridParamJons(**kwargs)
+    namelist = wb.get(destdir=tmp_path, grid=grid, time=time)
+    assert namelist["wbctype"] == "jons"
+
+
 def test_boundary_jons_bctype(tmp_path, source_file, grid, time):
     """Test bctype can be defined as either jons or parametric."""
     kwargs = dict(
@@ -404,6 +432,28 @@ def test_boundary_point_param_jonstable(tmp_path, source_csv, grid, time):
     """Test multiple (filelist) jons spectral boundary from timeseries param source."""
     wb = BoundaryPointParamJonstable(
         source=source_csv,
+        hm0="phs1",
+        tp="ptp1",
+        mainang="pdp1",
+        gammajsp="ppe1",
+        dspr="pspr1",
+    )
+    namelist = wb.get(destdir=tmp_path, grid=grid, time=time)
+    assert namelist["wbctype"] == "jonstable"
+    bcfile = tmp_path / namelist["bcfile"]
+    bcdata = bcfile.read_text().split("\n")
+    for line in bcdata[1:]:
+        if not line:
+            continue
+        # Assert all parameters defined in bcfile
+        params = line.split()
+        assert len(params) == 7
+
+
+def test_boundary_grid_param_jonstable(tmp_path, source_gridded_file, grid, time):
+    """Test multiple (filelist) jons spectral boundary from param source."""
+    wb = BoundaryGridParamJonstable(
+        source=source_gridded_file,
         hm0="phs1",
         tp="ptp1",
         mainang="pdp1",
