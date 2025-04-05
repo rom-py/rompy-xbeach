@@ -12,6 +12,7 @@ from rompy_xbeach.boundary import (
     BoundaryStationParamJons,
     BoundaryPointParamJons,
     BoundaryStationSpectraJons,
+    BoundaryGridParamJons,
     BoundaryStationSpectraJonstable,
     BoundaryStationParamJonstable,
     BoundaryPointParamJonstable,
@@ -179,6 +180,23 @@ def test_boundary_station_is_abstract(source_file):
 # =====================================================================================
 # JONS BCFILE
 # =====================================================================================
+def test_boundary_grid_jons_bctype(tmp_path, source_gridded_file, grid, time):
+    """Test bctype can be defined as either jons or parametric."""
+    kwargs = dict(
+        source=source_gridded_file,
+        coords=dict(x="longitude", y="latitude", t="time"),
+        hm0="phs1",
+        tp="ptp1",
+        mainang="pdp1",
+        gammajsp="ppe1",
+        dspr="pspr1",
+        filelist=False,
+    )
+    wb = BoundaryGridParamJons(**kwargs)
+    namelist = wb.get(destdir=tmp_path, grid=grid, time=time)
+    assert namelist["wbctype"] == "jons"
+
+
 def test_boundary_jons_bctype(tmp_path, source_file, grid, time):
     """Test bctype can be defined as either jons or parametric."""
     kwargs = dict(
@@ -436,7 +454,6 @@ def test_boundary_grid_param_jonstable(tmp_path, source_gridded_file, grid, time
     """Test multiple (filelist) jons spectral boundary from param source."""
     wb = BoundaryGridParamJonstable(
         source=source_gridded_file,
-        coords=dict(s="seapoint"),
         hm0="phs1",
         tp="ptp1",
         mainang="pdp1",
