@@ -386,7 +386,7 @@ class BaseDataGrid(BaseData):
     def _sel_locations(self, grid) -> xr.Dataset:
         """Select the offshore boundary point from the stations source dataset."""
         xi, yi = self._locations(grid=grid)
-        ds = self.ds[self.variables]
+        ds = self.ds.copy()
         ds = getattr(ds, self.sel_method)(
             {self.x_dim: xi, self.y_dim: yi}, **self.sel_method_kwargs
         )
