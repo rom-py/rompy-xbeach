@@ -7,11 +7,11 @@ import logging
 import numpy as np
 import xarray as xr
 from pydantic import Field, model_validator, field_validator
-
+from typing import Annotated
 from rompy.core.source import SourceTimeseriesCSV, SourceTimeseriesDataFrame
 from rompy.core.types import DatasetCoords, RompyBaseModel
 from rompy.core.time import TimeRange
-from rompy_xbeach.data import BaseDataStation, BaseDataPoint
+from rompy_xbeach.data import BaseDataStation, BaseDataPoint, BaseDataGrid
 
 from rompy_xbeach.source import (
     SourceCRSFile,
@@ -103,6 +103,10 @@ class BoundaryBase:
         default="offshore",
         description="Location to extract the data from the source dataset",
     )
+
+
+class BoundaryBaseGrid(BoundaryBase, BaseDataGrid):
+    """Base class to construct XBeach wave boundary from gridded data."""
 
 
 class BoundaryBaseStation(BoundaryBase, BaseDataStation):
@@ -378,6 +382,16 @@ class BoundaryJonstable(ABC):
         default="jonstable", description="Boundary type identifier"
     )
 
+    @model_validator(mode="after")
+    def default_params(self) -> "BoundaryStationParamJonstable":
+        if hasattr(self, "gammajsp") and self.gammajsp is None:
+            logger.debug("Setting default value for gammajsp of 3.3")
+            self.gammajsp = 3.3
+        if hasattr(self, "dspr") and self.dspr is None:
+            logger.debug("Setting default value for dspr of 24.431 (s=10.0)")
+            self.dspr = 24.43100247268452
+        return self
+
     def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryJonstable":
         """Instantiate the boundary object.
 
@@ -481,6 +495,15 @@ class BoundaryPointParamJons(ParamMixin, BoundaryJons, BoundaryBasePoint):
     )
 
 
+class BoundaryGridParamJons(ParamMixin, BoundaryJons, BoundaryBaseGrid):
+    """Wave boundary conditions from grid type parameters dataset."""
+
+    model_type: Literal["grid_param_jons"] = Field(
+        default="grid_param_jons",
+        description="Model type discriminator",
+    )
+
+
 # =====================================================================================
 # JONSTABLE bctype
 # =====================================================================================
@@ -503,16 +526,6 @@ class BoundaryStationParamJonstable(ParamMixin, BoundaryJonstable, BoundaryBaseS
         description="Model type discriminator",
     )
 
-    @model_validator(mode="after")
-    def default_params(self) -> "BoundaryStationParamJonstable":
-        if self.gammajsp is None:
-            logger.debug("Setting default value for gammajsp of 3.3")
-            self.gammajsp = 3.3
-        if self.dspr is None:
-            logger.debug("Setting default value for dspr of 24.431 (s=10.0)")
-            self.dspr = 24.43100247268452
-        return self
-
 
 class BoundaryPointParamJonstable(ParamMixin, BoundaryJonstable, BoundaryBasePoint):
     """Wave boundary conditions from point timeseries type parameters dataset."""
@@ -526,15 +539,23 @@ class BoundaryPointParamJonstable(ParamMixin, BoundaryJonstable, BoundaryBasePoi
         discriminator="model_type",
     )
 
-    @model_validator(mode="after")
-    def default_params(self) -> "BoundaryPointParamJonstable":
-        if self.gammajsp is None:
-            logger.debug("Setting default value for gammajsp of 3.3")
-            self.gammajsp = 3.3
-        if self.dspr is None:
-            logger.debug("Setting default value for dspr of 24.431 (s=10.0)")
-            self.dspr = 24.43100247268452
-        return self
+
+class BoundaryGridParamJonstable(ParamMixin, BoundaryJonstable, BoundaryBaseGrid):
+    """Generate XBeach JONSTABLE wave boundary conditions from gridded parameter data.
+
+    This class reads wave parameters (Hm0, Tp, Dir, Spread, Gamma) from a gridded data
+    source, selects/interpolates the data at the offshore boundary location of the
+    XBeach grid, and writes the time-varying parameters to a JONSTABLE format file (`bcfile`).
+
+    Inherits spatial selection from BoundaryBaseGrid/BaseDataGrid, parameter handling
+    from ParamMixin, and JONSTABLE file writing logic from BoundaryJonstable.
+
+    """
+
+    model_type: Literal["grid_param_jonstable"] = Field(
+        default="grid_param_jonstable",
+        description="Model type discriminator",
+    )
 
 
 # =====================================================================================
