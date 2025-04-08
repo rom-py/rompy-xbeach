@@ -132,7 +132,7 @@ class SourceXYZ(SourceBase):
         zgrid = griddata(
             points=(df.x, df.y),
             values=df.z,
-            xi=np.meshgrid(xgrid, ygrid),
+            xi=tuple(np.meshgrid(xgrid, ygrid)),
             **self.griddata_kwargs,
         )
 
