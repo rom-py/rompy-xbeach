@@ -4,6 +4,7 @@ sources:
         description: Test bathy in NetCDF format
         args:
             urlpath: '{{CATALOG_DIR}}/bathy.nc'
+            engine: "netcdf4"
     bathy_geotiff:
         driver: netcdf
         description: Test bathy in GeoTIFF format

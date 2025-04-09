@@ -1,6 +1,5 @@
 """Console script for rompy_xbeach."""
 
-import rompy_xbeach
 
 import typer
 from rich.console import Console

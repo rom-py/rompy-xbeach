@@ -2,9 +2,8 @@
 
 import logging
 from pathlib import Path
-from typing import Literal, Union, Optional
+from typing import Literal, Union
 from pydantic import Field, field_validator, model_validator, ConfigDict
-import cartopy.crs as ccrs
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -133,13 +132,13 @@ class SourceXYZ(SourceBase):
         zgrid = griddata(
             points=(df.x, df.y),
             values=df.z,
-            xi=np.meshgrid(xgrid, ygrid),
+            xi=tuple(np.meshgrid(xgrid, ygrid)),
             **self.griddata_kwargs,
         )
 
         # Create the dataset
         ds = xr.Dataset(
-            data_vars={"z": (["y", "x"], zgrid)}, coords={"y": ygrid, "x": xgrid}
+            data_vars={"data": (["y", "x"], zgrid)}, coords={"y": ygrid, "x": xgrid}
         )
         return ds.rio.write_crs(self.crs)
 

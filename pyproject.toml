@@ -16,12 +16,10 @@ maintainers = [
 classifiers = [
 
 ]
-license = {text = "MIT license"}
+license = {text = "BSD 3-Clause License"}
 dependencies = [
-  # "rompy",
+  "rompy",
   "rioxarray",
-  "rompy @ git+https://github.com/rom-py/rompy.git@main",
-  "pyschism @ git+https://github.com/oceanum/pyschism.git", # Needed until schism is split from rompy
   "oceantide",
   "typer",
 ]
@@ -80,3 +78,4 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.package-data]
 "*" = ["*.*"]
+"rompy_xbeach" = ["templates/**/*", "templates/**/.*"]

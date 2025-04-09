@@ -16,7 +16,26 @@ os.environ["XBEACH_PATH"] = str(HERE.parent.parent)
 
 @pytest.fixture(scope="module")
 def kwargs():
-    yield yaml.load(open(HERE / "test_config.yml"), Loader=yaml.Loader)
+    # Load the YAML file
+    with open(HERE / "test_config.yml") as f:
+        config_data = yaml.load(f, Loader=yaml.Loader)
+
+    # Replace relative paths with absolute paths
+    def replace_paths(obj):
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                if key in ['filename', 'uri', 'gfile', 'hfile', 'ufile'] and isinstance(value, str) and value.startswith('./'):
+                    # Convert relative path to absolute path
+                    obj[key] = str(HERE / value[2:])
+                elif isinstance(value, (dict, list)):
+                    replace_paths(value)
+        elif isinstance(obj, list):
+            for item in obj:
+                if isinstance(item, (dict, list)):
+                    replace_paths(item)
+
+    replace_paths(config_data)
+    yield config_data
 
 
 def test_config_entrypoint():

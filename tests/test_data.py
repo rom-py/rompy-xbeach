@@ -98,7 +98,7 @@ def test_xbeach_bathy_extend_seaward_linear(source, tmp_path):
         left=5,
         right=5,
     )
-    data2 = XBeachBathy(
+    XBeachBathy(
         source=source,
         posdwn=False,
         left=5,

@@ -1,4 +1,4 @@
-from enum import Enum, IntEnum
+from enum import Enum
 from pydantic import ConfigDict
 
 from rompy.core.config import BaseConfig
