@@ -7,7 +7,9 @@ import logging
 import numpy as np
 import xarray as xr
 from pydantic import Field, model_validator, field_validator
-from rompy.core.source import SourceTimeseriesCSV, SourceTimeseriesDataFrame
+
+from rompy.core.source import SourceTimeseriesCSV
+from rompy_binary_datasources.source import SourceTimeseriesDataFrame
 from rompy.core.types import DatasetCoords
 from rompy.core.time import TimeRange
 from rompy_xbeach.data import BaseDataStation, BaseDataPoint, BaseDataGrid

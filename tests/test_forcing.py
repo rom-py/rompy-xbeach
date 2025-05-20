@@ -3,7 +3,8 @@ from pathlib import Path
 import numpy as np
 
 from rompy.core.time import TimeRange
-from rompy.core.source import SourceTimeseriesCSV, SourceTimeseriesDataFrame
+from rompy.core.source import SourceTimeseriesCSV
+from rompy_binary_datasources.source import SourceTimeseriesDataFrame
 from rompy_xbeach.source import (
     SourceCRSFile,
     SourceCRSOceantide,

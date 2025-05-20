@@ -14,11 +14,11 @@ import oceantide
 from rompy.core.filters import Filter
 from rompy.core.source import (
     SourceBase,
-    SourceDataset,
     SourceFile,
     SourceIntake,
     SourceWavespectra,
 )
+from rompy_binary_datasources.source import SourceDataset
 from rompy_xbeach.grid import CRS_TYPES, validate_crs
 
 
