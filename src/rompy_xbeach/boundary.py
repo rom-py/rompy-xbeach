@@ -8,8 +8,7 @@ import numpy as np
 import xarray as xr
 from pydantic import Field, model_validator, field_validator
 
-from rompy.core.source import SourceTimeseriesCSV
-from rompy_binary_datasources.source import SourceTimeseriesDataFrame
+from rompy.utils import load_entry_points
 from rompy.core.types import DatasetCoords
 from rompy.core.time import TimeRange
 from rompy_xbeach.data import BaseDataStation, BaseDataPoint, BaseDataGrid
@@ -31,10 +30,7 @@ from rompy_xbeach.components.boundary import (
 logger = logging.getLogger(__name__)
 
 
-SOURCE_TIMESERIES_TYPES = Union[
-    SourceTimeseriesCSV,
-    SourceTimeseriesDataFrame,
-]
+SOURCE_TIMESERIES_TYPES = Union[load_entry_points("rompy.source", "timeseries")]
 
 SOURCE_PARAM_TYPES = Union[
     SourceCRSFile,

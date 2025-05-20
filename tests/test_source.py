@@ -1,4 +1,5 @@
 from pathlib import Path
+from importlib.util import find_spec
 import pytest
 import xarray as xr
 
@@ -48,6 +49,10 @@ def test_source_xyz():
     assert ds.rio.y_dim == "y"
 
 
+@pytest.mark.skipif(
+    not find_spec("rompy_binary_datasources"),
+    reason="rompy_binary_datasources not installed",
+)
 def test_source_crs_dataset(tif_path):
     ds = xr.open_dataset(tif_path, engine="rasterio", band_as_variable=True)
     ds = ds.rio.reproject("epsg:28350").rename(x="easting", y="northing")

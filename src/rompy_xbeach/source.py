@@ -18,8 +18,13 @@ from rompy.core.source import (
     SourceIntake,
     SourceWavespectra,
 )
-from rompy_binary_datasources.source import SourceDataset
 from rompy_xbeach.grid import CRS_TYPES, validate_crs
+
+try:
+    from rompy_binary_datasources.source import SourceDataset
+except ImportError:
+    from rompy.utils import create_import_error_class
+    SourceDataset = create_import_error_class("SourceDataset")
 
 
 logger = logging.getLogger(__name__)

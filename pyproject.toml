@@ -20,17 +20,19 @@ license = {text = "BSD 3-Clause License"}
 dependencies = [
   "rioxarray",
   "rompy",
-  "rompy-binary-datasources",
   "oceantide",
   "typer",
 ]
 
 [project.optional-dependencies]
+extra = [
+  "rompy-binary-datasources",
+]
 dev = [
-    "coverage",
-    "mypy",
-    "pytest",
-    "ruff"
+  "coverage",
+  "mypy",
+  "pytest",
+  "ruff"
 ]
 
 [project.scripts]

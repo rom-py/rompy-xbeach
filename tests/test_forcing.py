@@ -1,10 +1,10 @@
 import pytest
 from pathlib import Path
 import numpy as np
+from importlib.util import find_spec
 
 from rompy.core.time import TimeRange
 from rompy.core.source import SourceTimeseriesCSV
-from rompy_binary_datasources.source import SourceTimeseriesDataFrame
 from rompy_xbeach.source import (
     SourceCRSFile,
     SourceCRSOceantide,
@@ -205,7 +205,13 @@ def test_wind_timeseries(tmp_path, source_wind_timeseries, grid, time):
     assert (tmp_path / windfile["windfile"]).is_file()
 
 
+@pytest.mark.skipif(
+    not find_spec("rompy_binary_datasources"),
+    reason="rompy_binary_datasources not installed",
+)
 def test_wind_timeseries_spd_dir(tmp_path, source_wind_timeseries, grid, time):
+    from rompy_binary_datasources.source import SourceTimeseriesDataFrame
+
     # Extract the DataFrame object and test it with SourceTimeseriesDataFrame
     df = source_wind_timeseries._open_dataframe()
     wind = WindPoint(
