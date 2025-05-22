@@ -4,7 +4,6 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rompy_xbeach"
-version = "0.1.0"
 description = "Rompy Xbeach Config package."
 readme = "README.rst"
 authors = [
@@ -23,6 +22,7 @@ dependencies = [
   "oceantide",
   "typer",
 ]
+dynamic = ["version"]
 
 [project.optional-dependencies]
 extra = [
@@ -82,3 +82,6 @@ package-dir = {"" = "src"}
 [tool.setuptools.package-data]
 "*" = ["*.*"]
 "rompy_xbeach" = ["templates/**/*", "templates/**/.*"]
+
+[tool.setuptools.dynamic]
+version = {attr = "rompy_xbeach.__version__"}
