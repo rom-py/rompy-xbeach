@@ -19,7 +19,7 @@ classifiers = [
 license = {text = "BSD 3-Clause License"}
 dependencies = [
   "rioxarray",
-  "rompy",
+  "rompy==0.3.1",
   "oceantide",
   "typer",
 ]
