@@ -53,7 +53,7 @@ def test_model_generate(kwargs, tmp_path):
     config = Config(**kwargs)
     model = ModelRun(
         run_id="test",
-        output_dir=tmp_path,
+        output_dir=str(tmp_path),
         config=config,
         period=TimeRange(start="2023-01-01T00", end="2023-01-01T12", interval="1h"),
     )

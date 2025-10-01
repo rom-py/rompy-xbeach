@@ -2,6 +2,7 @@
 
 import logging
 import ast
+import warnings
 from pathlib import Path
 from typing import Literal, Optional, Union
 from pydantic import Field, field_validator, ConfigDict
@@ -227,6 +228,13 @@ class RegularGrid(BaseGrid):
         return float(self.x.mean()), float(self.y.mean())
 
     @cached_property
+    def proj4(self):
+        """PROJ4 string of the grid."""
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message=".*PROJ string.*", category=UserWarning)
+            return self.crs.to_proj4()
+
+    @cached_property
     def transform(self):
         """Cartopy transformation for the grid."""
         _epsg = self.crs.to_epsg()
@@ -236,7 +244,7 @@ class RegularGrid(BaseGrid):
             return ccrs.epsg(_epsg)
 
         # If no EPSG, use Cartopy's Stereographic projection
-        elif "stere" in self.crs.to_proj4():
+        elif "stere" in self.proj4:
             return ccrs.Stereographic(
                 central_longitude=self.ori.x, central_latitude=self.ori.y
             )
@@ -267,7 +275,7 @@ class RegularGrid(BaseGrid):
             xori=self.x0,
             yori=self.y0,
             alfa=self.alfa,
-            projection=self.crs.to_proj4(),
+            projection=self.proj4,
         )
 
     def expand(self, left=0, right=0, back=0, front=0) -> "RegularGrid":

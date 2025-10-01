@@ -589,13 +589,15 @@ class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStatio
         t = data.time.to_index().to_pydatetime()[0]
         logger.debug(f"Creating boundary for time {t}")
         bcfile = f"{self.id}-{t:%Y%m%dT%H%M%S}.txt"
+        if data.lon.size > 1 or data.lat.size > 1:
+            raise ValueError("Data must be a single point")
         return WaveBoundarySWAN(
             bcfile=bcfile,
             freq=data.freq.squeeze().values,
             dir=data.dir.squeeze().values,
             efth=data.efth.squeeze().values,
-            lon=float(data.lon.values),
-            lat=float(data.lat.values),
+            lon=float(data.lon.squeeze().values),
+            lat=float(data.lat.squeeze().values),
         )
 
     def get(

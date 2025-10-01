@@ -235,10 +235,10 @@ class BaseData(DataGrid, ABC):
         times = ds.time.to_index().to_pydatetime()
         if time.start not in times:
             ds_start = ds.interp({self.coords.t: [time.start]}, kwargs=kwargs)
-            dsout = xr.concat([ds_start, dsout], dim=self.coords.t)
+            dsout = xr.concat([ds_start, dsout], dim=self.coords.t, data_vars="all")
         if time.end not in times:
             ds_end = ds.interp({self.coords.t: [time.end]}, kwargs=kwargs)
-            dsout = xr.concat([dsout, ds_end], dim=self.coords.t)
+            dsout = xr.concat([dsout, ds_end], dim=self.coords.t, data_vars="all")
         return dsout
 
     def _locations(self, grid: RegularGrid) -> tuple[list[float], list[float]]:
