@@ -212,18 +212,17 @@ class SourceCRSWavespectra(SourceMixin, SourceWavespectra):
 
     """
 
-    crs: CRS_TYPES = Field(
-        default=4326,
-        description="Coordinate reference system of the source data",
-    )
-    x_dim: str = Field(
-        default="lon",
-        description="Name of the x dimension",
-    )
-    y_dim: str = Field(
-        default="lat",
-        description="Name of the y dimension",
-    )
+    @model_validator(mode="before")
+    @classmethod
+    def set_defaults(cls, values):
+        """Set default values for wavespectra-specific fields."""
+        if "crs" not in values or values["crs"] is None:
+            values["crs"] = 4326
+        if "x_dim" not in values or values["x_dim"] is None:
+            values["x_dim"] = "lon"
+        if "y_dim" not in values or values["y_dim"] is None:
+            values["y_dim"] = "lat"
+        return values
 
 
 class SourceOceantide(SourceBase):
@@ -250,18 +249,17 @@ class SourceOceantide(SourceBase):
 class SourceCRSOceantide(SourceMixin, SourceOceantide):
     """Source dataset with CRS support from intake catalog."""
 
-    crs: CRS_TYPES = Field(
-        default=4326,
-        description="Coordinate reference system of the source data",
-    )
-    x_dim: str = Field(
-        default="lon",
-        description="Name of the x dimension",
-    )
-    y_dim: str = Field(
-        default="lat",
-        description="Name of the y dimension",
-    )
+    @model_validator(mode="before")
+    @classmethod
+    def set_defaults(cls, values):
+        """Set default values for oceantide-specific fields."""
+        if "crs" not in values or values["crs"] is None:
+            values["crs"] = 4326
+        if "x_dim" not in values or values["x_dim"] is None:
+            values["x_dim"] = "lon"
+        if "y_dim" not in values or values["y_dim"] is None:
+            values["y_dim"] = "lat"
+        return values
 
 
 class SourceTideConsPointCSV(SourceBase):
