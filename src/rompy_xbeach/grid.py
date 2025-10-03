@@ -231,7 +231,9 @@ class RegularGrid(BaseGrid):
     def proj4(self):
         """PROJ4 string of the grid."""
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", message=".*PROJ string.*", category=UserWarning)
+            warnings.filterwarnings(
+                "ignore", message=".*PROJ string.*", category=UserWarning
+            )
             return self.crs.to_proj4()
 
     @cached_property
@@ -281,7 +283,9 @@ class RegularGrid(BaseGrid):
     def expand(self, left=0, right=0, back=0, front=0) -> "RegularGrid":
         """Expand the grid boundaries."""
         x, y = self._generate(left, right, back, front)
-        ori = GeoPoint(x=x[0, 0], y=y[0, 0], crs=self.crs).reproject(self.ori.crs.to_epsg())
+        ori = GeoPoint(x=x[0, 0], y=y[0, 0], crs=self.crs).reproject(
+            self.ori.crs.to_epsg()
+        )
         return RegularGrid(
             ori=ori,
             alfa=self.alfa,

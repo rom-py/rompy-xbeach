@@ -89,6 +89,7 @@ class RegularGridInterpolator(BaseInterpolator):
 
         """
         from scipy.interpolate import RegularGridInterpolator
+
         try:
             interp = RegularGridInterpolator(points=(y, x), values=data, **self.kwargs)
             return interp((yi, xi))

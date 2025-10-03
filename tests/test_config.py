@@ -24,7 +24,11 @@ def kwargs():
     def replace_paths(obj):
         if isinstance(obj, dict):
             for key, value in obj.items():
-                if key in ['filename', 'uri', 'gfile', 'hfile', 'ufile'] and isinstance(value, str) and value.startswith('./'):
+                if (
+                    key in ["filename", "uri", "gfile", "hfile", "ufile"]
+                    and isinstance(value, str)
+                    and value.startswith("./")
+                ):
                     # Convert relative path to absolute path
                     obj[key] = str(HERE / value[2:])
                 elif isinstance(value, (dict, list)):

@@ -1,6 +1,5 @@
 """Console script for rompy_xbeach."""
 
-
 import typer
 from rich.console import Console
 
@@ -12,7 +11,7 @@ console = Console()
 def main():
     """Console script for rompy_xbeach."""
     console.print(
-        "Replace this message by putting your code into " "rompy_xbeach.cli.main"
+        "Replace this message by putting your code into rompy_xbeach.cli.main"
     )
     console.print("See Typer documentation at https://typer.tiangolo.com/")
 

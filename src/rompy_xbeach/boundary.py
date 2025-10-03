@@ -143,7 +143,9 @@ class SpectraMixin:
             Dataset containing the boundary spectral data.
 
         """
-        stats = ds.chunk(freq=-1, dir=-1).spec.stats(["hs", "tp", "dpm", "gamma", "dspr"])
+        stats = ds.chunk(freq=-1, dir=-1).spec.stats(
+            ["hs", "tp", "dpm", "gamma", "dspr"]
+        )
         stats["s"] = dspr_to_s(stats.dspr)
         return stats.rename(hs="hm0", dpm="mainang", gamma="gammajsp")
 

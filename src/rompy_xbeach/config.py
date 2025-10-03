@@ -186,8 +186,7 @@ class Config(XBeachBaseConfig):
     alpha: Optional[float] = Field(
         default=None,
         description=(
-            "Wave dissipation coefficient in roelvink formulation"
-            "(XBeach default: 1.38)"
+            "Wave dissipation coefficient in roelvink formulation(XBeach default: 1.38)"
         ),
         ge=0.5,
         le=2.0,
@@ -340,7 +339,7 @@ class Config(XBeachBaseConfig):
     tstart: Optional[float] = Field(
         default=None,
         description=(
-            "Start time of output, in morphological time (s) " "(XBeach default: 0.0)"
+            "Start time of output, in morphological time (s) (XBeach default: 0.0)"
         ),
         ge=0.0,
     )
@@ -365,7 +364,7 @@ class Config(XBeachBaseConfig):
     tintp: Optional[float] = Field(
         default=None,
         description=(
-            "Interval time of point and runup gauge output (s) " "(XBeach default: 1.0)"
+            "Interval time of point and runup gauge output (s) (XBeach default: 1.0)"
         ),
         gt=0.0,
     )
