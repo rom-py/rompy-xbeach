@@ -381,36 +381,42 @@ class Config(XBeachBaseConfig):
 
     @field_serializer("random")
     def serialize_random(self, value: Optional[bool]):
+        """Serialise bool to int."""
         if value is None:
             return None
         return int(value)
 
     @field_serializer("wci")
     def serialize_wci(self, value: Optional[bool]):
+        """Serialise bool to int."""
         if value is None:
             return None
         return int(value)
 
     @field_serializer("roller")
     def serialize_roller(self, value: Optional[bool]):
+        """Serialise bool to int."""
         if value is None:
             return None
         return int(value)
 
     @field_serializer("sedtrans")
     def serialize_sedtrans(self, value: Optional[bool]):
+        """Serialise bool to int."""
         if value is None:
             return None
         return int(value)
 
     @field_serializer("morphology")
     def serialize_morphology(self, value: Optional[bool]):
+        """Serialise bool to int."""
         if value is None:
             return None
         return int(value)
 
     @field_serializer("oldhu")
     def serialize_oldhu(self, value: Optional[bool]):
+        """Serialise bool to int."""
         if value is None:
             return None
         return int(value)
