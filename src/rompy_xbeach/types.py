@@ -54,8 +54,8 @@ class WbcEnum(str, Enum):
 class OutputVarsEnum(str, Enum):
     """XBeach output variables.
     
-    Valid options for output variables that can be specified in meanvars, pointvars, 
-    globalvars, etc. Based on XBeach documentation:
+    Valid options for output variables that can be specified in meanvars,
+    pointvars, globalvars, etc. Based on XBeach documentation:
     https://xbeach.readthedocs.io/en/latest/output_variables.html
     
     Attributes
@@ -85,7 +85,8 @@ class OutputVarsEnum(str, Enum):
     DF: "df"
         Dissipation rate due to bed friction (W/m2).
     DP: "dp"
-        Dissipation rate in the swash due to transformation of kinetic wave energy to potential wave energy (W/m2).
+        Dissipation rate in the swash due to transformation of kinetic wave
+        energy to potential wave energy (W/m2).
     DVEG: "dveg"
         Dissipation due to short wave attenuation by vegetation (W/m2).
     E: "e"
@@ -111,17 +112,23 @@ class OutputVarsEnum(str, Enum):
     SK: "sk"
         Skewness of short waves.
     SUBG: "subg"
-        Bed sediment transport for each sediment class (excluding pores), x-component (m2/s).
+        Bed sediment transport for each sediment class (excluding pores),
+        x-component (m2/s).
     SUSG: "susg"
-        Suspended sediment transport for each sediment class (excluding pores), x-component (m2/s).
+        Suspended sediment transport for each sediment class
+        (excluding pores), x-component (m2/s).
     SUTOT: "sutot"
-        Sediment transport integrated over bed load and suspended and for all sediment grains, x-component (m2/s).
+        Sediment transport integrated over bed load and suspended and for
+        all sediment grains, x-component (m2/s).
     SVBG: "svbg"
-        Bed sediment transport for each sediment class (excluding pores), y-component (m2/s).
+        Bed sediment transport for each sediment class (excluding pores),
+        y-component (m2/s).
     SVSG: "svsg"
-        Suspended sediment transport for each sediment class (excluding pores), y-component (m2/s).
+        Suspended sediment transport for each sediment class
+        (excluding pores), y-component (m2/s).
     SVTOT: "svtot"
-        Sediment transport integrated over bed load and suspended and for all sediment grains, y-component (m2/s).
+        Sediment transport integrated over bed load and suspended and for
+        all sediment grains, y-component (m2/s).
     SXX: "sxx"
         Radiation stress, x-component (N/m).
     SXY: "sxy"
@@ -129,7 +136,8 @@ class OutputVarsEnum(str, Enum):
     SYY: "syy"
         Radiation stress, y-component (N/m).
     TBORE: "tbore"
-        Wave period interval associated with breaking induced turbulence (s).
+        Wave period interval associated with breaking induced
+        turbulence (s).
     TSG: "tsg"
         Sediment response time for each sediment class (s).
     ALFAU: "alfau"
@@ -151,15 +159,19 @@ class OutputVarsEnum(str, Enum):
     CA: "ca"
         Reference concentration (m3/m3).
     CCG: "ccg"
-        Depth-averaged suspended concentration for each sediment fraction (m3/m3).
+        Depth-averaged suspended concentration for each sediment
+        fraction (m3/m3).
     CCTOT: "cctot"
-        Sediment concentration integrated over bed load and suspended and for all sediment grains (m3/m3).
+        Sediment concentration integrated over bed load and suspended and
+        for all sediment grains (m3/m3).
     CCZ: "ccz"
         Concentration profile (m3/m3).
     CEQBG: "ceqbg"
-        Depth-averaged bed equilibrium concentration for each sediment class (m3/m3).
+        Depth-averaged bed equilibrium concentration for each sediment
+        class (m3/m3).
     CEQSG: "ceqsg"
-        Depth-averaged suspended equilibrium concentration for each sediment class (m3/m3).
+        Depth-averaged suspended equilibrium concentration for each
+        sediment class (m3/m3).
     CF: "cf"
         Friction coefficient flow.
     CFU: "cfu"
@@ -191,11 +203,13 @@ class OutputVarsEnum(str, Enum):
     CY: "cy"
         Wave celerity, y-component (m/s).
     DU: "du"
-        U-velocity difference between two vertical layers, reduced 2-layer non-hydrostatic model (m2/s2).
+        U-velocity difference between two vertical layers, reduced 2-layer
+        non-hydrostatic model (m2/s2).
     DUI: "dui"
         Velocity difference at boundary due to short waves (m/s).
     DV: "dv"
-        V-velocity difference between two vertical layers, reduced 2-layer non-hydrostatic model (m2/s2).
+        V-velocity difference between two vertical layers, reduced 2-layer
+        non-hydrostatic model (m2/s2).
     DASSIM: "dassim"
         Beachwizard depth change (m).
     DCBDX: "dcbdx"
@@ -213,7 +227,8 @@ class OutputVarsEnum(str, Enum):
     DEPO_IM: "depo_im"
         Implicit bed deposition rate per fraction (m/s).
     DINFIL: "dinfil"
-        Infiltration layer depth used in quasi-vertical flow model for groundwater (m).
+        Infiltration layer depth used in quasi-vertical flow model for
+        groundwater (m).
     DNC: "dnc"
         Grid distance in n-direction, centered around c-point (m).
     DNU: "dnu"
@@ -289,15 +304,19 @@ class OutputVarsEnum(str, Enum):
     GWV: "gwv"
         Groundwater flow in y-direction (m/s).
     GWW: "gww"
-        Groundwater flow in z-direction, interaction between surface and ground water (m/s).
+        Groundwater flow in z-direction, interaction between surface and
+        ground water (m/s).
     HH: "hh"
         Water depth (m).
     HHW: "hhw"
-        Water depth used in all wave computations, includes h*par%delta (m).
+        Water depth used in all wave computations, includes
+        h*par%delta (m).
     HHWCINS: "hhwcins"
-        Water depth used in wave instationary computation in case of wci (m).
+        Water depth used in wave instationary computation in case of
+        wci (m).
     HHWS: "hhws"
-        Water depth used in wave stationary computation and single_dir wave directions (m).
+        Water depth used in wave stationary computation and single_dir
+        wave directions (m).
     HOLD: "hold"
         Water depth previous time step (m).
     HU: "hu"
@@ -311,7 +330,8 @@ class OutputVarsEnum(str, Enum):
     IDRIFT: "idrift"
         Drifter x-coordinate in grid space.
     INFIL: "infil"
-        Rate of exchange of water between surface and groundwater, positive from sea to groundwater (m/s).
+        Rate of exchange of water between surface and groundwater,
+        positive from sea to groundwater (m/s).
     ISTRUCT: "istruct"
         Location of revetments toe.
     IWL: "iwl"
@@ -321,9 +341,11 @@ class OutputVarsEnum(str, Enum):
     K: "k"
         Wave number (rad/m).
     KB: "kb"
-        Near bed turbulence intensity due to depth induced breaking (m2/s2).
+        Near bed turbulence intensity due to depth induced
+        breaking (m2/s2).
     KTURB: "kturb"
-        Depth averaged turbulence intensity due to long wave breaking (m2/s2).
+        Depth averaged turbulence intensity due to long wave
+        breaking (m2/s2).
     MAXZS: "maxzs"
         Maximum elevation in simulation (m).
     MINZS: "minzs"
@@ -331,7 +353,8 @@ class OutputVarsEnum(str, Enum):
     N: "n"
         Ratio group velocity/wave celerity.
     ND: "nd"
-        Number of bed layers, can be different for each computational cell.
+        Number of bed layers, can be different for each computational
+        cell.
     NDIST: "ndist"
         Cumulative distance from right boundary along n-direction (m).
     NUH: "nuh"
@@ -415,11 +438,13 @@ class OutputVarsEnum(str, Enum):
     TAUBX: "taubx"
         Bed shear stress, x-component (N/m2).
     TAUBX_ADD: "taubx_add"
-        Additional bed shear stress due to boundary layer effects, x-component (N/m2).
+        Additional bed shear stress due to boundary layer effects,
+        x-component (N/m2).
     TAUBY: "tauby"
         Bed shear stress, y-component (N/m2).
     TAUBY_ADD: "tauby_add"
-        Additional bed shear stress due to boundary layer effects, y-component (N/m2).
+        Additional bed shear stress due to boundary layer effects,
+        y-component (N/m2).
     TDISCH: "tdisch"
         Discharge time series.
     TDRIFTB: "tdriftb"
@@ -431,9 +456,11 @@ class OutputVarsEnum(str, Enum):
     THET_S: "thet_s"
         Wave angles (rad).
     THETA: "theta"
-        Wave angles directional distribution w.r.t. computational x-axis (rad).
+        Wave angles directional distribution w.r.t. computational
+        x-axis (rad).
     THETA_S: "theta_s"
-        Wave angles directional distribution w.r.t. computational x-axis (rad).
+        Wave angles directional distribution w.r.t. computational
+        x-axis (rad).
     THETAMEAN: "thetamean"
         Mean wave angle (rad).
     TIDEINPT: "tideinpt"
@@ -461,15 +488,18 @@ class OutputVarsEnum(str, Enum):
     UI: "ui"
         Incident bound wave velocity, x-component (m/s).
     UMEAN: "umean"
-        Longterm mean velocity at boundaries in u-points, x-component (m/s).
+        Longterm mean velocity at boundaries in u-points,
+        x-component (m/s).
     UMWCI: "umwci"
         Velocity time-averaged for wci, x-component (m/s).
     UR: "ur"
         Reflected velocity at boundaries in u-points (m/s).
     UREPB: "urepb"
-        Representative flow velocity for sediment advection and diffusion, x-component (m/s).
+        Representative flow velocity for sediment advection and diffusion,
+        x-component (m/s).
     UREPS: "ureps"
-        Representative flow velocity for sediment advection and diffusion, x-component (m/s).
+        Representative flow velocity for sediment advection and diffusion,
+        x-component (m/s).
     URMS: "urms"
         Orbital velocity (m/s).
     USD: "usd"
@@ -485,11 +515,13 @@ class OutputVarsEnum(str, Enum):
     UV: "uv"
         GLM velocity in v-points, x-component (m/s).
     UWCINS: "uwcins"
-        U-velocity used in wave stationary computation in case of wci (m/s).
+        U-velocity used in wave stationary computation in case of
+        wci (m/s).
     UWF: "uwf"
         Stokes drift, x-component (m/s).
     UWS: "uws"
-        U-velocity used in wave stationary computation and single_dir wave directions (m/s).
+        U-velocity used in wave stationary computation and single_dir
+        wave directions (m/s).
     UZ: "uz"
         Velocity q3d ksi-component.
     V: "v"
@@ -523,23 +555,28 @@ class OutputVarsEnum(str, Enum):
     VMAGV: "vmagv"
         GLM velocity magnitude v-points (m/s).
     VMEAN: "vmean"
-        Longterm mean velocity at boundaries in v-points, y-component (m/s).
+        Longterm mean velocity at boundaries in v-points,
+        y-component (m/s).
     VMWCI: "vmwci"
         Velocity time-averaged for wci, y-component (m/s).
     VREPB: "vrepb"
-        Representative flow velocity for sediment advection and diffusion, y-component (m/s).
+        Representative flow velocity for sediment advection and diffusion,
+        y-component (m/s).
     VREPS: "vreps"
-        Representative flow velocity for sediment advection and diffusion, y-component (m/s).
+        Representative flow velocity for sediment advection and diffusion,
+        y-component (m/s).
     VU: "vu"
         GLM velocity in u-points, y-component (m/s).
     VV: "vv"
         GLM velocity in v-points, y-component (m/s).
     VWCINS: "vwcins"
-        V-velocity used in wave stationary computation in case of wci (m/s).
+        V-velocity used in wave stationary computation in case of
+        wci (m/s).
     VWF: "vwf"
         Stokes drift, y-component (m/s).
     VWS: "vws"
-        V-velocity used in wave stationary computation and single_dir wave directions (m/s).
+        V-velocity used in wave stationary computation and single_dir
+        wave directions (m/s).
     VZ: "vz"
         Velocity q3d eta-component.
     WB: "wb"
@@ -559,21 +596,26 @@ class OutputVarsEnum(str, Enum):
     WINDINPT: "windinpt"
         Input time of input wind signal (s).
     WINDNV: "windnv"
-        Wind velocity in n direction in v point at current time step (m/s).
+        Wind velocity in n direction in v point at current time
+        step (m/s).
     WINDSU: "windsu"
-        Wind velocity in s direction in u point at current time step (m/s).
+        Wind velocity in s direction in u point at current time
+        step (m/s).
     WINDVELTS: "windvelts"
         Input wind velocity (m/s).
     WINDXTS: "windxts"
-        Time series of input wind velocity, not s direction, x-component (m/s).
+        Time series of input wind velocity, not s direction,
+        x-component (m/s).
     WINDYTS: "windyts"
-        Time series of input wind velocity, not n direction, y-component (m/s).
+        Time series of input wind velocity, not n direction,
+        y-component (m/s).
     WM: "wm"
         Mean absolute frequency (rad/s).
     WS: "ws"
         Vertical velocity at the free surface (m/s).
     WSCRIT: "wscrit"
-        Critical vertical velocity at the free surface for breaking (m/s).
+        Critical vertical velocity at the free surface for
+        breaking (m/s).
     X: "x"
         X-coordinate original computational grid (m).
     XHRUNUP: "xhrunup"
@@ -591,7 +633,8 @@ class OutputVarsEnum(str, Enum):
     XYZS04: "xyzs04"
         Global xy coordinates of corner (x=n,y=1).
     XZ: "xz"
-        X-coordinate computational grid, positive shoreward, perpendicular to coastline (m).
+        X-coordinate computational grid, positive shoreward,
+        perpendicular to coastline (m).
     Y: "y"
         Y-coordinate original computational grid (m).
     YU: "yu"
@@ -615,7 +658,8 @@ class OutputVarsEnum(str, Enum):
     ZS0: "zs0"
         Water level due to tide alone (m).
     ZS0FAC: "zs0fac"
-        Relative weight of offshore boundary and bay boundary for each grid point.
+        Relative weight of offshore boundary and bay boundary for each
+        grid point.
     ZS1: "zs1"
         Water level minus tide (m).
     ZSWCI: "zswci"
