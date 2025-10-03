@@ -60,85 +60,85 @@ class OutputVarsEnum(str, Enum):
     
     Attributes
     ----------
-    AS: "as"
+    AS: "As"
         Asymmetry of short waves.
-    BR: "br"
+    BR: "BR"
         Maximum wave surface slope used in roller dissipation formulation.
-    CDRAG: "cdrag"
+    CDRAG: "Cdrag"
         Vegetation drag coefficient.
-    D: "d"
+    D: "D"
         Dissipation (W/m2).
-    D15: "d15"
+    D15: "D15"
         D15 grain diameters for all sediment classes (m).
-    D50: "d50"
+    D50: "D50"
         D50 grain diameters for all sediment classes (m).
-    D50TOP: "d50top"
+    D50TOP: "D50top"
         Friction coefficient flow.
-    D90: "d90"
+    D90: "D90"
         D90 grain diameters for all sediment classes (m).
-    D90TOP: "d90top"
+    D90TOP: "D90top"
         Friction coefficient flow.
-    DR: "dr"
+    DR: "DR"
         Roller energy dissipation (W/m2).
-    DC: "dc"
+    DC: "Dc"
         Diffusion coefficient (m2/s).
-    DF: "df"
+    DF: "Df"
         Dissipation rate due to bed friction (W/m2).
-    DP: "dp"
+    DP: "Dp"
         Dissipation rate in the swash due to transformation of kinetic wave
         energy to potential wave energy (W/m2).
-    DVEG: "dveg"
+    DVEG: "Dveg"
         Dissipation due to short wave attenuation by vegetation (W/m2).
-    E: "e"
+    E: "E"
         Wave energy (Nm/m2).
-    FVEGU: "fvegu"
+    FVEGU: "Fvegu"
         X-forcing due to long wave attenuation by vegetation (N/m2).
-    FVEGV: "fvegv"
+    FVEGV: "Fvegv"
         Y-forcing due to long wave attenuation by vegetation (N/m2).
-    FX: "fx"
+    FX: "Fx"
         Wave force, x-component (N/m2).
-    FY: "fy"
+    FY: "Fy"
         Wave force, y-component (N/m2).
-    H: "h"
+    H: "H"
         Hrms wave height based on instantaneous wave energy (m).
-    HRUNUP: "hrunup"
+    HRUNUP: "Hrunup"
         Short wave height used in runup formulation (m).
-    L1: "l1"
+    L1: "L1"
         Wave length used in dispersion relation (m).
-    QB: "qb"
+    QB: "Qb"
         Fraction breaking waves.
-    R: "r"
+    R: "R"
         Roller energy (Nm/m2).
-    SK: "sk"
+    SK: "Sk"
         Skewness of short waves.
-    SUBG: "subg"
+    SUBG: "Subg"
         Bed sediment transport for each sediment class (excluding pores),
         x-component (m2/s).
-    SUSG: "susg"
+    SUSG: "Susg"
         Suspended sediment transport for each sediment class
         (excluding pores), x-component (m2/s).
-    SUTOT: "sutot"
+    SUTOT: "Sutot"
         Sediment transport integrated over bed load and suspended and for
         all sediment grains, x-component (m2/s).
-    SVBG: "svbg"
+    SVBG: "Svbg"
         Bed sediment transport for each sediment class (excluding pores),
         y-component (m2/s).
-    SVSG: "svsg"
+    SVSG: "Svsg"
         Suspended sediment transport for each sediment class
         (excluding pores), y-component (m2/s).
-    SVTOT: "svtot"
+    SVTOT: "Svtot"
         Sediment transport integrated over bed load and suspended and for
         all sediment grains, y-component (m2/s).
-    SXX: "sxx"
+    SXX: "Sxx"
         Radiation stress, x-component (N/m).
-    SXY: "sxy"
+    SXY: "Sxy"
         Radiation stress, xy-component (N/m).
-    SYY: "syy"
+    SYY: "Syy"
         Radiation stress, y-component (N/m).
-    TBORE: "tbore"
+    TBORE: "Tbore"
         Wave period interval associated with breaking induced
         turbulence (s).
-    TSG: "tsg"
+    TSG: "Tsg"
         Sediment response time for each sediment class (s).
     ALFAU: "alfau"
         Grid orientation at u-point (rad).
@@ -202,12 +202,12 @@ class OutputVarsEnum(str, Enum):
         Wave celerity, x-component (m/s).
     CY: "cy"
         Wave celerity, y-component (m/s).
-    DU: "du"
+    DU: "dU"
         U-velocity difference between two vertical layers, reduced 2-layer
         non-hydrostatic model (m2/s2).
-    DUI: "dui"
+    DUI: "dUi"
         Velocity difference at boundary due to short waves (m/s).
-    DV: "dv"
+    DV: "dV"
         V-velocity difference between two vertical layers, reduced 2-layer
         non-hydrostatic model (m2/s2).
     DASSIM: "dassim"
@@ -377,7 +377,7 @@ class OutputVarsEnum(str, Enum):
         Discharge in u-points, x-component (m2/s).
     QY: "qy"
         Discharge in u-points, y-component (m2/s).
-    REFA: "refa"
+    REFA: "refA"
         Reference level (m).
     ROLTHICK: "rolthick"
         Long wave roller thickness (m).
@@ -393,17 +393,17 @@ class OutputVarsEnum(str, Enum):
         Cumulative sedimentation/erosion (m).
     SETBATHY: "setbathy"
         Prescribed bed levels (m).
-    SHIPFX: "shipfx"
+    SHIPFX: "shipFx"
         Force on ship in x-direction (N).
-    SHIPFY: "shipfy"
+    SHIPFY: "shipFy"
         Force on ship in y-direction (N).
-    SHIPFZ: "shipfz"
+    SHIPFZ: "shipFz"
         Force on ship in z-direction (N).
-    SHIPMX: "shipmx"
+    SHIPMX: "shipMx"
         Moment on ship around x-axis (Nm).
-    SHIPMY: "shipmy"
+    SHIPMY: "shipMy"
         Moment on ship around y-axis (Nm).
-    SHIPMZ: "shipmz"
+    SHIPMZ: "shipMz"
         Moment on ship around z-axis (Nm).
     SHIPCHI: "shipchi"
         Turning angle around y-axis (deg).
@@ -411,11 +411,11 @@ class OutputVarsEnum(str, Enum):
         Turning angle around x-axis (deg).
     SHIPPSI: "shippsi"
         Turning angle around z-axis (deg).
-    SHIPXCG: "shipxcg"
+    SHIPXCG: "shipxCG"
         X-coordinate of ship center of gravity (m).
-    SHIPYCG: "shipycg"
+    SHIPYCG: "shipyCG"
         Y-coordinate of ship center of gravity (m).
-    SHIPZCG: "shipzcg"
+    SHIPZCG: "shipzCG"
         Z-coordinate of ship center of gravity (m).
     SHOBS: "shobs"
         Beachwizard observed shoreline (m).
