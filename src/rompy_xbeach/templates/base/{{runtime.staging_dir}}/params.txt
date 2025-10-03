@@ -6,20 +6,12 @@
 %%% Template: {{ _template }}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-{% for key, value in config.items() %}{{ key }} = {{ value }}
+{% for key, value in config.items() -%}
+{%- if value is iterable and value is not string -%}
+{% for item in value -%}
+{{ item }}
+{% endfor -%}
+{%- else -%}
+{{ key }} = {{ value }}
+{% endif -%}
 {% endfor %}
-nmeanvar = 14
-H
-thetamean
-hh
-u
-v
-D
-R
-k
-ue
-ve
-urms
-Qb
-zb
-zs

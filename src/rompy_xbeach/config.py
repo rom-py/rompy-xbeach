@@ -12,6 +12,7 @@ from rompy.utils import load_entry_points
 from rompy_xbeach.types import XBeachBaseConfig
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.data import XBeachBathy
+from rompy_xbeach.components.output import Output
 
 
 logger = logging.getLogger(__name__)
@@ -105,6 +106,10 @@ class Config(XBeachBaseConfig):
     )
     input: DataInterface = Field(
         description="Input data",
+    )
+    output: Output = Field(
+        default_factory=Output,
+        description="Output configuration",
     )
     zs0: Optional[float] = Field(
         default=None,
@@ -433,7 +438,7 @@ class Config(XBeachBaseConfig):
 
         # Initial namelist
         self._namelist = self.model_dump(
-            exclude=["model_type", "template", "checkout", "grid", "bathy", "input"],
+            exclude=["model_type", "template", "checkout", "grid", "bathy", "input", "output"],
             exclude_none=True,
             by_alias=True,
         )
@@ -454,5 +459,8 @@ class Config(XBeachBaseConfig):
         __, __, depfile, grid = self.bathy.get(destdir=staging_dir, grid=self.grid)
         self._namelist.update(grid.namelist)
         self._namelist.update({"depfile": depfile.name})
+
+        # Output configuration
+        self._namelist.update(self.output.namelist)
 
         return self._namelist
