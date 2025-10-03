@@ -53,11 +53,11 @@ class WbcEnum(str, Enum):
 
 class OutputVarsEnum(str, Enum):
     """XBeach output variables.
-    
+
     Valid options for output variables that can be specified in meanvars,
     pointvars, globalvars, etc. Based on XBeach documentation:
     https://xbeach.readthedocs.io/en/latest/output_variables.html
-    
+
     Attributes
     ----------
     AS: "As"
@@ -664,7 +664,7 @@ class OutputVarsEnum(str, Enum):
         Water level minus tide (m).
     ZSWCI: "zswci"
         Waterlevel time-averaged for wci (m).
-    
+
     """
 
     AS = "As"
