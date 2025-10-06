@@ -110,3 +110,19 @@ tstart: 0.0
 tintm: 3600.0
 outputformat: netcdf
 ncfilename: xboutput_test.nc
+output:
+  meanvars:
+    - H
+    - thetamean
+    - hh
+    - u
+    - v
+    - D
+    - R
+    - k
+    - ue
+    - ve
+    - urms
+    - Qb
+    - zb
+    - zs
