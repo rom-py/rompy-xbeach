@@ -109,8 +109,8 @@ oldhu: 1
 tstart: 0.0
 tintm: 3600.0
 outputformat: netcdf
-ncfilename: xboutput_test.nc
 output:
+  ncfilename: xboutput_test.nc
   meanvars:
     - H
     - thetamean

@@ -330,17 +330,6 @@ class Config(XBeachBaseConfig):
         default=None,
         description="Output file format (XBeach default: fortran)",
     )
-    ncfilename: Optional[str] = Field(
-        default=None,
-        description="Xbeach netcdf output file name (XBeach default: xboutput.nc)",
-    )
-    # TODO: Make the fields below part of the Output object
-    # nmeanvar: int = Field(
-    #     description="Number of mean, min, max, var output variables",
-    #     default=0,
-    #     ge=0,
-    #     le=15,
-    # )
     tstart: Optional[float] = Field(
         default=None,
         description=(

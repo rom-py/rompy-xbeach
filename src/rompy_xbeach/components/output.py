@@ -1,7 +1,7 @@
 """XBeach output."""
 
-from typing import Literal
-from pydantic import Field, field_validator
+from typing import Literal, Optional
+from pydantic import Field
 from rompy.core.types import RompyBaseModel
 from rompy_xbeach.types import OutputVarsEnum
 
@@ -30,6 +30,10 @@ class Output(RompyBaseModel):
     model_type: Literal["output"] = Field(
         default="output",
         description="Model type discriminator",
+    )
+    ncfilename: Optional[str] = Field(
+        default=None,
+        description="Xbeach netcdf output file name (XBeach default: xboutput.nc)",
     )
     meanvars: list[OutputVarsEnum] = Field(
         description="Mean output variables",
@@ -63,4 +67,7 @@ class Output(RompyBaseModel):
     @property
     def namelist(self):
         """Return the namelist representation of the output component."""
-        return {**self.nmeanvar, **self.nglobalvar}
+        _namelist = {}
+        if self.ncfilename is not None:
+            _namelist["ncfilename"] = self.ncfilename
+        return {**_namelist, **self.nmeanvar, **self.nglobalvar}
