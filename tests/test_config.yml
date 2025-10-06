@@ -108,8 +108,8 @@ oldhu: 1
 # Model output
 tstart: 0.0
 tintm: 3600.0
-outputformat: netcdf
 output:
+  outputformat: netcdf
   ncfilename: xboutput_test.nc
   meanvars:
     - H

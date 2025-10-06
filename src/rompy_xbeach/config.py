@@ -84,7 +84,6 @@ BackType = Literal["wall", "abs_1d", "abs_2d", "wlevel"]
 LeftRightType = Literal["neumann", "wall", "no_advec", "neumann_v", "abs_1d"]
 LateralWaveType = Literal["neumann", "wavecrest", "cyclic"]
 SchemeType = Literal["upwind_1", "lax_wendroff", "upwind_2", "warmbeam"]
-OutputFormatType = Literal["fortran", "netcdf", "debug"]
 
 
 class Config(XBeachBaseConfig):
@@ -325,10 +324,6 @@ class Config(XBeachBaseConfig):
     oldhu: Optional[bool] = Field(
         default=None,
         description="Switch to enable old hu calculation (XBeach default: 0)",
-    )
-    outputformat: Optional[OutputFormatType] = Field(
-        default=None,
-        description="Output file format (XBeach default: fortran)",
     )
     tstart: Optional[float] = Field(
         default=None,
