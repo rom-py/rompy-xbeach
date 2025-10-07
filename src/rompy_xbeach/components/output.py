@@ -9,26 +9,46 @@ from rompy_xbeach.types import OutputVarsEnum
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_MEANVARS = [
-    OutputVarsEnum.H,
-    OutputVarsEnum.THETAMEAN,
-    OutputVarsEnum.HH,
-    OutputVarsEnum.U,
-    OutputVarsEnum.V,
-    OutputVarsEnum.D,
-    OutputVarsEnum.R,
-    OutputVarsEnum.K,
-    OutputVarsEnum.UE,
-    OutputVarsEnum.VE,
-    OutputVarsEnum.URMS,
-    OutputVarsEnum.QB,
-    OutputVarsEnum.ZB,
-    OutputVarsEnum.ZS,
-]
-
 
 class Output(RompyBaseModel):
-    """XBeach output configuration."""
+    """XBeach output configuration.
+
+    XBeach supports four different types of output: 1) instantaneous spatial output 2)
+    time-averaged spatial output 3) fixed point output or 4) run-up gauge output. In
+    principle any variable in XBeach can be outputted as long as it is part of the
+    spaceparams structure defined in variables.f90 in the XBeach source code.
+
+    The amount of output variables used for each type is determined by the keywords
+    nglobalvar, nmeanvar, npoints and nrugauge. Each of these keywords takes a number
+    indicating the number of parameters or locations that should be written to file. If
+    any of the keywords is set to zero, the output type is effectively disabled. If
+    nglovalvar is set to -1 then a standard set of output variables is used, being H,
+    zs, zs0, zb, hh, u, v, ue, ve, urms, Fc, Fy, ccg, ceqsg, ceqbg, Susg, Svsg, E, R, D
+    and DR. If nglobalvar is not set it defaults to -1. The lines in the params.txt file
+    immediately following these keywords determine what parameters or locations are used.
+
+    Instantaneous spatial output
+    ----------------------------
+    Instantaneous spatial output (`globalvars`) describes the instantaneous state of
+    variables across the entire model domain at various points in time.
+
+    Time-averaged spatial output
+    ----------------------------
+    Time-averaged spatial output (`meanvars`)describes the time-averaged state of
+    variables across the entire model domain at various points in time. The user can
+    define the averaging period using the `tintm` field.
+
+    Fixed point output
+    ------------------
+    Fixed point output (`pointvars`) allows the user to select one or more locations for
+    which a time series of data is stored. This output describes a time-series of one or
+    more variables at one point in the model domain. To make use of this option, the
+    user must specify the number of output locations using the `npoints` field,
+    immediately followed by one line per output location describing the location
+    coordinates given as the x-coordinate and y-coordinate and in world coordinates.
+    XBeach will link the output location to the nearest computational point.
+
+    """
 
     model_type: Literal["output"] = Field(
         default="output",
@@ -48,7 +68,7 @@ class Output(RompyBaseModel):
     )
     meanvars: list[OutputVarsEnum] = Field(
         description="Mean output variables",
-        default=DEFAULT_MEANVARS,
+        default=[],
     )
     globalvars: list[OutputVarsEnum] = Field(
         description="Global output variables",
