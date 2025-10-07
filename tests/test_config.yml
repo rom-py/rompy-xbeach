@@ -105,12 +105,12 @@ epsi: 0.001
 cfl: 0.8
 umin: 0.1
 oldhu: 1
-# Model output
-tstart: 0.0
-tintm: 3600.0
 output:
   outputformat: netcdf
   ncfilename: xboutput_test.nc
+  timings: True
+  tstart: 0.
+  tintm: 3600.0
   meanvars:
     - H
     - thetamean

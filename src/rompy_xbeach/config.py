@@ -325,38 +325,6 @@ class Config(XBeachBaseConfig):
         default=None,
         description="Switch to enable old hu calculation (XBeach default: 0)",
     )
-    tstart: Optional[float] = Field(
-        default=None,
-        description=(
-            "Start time of output, in morphological time (s) (XBeach default: 0.0)"
-        ),
-        ge=0.0,
-    )
-    tintc: Optional[float] = Field(
-        default=None,
-        description="Interval time of cross section output (s)",
-        gt=0.0,
-    )
-    tintg: Optional[float] = Field(
-        default=None,
-        description="Interval time of global output (s) (XBeach default: 1.0)",
-        gt=0.0,
-    )
-    tintm: Optional[float] = Field(
-        default=None,
-        description=(
-            "Interval time of mean, var, max, min output (s) "
-            "(XBeach default: tstop - tstart)"
-        ),
-        gt=0.0,
-    )
-    tintp: Optional[float] = Field(
-        default=None,
-        description=(
-            "Interval time of point and runup gauge output (s) (XBeach default: 1.0)"
-        ),
-        gt=0.0,
-    )
     # TODO: Make this part of the Tide object
     paulrevere: Optional[Literal["land", "sea"]] = Field(
         default=None,

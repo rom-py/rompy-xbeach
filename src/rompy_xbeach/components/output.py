@@ -2,7 +2,7 @@
 
 import logging
 from typing import Literal, Optional, Any
-from pydantic import Field, field_validator, model_serializer
+from pydantic import Field, field_validator, model_serializer, field_serializer
 from rompy.core.types import RompyBaseModel
 from rompy_xbeach.types import OutputVarsEnum
 
@@ -74,6 +74,48 @@ class Output(RompyBaseModel):
         default=None,
         description="Switch enable progress output to screen (XBeach default: True)",
     )
+    tstart: Optional[float] = Field(
+        default=None,
+        description="Start time (s) of output, in morphological time (XBeach default: 0)",
+        ge=0.0,
+    )
+    tintc: Optional[float] = Field(
+        default=None,
+        description="Interval time (s) of cross section output (XBeach default: -123)",
+        gt=0.0,
+    )
+    tintg: Optional[float] = Field(
+        default=None,
+        description="Interval time (s) of global output (XBeach default: 1)",
+        gt=0.0,
+    )
+    tintm: Optional[float] = Field(
+        default=None,
+        description=(
+            "Interval time (s) of mean, var, max, min output "
+            "(XBeach default: tstop-tstart)"
+        ),
+        gt=0.0,
+    )
+    tintp: Optional[float] = Field(
+        default=None,
+        description=(
+            "Interval time (s) of point and runup gauge output (XBeach default: 1)"
+        ),
+        gt=0.0,
+    )
+    tsglobal: Optional[str] = Field(
+        default=None,
+        description="Name of file containing timings of global output",
+    )
+    tsmean: Optional[str] = Field(
+        default=None,
+        description="Name of file containing timings of mean, max, min and var output",
+    )
+    tspoint: Optional[str] = Field(
+        default=None,
+        description="Name of file containing timings of point output",
+    )
 
     @field_validator(
         "meanvars", "globalvars", "pointvars", "npoints", "nrugauge", "nrugdepth"
@@ -101,13 +143,17 @@ class Output(RompyBaseModel):
             )
         return v
 
+    @field_serializer("timings")
+    def serialize_timings(self, value: Optional[bool]):
+        """Serialise bool to int."""
+        if value is None:
+            return None
+        return int(value)
+
     @model_serializer(mode="wrap")
     def _serialize_for_namelist(self, serializer: Any) -> dict:
         """Transforms variable lists into XBeach format with count keys."""
         data = serializer(self)
-        data.pop("model_type", None)
-
-        # Transform variable list fields
         var_fields = ["meanvars", "globalvars", "pointvars"]
         for field_name in var_fields:
             if field_name in data and data[field_name]:
@@ -126,4 +172,4 @@ class Output(RompyBaseModel):
     @property
     def namelist(self):
         """Return the namelist representation of the output component."""
-        return self.model_dump(exclude_none=True)
+        return self.model_dump(exclude_none=True, exclude=["model_type"])
