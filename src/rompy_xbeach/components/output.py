@@ -24,14 +24,11 @@ class Output(RompyBaseModel):
     principle any variable in XBeach can be outputted as long as it is part of the
     spaceparams structure defined in variables.f90 in the XBeach source code.
 
-    The amount of output variables used for each type is determined by the keywords
-    nglobalvar, nmeanvar, npoints and nrugauge. Each of these keywords takes a number
-    indicating the number of parameters or locations that should be written to file. If
-    any of the keywords is set to zero, the output type is effectively disabled. If
-    nglovalvar is set to -1 then a standard set of output variables is used, being H,
-    zs, zs0, zb, hh, u, v, ue, ve, urms, Fc, Fy, ccg, ceqsg, ceqbg, Susg, Svsg, E, R, D
-    and DR. If nglobalvar is not set it defaults to -1. The lines in the params.txt file
-    immediately following these keywords determine what parameters or locations are used.
+    This class simplifies output configuration by using list fields (`meanvars`,
+    `globalvars`, `pointvars`, `points`, `rugauges`) to define variables and locations.
+    The corresponding count keywords (`nmeanvar`, `nglobalvar`, `npointvar`, `npoints`,
+    `nrugauge`) are automatically set based on list lengths when generating params.txt.
+    Empty lists disable that output type.
 
     Instantaneous spatial output
     ----------------------------
@@ -49,10 +46,30 @@ class Output(RompyBaseModel):
     Fixed point output (`pointvars`) allows the user to select one or more locations for
     which a time series of data is stored. This output describes a time-series of one or
     more variables at one point in the model domain. To make use of this option, the
-    user must specify the number of output locations using the `npoints` field,
-    immediately followed by one line per output location describing the location
-    coordinates given as the x-coordinate and y-coordinate and in world coordinates.
-    XBeach will link the output location to the nearest computational point.
+    user must specify the output locations using the `points` field describing the
+    location coordinates given as the x-coordinate and y-coordinate and in world
+    coordinates. XBeach will link the output location to the nearest computational point.
+
+    Run-up gauge output
+    -------------------
+    Run-up gauge output describes a time-series of a number of variables at the (moving)
+    waterline. In this case XBeach scans in an x-directional transect defined by the
+    user for the location of the waterline. Output information is recorded for this
+    moving point. This is particularly useful to keep track of run-up levels in
+    cross-shore transects.
+
+    The definition of run-up gauges is similar to the definition of fixed point output.
+    The user needs to specify the run-up gauge locations using the `rugauges` field,
+    describing the coordinates of the initial location of the run-up gauge. XBeach will
+    subsequently link the initial run-up gauge location to the nearest computational
+    cross-shore transect rather than just the nearest computational point.
+
+    Run-up gauges share their selection of output variables with regular point output.
+    However, in the case of run-up gauges, XBeach will automatically also include the
+    variables xw, yw and zs to the point output variables, if these variables were not
+    specified using the npointvar keyword in params.txt. Note that the user should refer
+    to the pointvars.idx output file to check order of output variables for points and
+    run-up gauges.
 
     """
 
@@ -73,24 +90,36 @@ class Output(RompyBaseModel):
         description="Xbeach netcdf output file name (XBeach default: xboutput.nc)",
     )
     meanvars: list[OutputVarsEnum] = Field(
-        description="Mean output variables",
         default=[],
+        description=(
+            "Mean output variables (sets `nmeanvar` and variable list in params.txt)"
+        ),
     )
     globalvars: list[OutputVarsEnum] = Field(
-        description="Global output variables",
         default=[],
+        description=(
+            "Global output variables (sets `nglobalvar` and variable list in params.txt)"
+        ),
     )
     points: list[tuple[float, float]] = Field(
-        description="Point locations as (x, y) coordinate pairs",
         default=[],
+        description=(
+            "Point locations as (x, y) coordinate pairs "
+            "(sets `npoints` and point coordinates in params.txt)"
+        ),
     )
     pointvars: list[OutputVarsEnum] = Field(
-        description="Point output variables",
         default=[],
+        description=(
+            "Point output variables (sets `npointvar` and variable list in params.txt)"
+        ),
     )
-    nrugauge: Optional[int] = Field(
-        default=None,
-        description="Number of output runup gauge locations",
+    rugauges: list[tuple[float, float]] = Field(
+        default=[],
+        description=(
+            "Runup gauge locations as (x, y) coordinate pairs "
+            "(sets `nrugauge` and gauge coordinates in params.txt)"
+        ),
     )
     nrugdepth: Optional[int] = Field(
         default=None,
@@ -144,7 +173,7 @@ class Output(RompyBaseModel):
     )
 
     @field_validator(
-        "meanvars", "globalvars", "pointvars", "points", "nrugauge", "nrugdepth"
+        "meanvars", "globalvars", "pointvars", "points", "rugauges", "nrugdepth"
     )
     @classmethod
     def check_variable_limits(cls, v, info):
@@ -154,7 +183,7 @@ class Output(RompyBaseModel):
             "globalvars": 20,
             "pointvars": 50,
             "points": 50,
-            "nrugauge": 50,
+            "rugauges": 50,
             "nrugdepth": 10,
         }
 
@@ -170,9 +199,25 @@ class Output(RompyBaseModel):
         return v
 
     @model_validator(mode="after")
-    def pointvars_require_points(self) -> "Output":
-        if self.pointvars and not self.points:
-            raise ValueError("pointvars require points to be prescribed")
+    def validate_point_output_consistency(self) -> "Output":
+        """Validate consistency between pointvars and point/rugauge locations."""
+
+        # Check if pointvars are set but no locations defined
+        if self.pointvars and not (self.points or self.rugauges):
+            logger.warning(
+                "Point output variables (pointvars) are defined, but no point "
+                "locations (points) or runup gauge locations (rugauges) have been "
+                "prescribed. Output will not be generated."
+            )
+
+        # Check if locations are set but no variables defined
+        if (self.points or self.rugauges) and not self.pointvars:
+            logger.warning(
+                "Point locations (points) or runup gauge locations (rugauges) are "
+                "defined, but no point output variables (pointvars) have been "
+                "prescribed. No point/runup output will be generated."
+            )
+        
         return self
 
     @field_serializer("timings")
@@ -187,30 +232,36 @@ class Output(RompyBaseModel):
         """Transforms variable lists into XBeach format with count keys."""
         data = serializer(self)
 
-        # Points definition
-        if "points" in data and data["points"]:
-            points_list = data.pop("points")
-            data["npoints"] = len(points_list)
-            data["points"] = [f"{x} {y}" for x, y in points_list]
-        elif "points" in data:
-            data.pop("points")
+        # Coordinate pairs (points, rugauges, etc.)
+        coord_fields = {
+            "points": "npoints",
+            "rugauges": "nrugauge",
+        }
+        for field_name, count_key in coord_fields.items():
+            if field_name in data and data[field_name]:
+                coord_list = data.pop(field_name)
+                data[count_key] = len(coord_list)
+                data[field_name] = [f"{x} {y}" for x, y in coord_list]
+            elif field_name in data:
+                data.pop(field_name)
 
         # Variables definitions
-        for field_name in ["meanvars", "globalvars", "pointvars"]:
+        var_fields = {
+            "meanvars": "nmeanvar",
+            "globalvars": "nglobalvar",
+            "pointvars": "npointvar",
+        }
+        for field_name, count_key in var_fields.items():
             if field_name in data and data[field_name]:
                 var_list = data.pop(field_name)
-                # Add count key-value pair
-                count_key = f"n{field_name[:-1]}"
                 data[count_key] = len(var_list)
-                # Add list with enum values
                 data[field_name] = [var.value for var in var_list]
             elif field_name in data:
-                # Remove empty lists
                 data.pop(field_name)
 
         return data
 
     @property
-    def namelist(self):
+    def namelist(self) -> dict:
         """Return the namelist representation of the output component."""
         return self.model_dump(exclude_none=True, exclude=["model_type"])
