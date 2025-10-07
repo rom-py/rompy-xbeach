@@ -47,8 +47,8 @@ class BaseFile(RompyBaseModel, ABC):
         return np.column_stack(cols)
 
     @property
-    def namelist(self) -> dict:
-        """Namelist to write to the params.txt file."""
+    def params(self) -> dict:
+        """XBeach parameters to write to the params.txt file."""
         pass
 
     def write(self, destdir: str | Path):
@@ -72,8 +72,8 @@ class Wind(RompyBaseModel):
     )
 
     @property
-    def namelist(self) -> dict:
-        """Return the wind namelist."""
+    def params(self) -> dict:
+        """Return the XBeach wind parameters."""
         return {
             "windv": self.windv,
             "windth": self.windth,
@@ -81,7 +81,7 @@ class Wind(RompyBaseModel):
 
     def write(self, destdir: Optional[Union[str | Path]] = None):
         """Write the wind file."""
-        return self.namelist
+        return self.params
 
 
 class WindFile(BaseFile):
@@ -100,8 +100,8 @@ class WindFile(BaseFile):
     _params = ["windv", "windth"]
 
     @property
-    def namelist(self) -> dict:
-        """Return the wind file namelist."""
+    def params(self) -> dict:
+        """Return the XBeach wind file parameters."""
         return {"windfile": self.filename}
 
 
@@ -117,8 +117,8 @@ class TideFile(BaseFile):
     _params = ["zs"]
 
     @property
-    def namelist(self) -> dict:
-        """Return the wind file namelist."""
+    def params(self) -> dict:
+        """Return the XBeach tide file parameters."""
         return {
             "filename": self.filename,
         }

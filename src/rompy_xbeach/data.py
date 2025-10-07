@@ -545,8 +545,8 @@ class XBeachBathy(XBeachDataGrid):
         return self
 
     @property
-    def namelist(self):
-        """Return the namelist representation of the bathy data."""
+    def params(self):
+        """Return the XBeach parameters for the bathy data."""
         return dict(
             posdwn=1 if self.posdwn else -1,
         )

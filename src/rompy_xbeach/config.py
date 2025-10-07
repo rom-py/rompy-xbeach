@@ -64,18 +64,18 @@ class DataInterface(RompyBaseModel):
     tide: Optional[TideType] = Field(default=None)
 
     def get(self, staging_dir: Path, grid: RegularGrid, period: TimeRange):
-        """Generate each input data and return the namelist params."""
-        namelist = {}
+        """Generate each input data and return the XBeach params."""
+        params = {}
         if self.wave is not None:
             logger.info("Generating wave boundary data")
-            namelist.update(self.wave.get(staging_dir, grid, period))
+            params.update(self.wave.get(staging_dir, grid, period))
         if self.wind is not None:
             logger.info("Generating wind forcing data")
-            namelist.update(self.wind.get(staging_dir, grid, period))
+            params.update(self.wind.get(staging_dir, grid, period))
         if self.tide is not None:
             logger.info("Generating tide forcing data")
-            namelist.update(self.tide.get(staging_dir, grid, period))
-        return namelist
+            params.update(self.tide.get(staging_dir, grid, period))
+        return params
 
 
 BreakType = Literal["roelvink1", "baldock", "roelvink2", "roelvink_daly", "janssen"]
@@ -333,7 +333,7 @@ class Config(XBeachBaseConfig):
             "(XBeach default: land)"
         ),
     )
-    _namelist = {}
+    _params = {}
 
     @field_serializer("random")
     def serialize_random(self, value: Optional[bool]):
@@ -378,9 +378,9 @@ class Config(XBeachBaseConfig):
         return int(value)
 
     @property
-    def namelist(self) -> dict:
-        """Return the config namelist."""
-        return self._namelist
+    def params(self) -> dict:
+        """Return the XBeach configuration parameters."""
+        return self._params
 
     def __call__(self, runtime) -> dict:
         """Serialise the config to generate the params file."""
@@ -389,8 +389,8 @@ class Config(XBeachBaseConfig):
         period = runtime.period
         staging_dir = runtime.staging_dir
 
-        # Initial namelist
-        self._namelist = self.model_dump(
+        # Initial params dict
+        self._params = self.model_dump(
             exclude=[
                 "model_type",
                 "template",
@@ -405,23 +405,23 @@ class Config(XBeachBaseConfig):
         )
 
         # Simulation time
-        self._namelist["tstop"] = (period.end - period.start).total_seconds()
+        self._params["tstop"] = (period.end - period.start).total_seconds()
 
         # tunits
         if self.tunits is None:
-            self._namelist["tunits"] = f"seconds since {period.start:%Y-%m-%d %H:%M:%S}"
+            self._params["tunits"] = f"seconds since {period.start:%Y-%m-%d %H:%M:%S}"
 
         # Generate the input data
-        self._namelist.update(self.input.get(staging_dir, self.grid, period))
+        self._params.update(self.input.get(staging_dir, self.grid, period))
 
         # Bathy data interface
         # TODO: Make this consistent with the other input data
-        self._namelist.update(self.bathy.namelist)
+        self._params.update(self.bathy.params)
         __, __, depfile, grid = self.bathy.get(destdir=staging_dir, grid=self.grid)
-        self._namelist.update(grid.namelist)
-        self._namelist.update({"depfile": depfile.name})
+        self._params.update(grid.params)
+        self._params.update({"depfile": depfile.name})
 
         # Output configuration
-        self._namelist.update(self.output.namelist)
+        self._params.update(self.output.params)
 
-        return self._namelist
+        return self._params

@@ -267,8 +267,8 @@ class RegularGrid(BaseGrid):
         return ccrs.Stereographic(central_longitude=ori.x, central_latitude=ori.y)
 
     @cached_property
-    def namelist(self):
-        """Return the namelist representation of the grid."""
+    def params(self):
+        """Return the XBeach parameters for the grid."""
         return dict(
             nx=self.nx - 1,
             ny=self.ny - 1,

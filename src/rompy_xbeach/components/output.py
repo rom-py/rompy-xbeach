@@ -228,8 +228,8 @@ class Output(RompyBaseModel):
         return int(value)
 
     @model_serializer(mode="wrap")
-    def _serialize_for_namelist(self, serializer: Any) -> dict:
-        """Transforms variable lists into XBeach format with count keys."""
+    def _serialize_for_params(self, serializer: Any) -> dict:
+        """Transforms variable lists into XBeach params format with count keys."""
         data = serializer(self)
 
         # Coordinate pairs (points, rugauges, etc.)
@@ -262,6 +262,6 @@ class Output(RompyBaseModel):
         return data
 
     @property
-    def namelist(self) -> dict:
-        """Return the namelist representation of the output component."""
+    def params(self) -> dict:
+        """Return the XBeach parameters for the output component."""
         return self.model_dump(exclude_none=True, exclude=["model_type"])
