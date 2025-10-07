@@ -2,7 +2,8 @@
 
 import logging
 from typing import Literal, Optional, Any
-from pydantic import Field, field_validator, model_serializer, field_serializer
+from pydantic import Field, model_validator, field_validator, model_serializer, field_serializer
+
 from rompy.core.types import RompyBaseModel
 from rompy_xbeach.types import OutputVarsEnum
 
@@ -74,13 +75,13 @@ class Output(RompyBaseModel):
         description="Global output variables",
         default=[],
     )
+    points: list[tuple[float, float]] = Field(
+        description="Point locations as (x, y) coordinate pairs",
+        default=[],
+    )
     pointvars: list[OutputVarsEnum] = Field(
         description="Point output variables",
         default=[],
-    )
-    npoints: Optional[int] = Field(
-        default=None,
-        description="Number of output point locations",
     )
     nrugauge: Optional[int] = Field(
         default=None,
@@ -138,7 +139,7 @@ class Output(RompyBaseModel):
     )
 
     @field_validator(
-        "meanvars", "globalvars", "pointvars", "npoints", "nrugauge", "nrugdepth"
+        "meanvars", "globalvars", "pointvars", "points", "nrugauge", "nrugdepth"
     )
     @classmethod
     def check_variable_limits(cls, v, info):
@@ -147,7 +148,7 @@ class Output(RompyBaseModel):
             "meanvars": 15,
             "globalvars": 20,
             "pointvars": 50,
-            "npoints": 50,
+            "points": 50,
             "nrugauge": 50,
             "nrugdepth": 10,
         }
@@ -163,6 +164,12 @@ class Output(RompyBaseModel):
             )
         return v
 
+    @model_validator(mode="after")
+    def pointvars_require_points(self) -> "Output":
+        if self.pointvars and not self.points:
+            raise ValueError("pointvars require points to be prescribed")
+        return self
+
     @field_serializer("timings")
     def serialize_timings(self, value: Optional[bool]):
         """Serialise bool to int."""
@@ -174,8 +181,17 @@ class Output(RompyBaseModel):
     def _serialize_for_namelist(self, serializer: Any) -> dict:
         """Transforms variable lists into XBeach format with count keys."""
         data = serializer(self)
-        var_fields = ["meanvars", "globalvars", "pointvars"]
-        for field_name in var_fields:
+
+        # Points definition
+        if "points" in data and data["points"]:
+            points_list = data.pop("points")
+            data["npoints"] = len(points_list)
+            data["points"] = [f"{x} {y}" for x, y in points_list]
+        elif "points" in data:
+            data.pop("points")
+
+        # Variables definitions
+        for field_name in ["meanvars", "globalvars", "pointvars"]:
             if field_name in data and data[field_name]:
                 var_list = data.pop(field_name)
                 # Add count key-value pair

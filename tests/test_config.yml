@@ -128,3 +128,10 @@ output:
     - zs
   globalvars:
     - H
+  points:
+    - [0.0, 800.0]
+    - [2000.0, 1600.0]
+  pointvars:
+    - H
+    - ue
+    - ve
