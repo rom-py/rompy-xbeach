@@ -126,3 +126,5 @@ output:
     - Qb
     - zb
     - zs
+  globalvars:
+    - H

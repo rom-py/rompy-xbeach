@@ -1,8 +1,8 @@
 """XBeach output."""
 
 import logging
-from typing import Literal, Optional
-from pydantic import Field, field_validator
+from typing import Literal, Optional, Any
+from pydantic import Field, field_validator, model_serializer
 from rompy.core.types import RompyBaseModel
 from rompy_xbeach.types import OutputVarsEnum
 
@@ -38,6 +38,10 @@ class Output(RompyBaseModel):
         default="netcdf",
         description="Output file format (XBeach default: fortran)",
     )
+    outputprecision: Optional[Literal["single", "double"]] = Field(
+        default=None,
+        description="Netcdf output precision (XBeach default: double)",
+    )
     ncfilename: Optional[str] = Field(
         default=None,
         description="Xbeach netcdf output file name (XBeach default: xboutput.nc)",
@@ -58,8 +62,22 @@ class Output(RompyBaseModel):
         default=None,
         description="Number of output point locations",
     )
+    nrugauge: Optional[int] = Field(
+        default=None,
+        description="Number of output runup gauge locations",
+    )
+    nrugdepth: Optional[int] = Field(
+        default=None,
+        description="Number of depths to compute runup in runup gauge",
+    )
+    timings: Optional[bool] = Field(
+        default=None,
+        description="Switch enable progress output to screen (XBeach default: True)",
+    )
 
-    @field_validator("meanvars", "globalvars", "pointvars", "npoints")
+    @field_validator(
+        "meanvars", "globalvars", "pointvars", "npoints", "nrugauge", "nrugdepth"
+    )
     @classmethod
     def check_variable_limits(cls, v, info):
         """Validate that variable lists don't exceed XBeach limits."""
@@ -68,6 +86,8 @@ class Output(RompyBaseModel):
             "globalvars": 20,
             "pointvars": 50,
             "npoints": 50,
+            "nrugauge": 50,
+            "nrugdepth": 10,
         }
 
         field_name = info.field_name
@@ -81,41 +101,29 @@ class Output(RompyBaseModel):
             )
         return v
 
-    def _build_var_dict(self, field_name: str) -> dict:
-        """Build output variable dictionary with count and list.
+    @model_serializer(mode="wrap")
+    def _serialize_for_namelist(self, serializer: Any) -> dict:
+        """Transforms variable lists into XBeach format with count keys."""
+        data = serializer(self)
+        data.pop("model_type", None)
 
-        Parameters
-        ----------
-        field_name : str
-            Name of the field (e.g., 'meanvars', 'globalvars', 'pointvars')
+        # Transform variable list fields
+        var_fields = ["meanvars", "globalvars", "pointvars"]
+        for field_name in var_fields:
+            if field_name in data and data[field_name]:
+                var_list = data.pop(field_name)
+                # Add count key-value pair
+                count_key = f"n{field_name[:-1]}"
+                data[count_key] = len(var_list)
+                # Add list with enum values
+                data[field_name] = [var.value for var in var_list]
+            elif field_name in data:
+                # Remove empty lists
+                data.pop(field_name)
 
-        Returns
-        -------
-        dict
-            Dictionary with count key (e.g., 'nmeanvar') and variable list.
-
-        """
-        var_list = getattr(self, field_name, [])
-        if not var_list:
-            return {}
-        count_key = f"n{field_name[:-1]}"
-        return {count_key: len(var_list), field_name: [var.value for var in var_list]}
+        return data
 
     @property
     def namelist(self):
         """Return the namelist representation of the output component."""
-        _namelist = {}
-
-        # Direct key-value pairs
-        if self.outputformat is not None:
-            _namelist["outputformat"] = self.outputformat
-        if self.ncfilename is not None:
-            _namelist["ncfilename"] = self.ncfilename
-        if self.npoints is not None:
-            _namelist["npoints"] = self.npoints
-
-        # Variable lists
-        for var_type in ["meanvars", "globalvars", "pointvars"]:
-            _namelist.update(self._build_var_dict(var_type))
-
-        return _namelist
+        return self.model_dump(exclude_none=True)
