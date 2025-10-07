@@ -54,8 +54,12 @@ class Output(RompyBaseModel):
         description="Point output variables",
         default=[],
     )
+    npoints: Optional[int] = Field(
+        default=None,
+        description="Number of output point locations",
+    )
 
-    @field_validator("meanvars", "globalvars", "pointvars")
+    @field_validator("meanvars", "globalvars", "pointvars", "npoints")
     @classmethod
     def check_variable_limits(cls, v, info):
         """Validate that variable lists don't exceed XBeach limits."""
@@ -63,11 +67,12 @@ class Output(RompyBaseModel):
             "meanvars": 15,
             "globalvars": 20,
             "pointvars": 50,
+            "npoints": 50,
         }
-        
+
         field_name = info.field_name
         max_vars = limits.get(field_name)
-        
+
         if max_vars and len(v) > max_vars:
             logger.warning(
                 f"More than {max_vars} {field_name} requested. XBeach only "
@@ -76,32 +81,41 @@ class Output(RompyBaseModel):
             )
         return v
 
-    @property
-    def nmeanvar(self):
-        """Return the of mean output variables."""
-        if len(self.meanvars) == 0:
-            return {}
-        return {
-            "nmeanvar": len(self.meanvars),
-            "meanvars": [var.value for var in self.meanvars]
-        }
+    def _build_var_dict(self, field_name: str) -> dict:
+        """Build output variable dictionary with count and list.
 
-    @property
-    def nglobalvar(self):
-        """Return the of global output variables."""
-        if len(self.globalvars) == 0:
+        Parameters
+        ----------
+        field_name : str
+            Name of the field (e.g., 'meanvars', 'globalvars', 'pointvars')
+
+        Returns
+        -------
+        dict
+            Dictionary with count key (e.g., 'nmeanvar') and variable list.
+
+        """
+        var_list = getattr(self, field_name, [])
+        if not var_list:
             return {}
-        return {
-            "nglobalvar": len(self.globalvars),
-            "globalvars": [var.value for var in self.globalvars]
-        }
+        count_key = f"n{field_name[:-1]}"
+        return {count_key: len(var_list), field_name: [var.value for var in var_list]}
 
     @property
     def namelist(self):
         """Return the namelist representation of the output component."""
         _namelist = {}
+
+        # Direct key-value pairs
         if self.outputformat is not None:
-            _namelist.update({"outputformat": self.outputformat})
+            _namelist["outputformat"] = self.outputformat
         if self.ncfilename is not None:
-            _namelist.update({"ncfilename": self.ncfilename})
-        return {**_namelist, **self.nmeanvar, **self.nglobalvar}
+            _namelist["ncfilename"] = self.ncfilename
+        if self.npoints is not None:
+            _namelist["npoints"] = self.npoints
+
+        # Variable lists
+        for var_type in ["meanvars", "globalvars", "pointvars"]:
+            _namelist.update(self._build_var_dict(var_type))
+
+        return _namelist

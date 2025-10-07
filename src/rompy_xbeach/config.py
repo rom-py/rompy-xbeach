@@ -422,7 +422,15 @@ class Config(XBeachBaseConfig):
 
         # Initial namelist
         self._namelist = self.model_dump(
-            exclude=["model_type", "template", "checkout", "grid", "bathy", "input", "output"],
+            exclude=[
+                "model_type",
+                "template",
+                "checkout",
+                "grid",
+                "bathy",
+                "input",
+                "output",
+            ],
             exclude_none=True,
             by_alias=True,
         )
