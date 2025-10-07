@@ -1,9 +1,12 @@
 """XBeach output."""
 
+import logging
 from typing import Literal, Optional
 from pydantic import Field, field_validator
 from rompy.core.types import RompyBaseModel
 from rompy_xbeach.types import OutputVarsEnum
+
+logger = logging.getLogger(__name__)
 
 
 DEFAULT_MEANVARS = [
@@ -52,33 +55,24 @@ class Output(RompyBaseModel):
         default=[],
     )
 
-    @field_validator("meanvars")
+    @field_validator("meanvars", "globalvars", "pointvars")
     @classmethod
-    def warning_if_more_than_15_meanvars(cls, v):
-        if len(v) > 15:
+    def check_variable_limits(cls, v, info):
+        """Validate that variable lists don't exceed XBeach limits."""
+        limits = {
+            "meanvars": 15,
+            "globalvars": 20,
+            "pointvars": 50,
+        }
+        
+        field_name = info.field_name
+        max_vars = limits.get(field_name)
+        
+        if max_vars and len(v) > max_vars:
             logger.warning(
-                "More than 15 mean variables requested, XBeach only supports up to 15, "
-                "beware of possible unexpected results in the model."
-            )
-        return v
-
-    @field_validator("globalvars")
-    @classmethod
-    def warning_if_more_than_20_globalvars(cls, v):
-        if len(v) > 20:
-            logger.warning(
-                "More than 20 global variables requested, XBeach only supports up to "
-                "20, beware of possible unexpected results in the model."
-            )
-        return v
-
-    @field_validator("pointvars")
-    @classmethod
-    def warning_if_more_than_50_pointvars(cls, v):
-        if len(v) > 50:
-            logger.warning(
-                "More than 50 point variables requested, XBeach only supports up to "
-                "50, beware of possible unexpected results in the model."
+                f"More than {max_vars} {field_name} requested. XBeach only "
+                f"supports up to {max_vars}. Beware of possible unexpected "
+                f"results in the model."
             )
         return v
 
