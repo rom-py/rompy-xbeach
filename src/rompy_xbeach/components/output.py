@@ -2,13 +2,18 @@
 
 import logging
 from typing import Literal, Optional, Any
-from pydantic import Field, model_validator, field_validator, model_serializer, field_serializer
+from pydantic import (
+    Field,
+    model_validator,
+    field_validator,
+    model_serializer,
+    field_serializer,
+)
 
 from rompy.core.types import RompyBaseModel
 from rompy_xbeach.types import OutputVarsEnum
 
 logger = logging.getLogger(__name__)
-
 
 
 class Output(RompyBaseModel):

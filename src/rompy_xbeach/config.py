@@ -41,7 +41,7 @@ TideType = Annotated[
 
 # TODO: Add the bathy here, need to change the return type of the get method
 class DataInterface(RompyBaseModel):
-    """SWAN forcing data interface.
+    """XBeach forcing data interface.
 
     Examples
     --------
@@ -49,7 +49,7 @@ class DataInterface(RompyBaseModel):
     .. ipython:: python
         :okwarning:
 
-        from rompy.swan.interface import DataInterface
+        from rompy_xbeach.interface import DataInterface
 
     """
 
@@ -384,6 +384,7 @@ class Config(XBeachBaseConfig):
 
     def __call__(self, runtime) -> dict:
         """Serialise the config to generate the params file."""
+
         # Model times and staging dir from the ModelRun object
         period = runtime.period
         staging_dir = runtime.staging_dir
