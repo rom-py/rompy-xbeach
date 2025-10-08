@@ -15,6 +15,8 @@ from rompy_xbeach.types import OutputVarsEnum
 
 logger = logging.getLogger(__name__)
 
+# TODO: Interface to allow fetching output times from files
+
 
 class Output(RompyBaseModel):
     """XBeach output configuration.
@@ -141,21 +143,26 @@ class Output(RompyBaseModel):
     )
     tintg: Optional[float] = Field(
         default=None,
-        description="Interval time (s) of global output (XBeach default: 1)",
+        description=(
+            "Interval time (s) of global output (XBeach default: 1), the first output "
+            "is given at tstart"
+        ),
         gt=0.0,
     )
     tintm: Optional[float] = Field(
         default=None,
         description=(
-            "Interval time (s) of mean, var, max, min output "
-            "(XBeach default: tstop-tstart)"
+            "Interval time (s) of mean, var, max, min output (XBeach default: tstop - "
+            "tstart), the first output is given at tstart+tintm and represents the "
+            "average condition over the interval between tstart and tstart+tintm"
         ),
         gt=0.0,
     )
     tintp: Optional[float] = Field(
         default=None,
         description=(
-            "Interval time (s) of point and runup gauge output (XBeach default: 1)"
+            "Interval time (s) of point and runup gauge output (XBeach default: the "
+            "value defined for tintg), the first output is given at tstart"
         ),
         gt=0.0,
     )
@@ -217,7 +224,33 @@ class Output(RompyBaseModel):
                 "defined, but no point output variables (pointvars) have been "
                 "prescribed. No point/runup output will be generated."
             )
-        
+
+        return self
+
+    @model_validator(mode="after")
+    def fixed_or_file_times(self) -> "Output":
+        """Validate that either fixed times or file times are specified."""
+        # Check global output times
+        if self.tintg is not None and self.tsglobal is not None:
+            logger.warning(
+                "Global times defined by both fixed (tintg) and file (tsglobal) times. "
+                "The file-based times (tsglobal) will supersede the fixed interval."
+            )
+
+        # Check mean output times
+        if self.tintm is not None and self.tsmean is not None:
+            logger.warning(
+                "Mean times defined by both fixed (tintm) and file (tsmean) times. "
+                "The file-based times (tsmean) will supersede the fixed interval."
+            )
+
+        # Check point output times
+        if self.tintp is not None and self.tspoint is not None:
+            logger.warning(
+                "Point times defined by both fixed (tintp) and file (tspoint) times. "
+                "The file-based times (tspoint) will supersede the fixed interval."
+            )
+
         return self
 
     @field_serializer("timings")
