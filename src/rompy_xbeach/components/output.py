@@ -126,6 +126,8 @@ class Output(RompyBaseModel):
     nrugdepth: Optional[int] = Field(
         default=None,
         description="Number of depths to compute runup in runup gauge",
+        ge=1,
+        le=10,
     )
     timings: Optional[bool] = Field(
         default=None,
@@ -179,8 +181,19 @@ class Output(RompyBaseModel):
         description="Name of file containing timings of point output",
     )
 
+    @field_validator("meanvars", "globalvars", "pointvars")
+    @classmethod
+    def check_no_duplicate_variables(cls, v, info):
+        """Validate that variable lists don't contain duplicates."""
+        if len(v) != len(set(v)):
+            raise ValueError(
+                f"Duplicate variables found in {info.field_name}. "
+                f"Each variable should only be specified once."
+            )
+        return v
+
     @field_validator(
-        "meanvars", "globalvars", "pointvars", "points", "rugauges", "nrugdepth"
+        "meanvars", "globalvars", "pointvars", "points", "rugauges"
     )
     @classmethod
     def check_variable_limits(cls, v, info):
@@ -191,7 +204,6 @@ class Output(RompyBaseModel):
             "pointvars": 50,
             "points": 50,
             "rugauges": 50,
-            "nrugdepth": 10,
         }
 
         field_name = info.field_name
