@@ -422,6 +422,6 @@ class Config(XBeachBaseConfig):
         self._params.update({"depfile": depfile.name})
 
         # Output configuration
-        self._params.update(self.output.params)
+        self._params.update(self.output.get(staging_dir))
 
         return self._params
