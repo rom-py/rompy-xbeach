@@ -75,6 +75,9 @@ class Output(RompyBaseModel):
     to the pointvars.idx output file to check order of output variables for points and
     run-up gauges.
 
+    See https://xbeach.readthedocs.io/en/latest/xbeach_manual.html#output-selection
+    for more information.
+
     """
 
     model_type: Literal["output"] = Field(

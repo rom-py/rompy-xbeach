@@ -2,6 +2,8 @@
 
 import pytest
 import logging
+import tempfile
+from pathlib import Path
 from rompy_xbeach.components.output import Output
 from rompy_xbeach.types import OutputVarsEnum
 
@@ -10,6 +12,24 @@ from rompy_xbeach.types import OutputVarsEnum
 def all_output_vars():
     """Return list of all available output variable values."""
     return [var.value for var in OutputVarsEnum]
+
+
+@pytest.fixture(scope="module")
+def timing_file():
+    """Create a temporary timing file for testing."""
+    tmpdir = Path(tempfile.mkdtemp())
+    timing_file = tmpdir / "test_times.txt"
+    
+    # Create timing file in XBeach format
+    times = [0, 100, 200, 300, 400, 500]
+    content = f"{len(times)}\n" + "\n".join(str(t) for t in times) + "\n"
+    timing_file.write_text(content)
+    
+    yield timing_file
+    
+    # Cleanup
+    import shutil
+    shutil.rmtree(tmpdir)
 
 
 # =====================================================================================
@@ -157,17 +177,17 @@ def test_params_with_timing_fields():
     assert params["tintp"] == 5.0
 
 
-def test_params_with_file_timing():
+def test_params_with_file_timing(timing_file):
     """Test params with file-based timing."""
     output = Output(
-        tsglobal=dict(source="global_times.txt"),
-        tsmean=dict(source="mean_times.txt"),
-        tspoint=dict(source="point_times.txt"),
+        tsglobal=dict(source=str(timing_file)),
+        tsmean=dict(source=str(timing_file)),
+        tspoint=dict(source=str(timing_file)),
     )
     params = output.params
-    assert str(params["tsglobal"]["source"]) == "global_times.txt"
-    assert str(params["tsmean"]["source"]) == "mean_times.txt"
-    assert str(params["tspoint"]["source"]) == "point_times.txt"
+    assert str(params["tsglobal"]["source"]) == str(timing_file)
+    assert str(params["tsmean"]["source"]) == str(timing_file)
+    assert str(params["tspoint"]["source"]) == str(timing_file)
 
 
 def test_params_timings_bool_to_int():
@@ -179,6 +199,127 @@ def test_params_timings_bool_to_int():
     output = Output(timings=False)
     params = output.params
     assert params["timings"] == 0
+
+
+# =====================================================================================
+# get() method tests
+# =====================================================================================
+def test_get_method_without_timing_files(tmp_path):
+    """Test get() method when no timing files are specified."""
+    output = Output(
+        globalvars=["H", "zs"],
+        tintg=10.0,
+    )
+    
+    params = output.get(tmp_path)
+    
+    # Should return params without timing files
+    assert "tintg" in params
+    assert params["tintg"] == 10.0
+    assert "tsglobal" not in params
+    
+    # No files should be created in destdir
+    assert len(list(tmp_path.iterdir())) == 0
+
+
+def test_get_method_with_single_timing_file(timing_file, tmp_path):
+    """Test get() method with a single timing file."""
+    output = Output(
+        globalvars=["H", "zs"],
+        tsglobal=dict(source=str(timing_file)),
+    )
+    
+    params = output.get(tmp_path)
+    
+    # Should have fetched the timing file
+    assert "tsglobal" in params
+    fetched_file = Path(params["tsglobal"])
+    
+    # File should exist in destdir
+    assert fetched_file.exists()
+    assert fetched_file.parent == tmp_path
+    
+    # File content should match original
+    original_content = timing_file.read_text()
+    fetched_content = fetched_file.read_text()
+    assert fetched_content == original_content
+    
+    # Verify file format
+    lines = fetched_content.splitlines()
+    assert lines[0] == "6"  # Number of times
+    assert lines[1] == "0"  # First time
+    assert lines[-1] == "500"  # Last time
+
+
+def test_get_method_with_multiple_timing_files(timing_file, tmp_path):
+    """Test get() method with multiple timing files."""
+    output = Output(
+        globalvars=["H", "zs"],
+        tsglobal=dict(source=str(timing_file)),
+        meanvars=["H", "u"],
+        tsmean=dict(source=str(timing_file)),
+        pointvars=["H"],
+        points=[(0.0, 500.0)],
+        tspoint=dict(source=str(timing_file)),
+    )
+    
+    params = output.get(tmp_path)
+    
+    # All three timing files should be fetched
+    assert "tsglobal" in params
+    assert "tsmean" in params
+    assert "tspoint" in params
+    
+    # All files should exist in destdir
+    global_file = Path(params["tsglobal"])
+    mean_file = Path(params["tsmean"])
+    point_file = Path(params["tspoint"])
+    
+    assert global_file.exists()
+    assert mean_file.exists()
+    assert point_file.exists()
+    
+    # All should be in destdir
+    assert global_file.parent == tmp_path
+    assert mean_file.parent == tmp_path
+    assert point_file.parent == tmp_path
+    
+    # Content should match original
+    original_content = timing_file.read_text()
+    assert global_file.read_text() == original_content
+    assert mean_file.read_text() == original_content
+    assert point_file.read_text() == original_content
+
+
+def test_get_method_preserves_other_params(timing_file, tmp_path):
+    """Test that get() method preserves all other parameters."""
+    output = Output(
+        outputformat="netcdf",
+        ncfilename="test_output.nc",
+        globalvars=["H", "zs"],
+        meanvars=["H", "u", "v"],
+        tstart=0.0,
+        tintg=10.0,
+        tintm=3600.0,
+        tsglobal=dict(source=str(timing_file)),
+        timings=True,
+    )
+    
+    params = output.get(tmp_path)
+    
+    # Check that all non-timing params are preserved
+    assert params["outputformat"] == "netcdf"
+    assert params["ncfilename"] == "test_output.nc"
+    assert params["nglobalvar"] == 2
+    assert params["nmeanvar"] == 3
+    assert params["tstart"] == 0.0
+    assert params["tintg"] == 10.0
+    assert params["tintm"] == 3600.0
+    assert params["timings"] == 1
+    
+    # Timing file should be fetched
+    assert "tsglobal" in params
+    assert Path(params["tsglobal"]).exists()
 
 
 # =====================================================================================
@@ -271,12 +412,12 @@ def test_validation_unique_variables_ok():
     assert len(output.pointvars) == 3
 
 
-def test_validation_fixed_and_file_times_global(caplog):
+def test_validation_fixed_and_file_times_global(caplog, timing_file):
     """Test warning when both fixed and file times defined for global output."""
     with caplog.at_level(logging.WARNING):
         output = Output(
             tintg=10.0,
-            tsglobal=dict(source="times.txt"),
+            tsglobal=dict(source=str(timing_file)),
         )
     assert (
         "Global times defined by both fixed (tintg) and file (tsglobal)" in caplog.text
@@ -284,22 +425,22 @@ def test_validation_fixed_and_file_times_global(caplog):
     assert "supersede" in caplog.text
 
 
-def test_validation_fixed_and_file_times_mean(caplog):
+def test_validation_fixed_and_file_times_mean(caplog, timing_file):
     """Test warning when both fixed and file times defined for mean output."""
     with caplog.at_level(logging.WARNING):
         output = Output(
             tintm=3600.0,
-            tsmean=dict(source="times.txt"),
+            tsmean=dict(source=str(timing_file)),
         )
     assert "Mean times defined by both fixed (tintm) and file (tsmean)" in caplog.text
 
 
-def test_validation_fixed_and_file_times_point(caplog):
+def test_validation_fixed_and_file_times_point(caplog, timing_file):
     """Test warning when both fixed and file times defined for point output."""
     with caplog.at_level(logging.WARNING):
         output = Output(
             tintp=5.0,
-            tspoint=dict(source="times.txt"),
+            tspoint=dict(source=str(timing_file)),
         )
     assert "Point times defined by both fixed (tintp) and file (tspoint)" in caplog.text
 
