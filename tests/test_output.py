@@ -340,7 +340,7 @@ def test_validation_variable_limits(caplog, field_name, count, limit, all_output
     value = (all_output_vars * (count // len(all_output_vars) + 1))[:count]
 
     with caplog.at_level(logging.WARNING):
-        output = Output(**{field_name: value})
+        Output(**{field_name: value})
     assert f"More than {limit} {field_name} requested" in caplog.text
 
 
@@ -357,14 +357,14 @@ def test_validation_location_limits(caplog, field_name, count, limit):
     value = [(float(i), float(i)) for i in range(count)]
 
     with caplog.at_level(logging.WARNING):
-        output = Output(**{field_name: value})
+        Output(**{field_name: value})
     assert f"More than {limit} {field_name} requested" in caplog.text
 
 
 def test_validation_pointvars_without_locations(caplog):
     """Test warning when pointvars defined without points or rugauges."""
     with caplog.at_level(logging.WARNING):
-        output = Output(pointvars=[OutputVarsEnum.H, OutputVarsEnum.U])
+        Output(pointvars=[OutputVarsEnum.H, OutputVarsEnum.U])
     assert "pointvars" in caplog.text
     assert "no point locations" in caplog.text
 
@@ -372,7 +372,7 @@ def test_validation_pointvars_without_locations(caplog):
 def test_validation_points_without_pointvars(caplog):
     """Test warning when points defined without pointvars."""
     with caplog.at_level(logging.WARNING):
-        output = Output(points=[(0.0, 100.0)])
+        Output(points=[(0.0, 100.0)])
     assert "Point locations" in caplog.text
     assert "no point output variables" in caplog.text
 
@@ -380,7 +380,7 @@ def test_validation_points_without_pointvars(caplog):
 def test_validation_rugauges_without_pointvars(caplog):
     """Test warning when rugauges defined without pointvars."""
     with caplog.at_level(logging.WARNING):
-        output = Output(rugauges=[(0.0, 100.0)])
+        Output(rugauges=[(0.0, 100.0)])
     assert "runup gauge locations" in caplog.text
     assert "no point output variables" in caplog.text
 
@@ -416,7 +416,7 @@ def test_validation_unique_variables_ok():
 def test_validation_fixed_and_file_times_global(caplog, timing_file):
     """Test warning when both fixed and file times defined for global output."""
     with caplog.at_level(logging.WARNING):
-        output = Output(
+        Output(
             tintg=10.0,
             tsglobal=dict(source=str(timing_file)),
         )
@@ -429,7 +429,7 @@ def test_validation_fixed_and_file_times_global(caplog, timing_file):
 def test_validation_fixed_and_file_times_mean(caplog, timing_file):
     """Test warning when both fixed and file times defined for mean output."""
     with caplog.at_level(logging.WARNING):
-        output = Output(
+        Output(
             tintm=3600.0,
             tsmean=dict(source=str(timing_file)),
         )
@@ -439,7 +439,7 @@ def test_validation_fixed_and_file_times_mean(caplog, timing_file):
 def test_validation_fixed_and_file_times_point(caplog, timing_file):
     """Test warning when both fixed and file times defined for point output."""
     with caplog.at_level(logging.WARNING):
-        output = Output(
+        Output(
             tintp=5.0,
             tspoint=dict(source=str(timing_file)),
         )
