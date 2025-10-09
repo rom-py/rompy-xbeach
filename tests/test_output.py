@@ -160,14 +160,14 @@ def test_params_with_timing_fields():
 def test_params_with_file_timing():
     """Test params with file-based timing."""
     output = Output(
-        tsglobal="global_times.txt",
-        tsmean="mean_times.txt",
-        tspoint="point_times.txt",
+        tsglobal=dict(source="global_times.txt"),
+        tsmean=dict(source="mean_times.txt"),
+        tspoint=dict(source="point_times.txt"),
     )
     params = output.params
-    assert params["tsglobal"] == "global_times.txt"
-    assert params["tsmean"] == "mean_times.txt"
-    assert params["tspoint"] == "point_times.txt"
+    assert str(params["tsglobal"]["source"]) == "global_times.txt"
+    assert str(params["tsmean"]["source"]) == "mean_times.txt"
+    assert str(params["tspoint"]["source"]) == "point_times.txt"
 
 
 def test_params_timings_bool_to_int():
@@ -276,7 +276,7 @@ def test_validation_fixed_and_file_times_global(caplog):
     with caplog.at_level(logging.WARNING):
         output = Output(
             tintg=10.0,
-            tsglobal="times.txt",
+            tsglobal=dict(source="times.txt"),
         )
     assert (
         "Global times defined by both fixed (tintg) and file (tsglobal)" in caplog.text
@@ -289,7 +289,7 @@ def test_validation_fixed_and_file_times_mean(caplog):
     with caplog.at_level(logging.WARNING):
         output = Output(
             tintm=3600.0,
-            tsmean="times.txt",
+            tsmean=dict(source="times.txt"),
         )
     assert "Mean times defined by both fixed (tintm) and file (tsmean)" in caplog.text
 
@@ -299,7 +299,7 @@ def test_validation_fixed_and_file_times_point(caplog):
     with caplog.at_level(logging.WARNING):
         output = Output(
             tintp=5.0,
-            tspoint="times.txt",
+            tspoint=dict(source="times.txt"),
         )
     assert "Point times defined by both fixed (tintp) and file (tspoint)" in caplog.text
 

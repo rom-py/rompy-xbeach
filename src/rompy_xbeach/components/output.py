@@ -1,6 +1,7 @@
 """XBeach output."""
 
 import logging
+from pathlib import Path
 from typing import Literal, Optional, Any
 from pydantic import (
     Field,
@@ -11,6 +12,7 @@ from pydantic import (
 )
 
 from rompy.core.types import RompyBaseModel
+from rompy.core.data import DataBlob
 from rompy_xbeach.types import OutputVarsEnum
 
 logger = logging.getLogger(__name__)
@@ -168,17 +170,17 @@ class Output(RompyBaseModel):
         ),
         gt=0.0,
     )
-    tsglobal: Optional[str] = Field(
+    tsglobal: Optional[DataBlob] = Field(
         default=None,
-        description="Name of file containing timings of global output",
+        description="File source containing timings of global output",
     )
-    tsmean: Optional[str] = Field(
+    tsmean: Optional[DataBlob] = Field(
         default=None,
-        description="Name of file containing timings of mean, max, min and var output",
+        description="File source containing timings of mean, max, min and var output",
     )
-    tspoint: Optional[str] = Field(
+    tspoint: Optional[DataBlob] = Field(
         default=None,
-        description="Name of file containing timings of point output",
+        description="File source containing timings of point output",
     )
 
     @field_validator("meanvars", "globalvars", "pointvars")
@@ -310,3 +312,14 @@ class Output(RompyBaseModel):
     def params(self) -> dict:
         """Return the XBeach parameters for the output component."""
         return self.model_dump(exclude_none=True, exclude=["model_type"])
+
+    def get(self, destdir: str | Path) -> dict:
+        """Fetch external timing files if specified, and return the params dict."""
+        params = self.params.copy()
+        if self.tsglobal:
+            params["tsglobal"] = self.tsglobal.get(destdir)
+        if self.tsmean:
+            params["tsmean"] = self.tsmean.get(destdir)
+        if self.tspoint:
+            params["tspoint"] = self.tspoint.get(destdir)
+        return params
