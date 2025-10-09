@@ -19,16 +19,17 @@ def timing_file():
     """Create a temporary timing file for testing."""
     tmpdir = Path(tempfile.mkdtemp())
     timing_file = tmpdir / "test_times.txt"
-    
+
     # Create timing file in XBeach format
     times = [0, 100, 200, 300, 400, 500]
     content = f"{len(times)}\n" + "\n".join(str(t) for t in times) + "\n"
     timing_file.write_text(content)
-    
+
     yield timing_file
-    
+
     # Cleanup
     import shutil
+
     shutil.rmtree(tmpdir)
 
 
@@ -210,14 +211,14 @@ def test_get_method_without_timing_files(tmp_path):
         globalvars=["H", "zs"],
         tintg=10.0,
     )
-    
+
     params = output.get(tmp_path)
-    
+
     # Should return params without timing files
     assert "tintg" in params
     assert params["tintg"] == 10.0
     assert "tsglobal" not in params
-    
+
     # No files should be created in destdir
     assert len(list(tmp_path.iterdir())) == 0
 
@@ -228,22 +229,22 @@ def test_get_method_with_single_timing_file(timing_file, tmp_path):
         globalvars=["H", "zs"],
         tsglobal=dict(source=str(timing_file)),
     )
-    
+
     params = output.get(tmp_path)
-    
+
     # Should have fetched the timing file
     assert "tsglobal" in params
     fetched_file = Path(params["tsglobal"])
-    
+
     # File should exist in destdir
     assert fetched_file.exists()
     assert fetched_file.parent == tmp_path
-    
+
     # File content should match original
     original_content = timing_file.read_text()
     fetched_content = fetched_file.read_text()
     assert fetched_content == original_content
-    
+
     # Verify file format
     lines = fetched_content.splitlines()
     assert lines[0] == "6"  # Number of times
@@ -262,28 +263,28 @@ def test_get_method_with_multiple_timing_files(timing_file, tmp_path):
         points=[(0.0, 500.0)],
         tspoint=dict(source=str(timing_file)),
     )
-    
+
     params = output.get(tmp_path)
-    
+
     # All three timing files should be fetched
     assert "tsglobal" in params
     assert "tsmean" in params
     assert "tspoint" in params
-    
+
     # All files should exist in destdir
     global_file = Path(params["tsglobal"])
     mean_file = Path(params["tsmean"])
     point_file = Path(params["tspoint"])
-    
+
     assert global_file.exists()
     assert mean_file.exists()
     assert point_file.exists()
-    
+
     # All should be in destdir
     assert global_file.parent == tmp_path
     assert mean_file.parent == tmp_path
     assert point_file.parent == tmp_path
-    
+
     # Content should match original
     original_content = timing_file.read_text()
     assert global_file.read_text() == original_content
@@ -304,9 +305,9 @@ def test_get_method_preserves_other_params(timing_file, tmp_path):
         tsglobal=dict(source=str(timing_file)),
         timings=True,
     )
-    
+
     params = output.get(tmp_path)
-    
+
     # Check that all non-timing params are preserved
     assert params["outputformat"] == "netcdf"
     assert params["ncfilename"] == "test_output.nc"
@@ -316,7 +317,7 @@ def test_get_method_preserves_other_params(timing_file, tmp_path):
     assert params["tintg"] == 10.0
     assert params["tintm"] == 3600.0
     assert params["timings"] == 1
-    
+
     # Timing file should be fetched
     assert "tsglobal" in params
     assert Path(params["tsglobal"]).exists()
@@ -337,7 +338,7 @@ def test_validation_variable_limits(caplog, field_name, count, limit, all_output
     """Test warning when variable lists exceed XBeach limits."""
     # Use unique variables from the enum, cycling if needed
     value = (all_output_vars * (count // len(all_output_vars) + 1))[:count]
-    
+
     with caplog.at_level(logging.WARNING):
         output = Output(**{field_name: value})
     assert f"More than {limit} {field_name} requested" in caplog.text
@@ -354,7 +355,7 @@ def test_validation_location_limits(caplog, field_name, count, limit):
     """Test warning when location lists exceed XBeach limits."""
     # Create unique coordinate pairs
     value = [(float(i), float(i)) for i in range(count)]
-    
+
     with caplog.at_level(logging.WARNING):
         output = Output(**{field_name: value})
     assert f"More than {limit} {field_name} requested" in caplog.text
@@ -389,11 +390,11 @@ def test_validation_no_duplicate_variables():
     # Test meanvars
     with pytest.raises(ValueError, match="Duplicate variables found in meanvars"):
         Output(meanvars=["H", "u", "H"])
-    
+
     # Test globalvars
     with pytest.raises(ValueError, match="Duplicate variables found in globalvars"):
         Output(globalvars=["zs", "H", "zs"])
-    
+
     # Test pointvars
     with pytest.raises(ValueError, match="Duplicate variables found in pointvars"):
         Output(pointvars=["H", "u", "v", "u"])

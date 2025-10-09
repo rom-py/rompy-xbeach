@@ -197,9 +197,7 @@ class Output(RompyBaseModel):
             )
         return v
 
-    @field_validator(
-        "meanvars", "globalvars", "pointvars", "points", "rugauges"
-    )
+    @field_validator("meanvars", "globalvars", "pointvars", "points", "rugauges")
     @classmethod
     def check_variable_limits(cls, v, info):
         """Validate that variable lists don't exceed XBeach limits."""
