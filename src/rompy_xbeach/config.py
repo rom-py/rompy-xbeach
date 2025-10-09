@@ -12,7 +12,9 @@ from rompy.utils import load_entry_points
 from rompy_xbeach.types import XBeachBaseConfig
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.data import XBeachBathy
+
 from rompy_xbeach.components.output import Output
+from rompy_xbeach.components.physics import Physics
 
 
 logger = logging.getLogger(__name__)
@@ -105,6 +107,10 @@ class Config(XBeachBaseConfig):
     )
     input: DataInterface = Field(
         description="Input data",
+    )
+    physics: Physics = Field(
+        default_factory=Physics,
+        description="Physical processes configuration",
     )
     output: Output = Field(
         default_factory=Output,
@@ -270,19 +276,11 @@ class Config(XBeachBaseConfig):
         ge=0.4,
         le=5.0,
     )
-    sedtrans: Optional[bool] = Field(
-        default=None,
-        description="Turn on sediment transport (XBeach default: 1)",
-    )
     morfac: Optional[float] = Field(
         default=None,
         description="Morphological acceleration factor (XBeach default: 1.0)",
         ge=0.0,
         le=1000.0,
-    )
-    morphology: Optional[bool] = Field(
-        default=None,
-        description="Turn on morphology (XBeach default: 1)",
     )
     cf: Optional[float] = Field(
         default=None,
@@ -356,20 +354,6 @@ class Config(XBeachBaseConfig):
             return None
         return int(value)
 
-    @field_serializer("sedtrans")
-    def serialize_sedtrans(self, value: Optional[bool]):
-        """Serialise bool to int."""
-        if value is None:
-            return None
-        return int(value)
-
-    @field_serializer("morphology")
-    def serialize_morphology(self, value: Optional[bool]):
-        """Serialise bool to int."""
-        if value is None:
-            return None
-        return int(value)
-
     @field_serializer("oldhu")
     def serialize_oldhu(self, value: Optional[bool]):
         """Serialise bool to int."""
@@ -399,6 +383,7 @@ class Config(XBeachBaseConfig):
                 "bathy",
                 "input",
                 "output",
+                "physics",
             ],
             exclude_none=True,
             by_alias=True,
@@ -420,6 +405,9 @@ class Config(XBeachBaseConfig):
         __, __, depfile, grid = self.bathy.get(destdir=staging_dir, grid=self.grid)
         self._params.update(grid.params)
         self._params.update({"depfile": depfile.name})
+
+        # Physics configuration
+        self._params.update(self.physics.get(staging_dir))
 
         # Output configuration
         self._params.update(self.output.get(staging_dir))

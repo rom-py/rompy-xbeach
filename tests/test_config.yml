@@ -68,6 +68,9 @@ input:
     coords:
       x: lon
       y: lat
+physics:
+  sedtrans: 0
+  morphology: 0
 # Wave boundary conditions
 front: abs_2d #1
 back: abs_2d #2
@@ -95,9 +98,7 @@ beta: 0.1
 roller: 1
 gamma: 0.55
 gammax: 1.0
-sedtrans: 0
 morfac: 0.0
-morphology: 0
 cf: 0.01
 paulrevere: land
 eps: 0.01
