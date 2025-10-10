@@ -9,9 +9,6 @@ from rompy.core.types import RompyBaseModel
 logger = logging.getLogger(__name__)
 
 
-BreakType = Literal["roelvink1", "baldock", "roelvink2", "roelvink_daly", "janssen"]
-
-
 class Stationary(RompyBaseModel):
     """Stationary wave model configuration.
 
@@ -23,6 +20,11 @@ class Stationary(RompyBaseModel):
     model_type: Literal["stationary"] = Field(
         default="stationary",
         description="Model type discriminator",
+    )
+    breaktype: Optional[Literal["baldock", "janssen"]] = Field(
+        default=None,
+        description="Type of breaker formulation (XBeach default: roelvink_daly)",
+        alias="break",
     )
 
 
@@ -37,6 +39,11 @@ class Surfbeat(RompyBaseModel):
     model_type: Literal["surfbeat"] = Field(
         default="surfbeat",
         description="Model type discriminator",
+    )
+    breaktype: Optional[Literal["roelvink1", "roelvink2", "roelvink_daly"]] = Field(
+        default=None,
+        description="Type of breaker formulation (XBeach default: roelvink_daly)",
+        alias="break",
     )
 
 
@@ -90,11 +97,11 @@ class Physics(RompyBaseModel):
         ),
         discriminator="model_type",
     )
-    breaktype: Optional[BreakType] = Field(
-        default=None,
-        description="Type of breaker formulation (XBeach default: roelvink_daly)",
-        alias="break",
-    )
+    # breaktype: Optional[BreakType] = Field(
+    #     default=None,
+    #     description="Type of breaker formulation (XBeach default: roelvink_daly)",
+    #     alias="break",
+    # )
     advection: Optional[bool] = Field(
         default=None,
         description="Include advection in flow solver (XBeach default: 1)",
@@ -274,7 +281,7 @@ class Physics(RompyBaseModel):
     @property
     def params(self) -> dict:
         """Return the XBeach parameters for the physics component."""
-        return self.model_dump(exclude_none=True, exclude=["model_type"])
+        return self.model_dump(exclude_none=True, exclude=["model_type"], by_alias=True)
 
     def get(self, destdir=None) -> dict:
         """Return the params dict.

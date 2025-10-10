@@ -71,7 +71,7 @@ input:
 physics:
   wavemodel:
     model_type: surfbeat
-  break: roelvink_daly
+    break: roelvink_daly
   wci: False
   sedtrans: False
   morphology: 0
