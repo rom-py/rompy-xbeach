@@ -9,6 +9,9 @@ from rompy.core.types import RompyBaseModel
 logger = logging.getLogger(__name__)
 
 
+BreakType = Literal["roelvink1", "baldock", "roelvink2", "roelvink_daly", "janssen"]
+
+
 class Stationary(RompyBaseModel):
     """Stationary wave model configuration.
 
@@ -78,10 +81,15 @@ class Physics(RompyBaseModel):
     wavemodel: Optional[Union[Stationary, Surfbeat, Nonh]] = Field(
         default=None,
         description=(
-            "Wave model configuration: Stationary, Surfbeat or Nonh component "
+            "Wave model configuration: Stationary, Surfbeat or Nonh "
             "(XBeach default: surfbeat)"
         ),
         discriminator="model_type",
+    )
+    breaktype: Optional[BreakType] = Field(
+        default=None,
+        description="Type of breaker formulation (XBeach default: roelvink_daly)",
+        alias="break",
     )
     advection: Optional[bool] = Field(
         default=None,
@@ -166,6 +174,10 @@ class Physics(RompyBaseModel):
         default=None,
         description="Include viscosity in flow solver (XBeach default: 1)",
     )
+    wci: Optional[bool] = Field(
+        default=None,
+        description="Turns on wave-current interaction (XBeach default: 0)",
+    )
     wind: Optional[bool] = Field(
         default=None,
         description="Include wind in flow solver (XBeach default: 1)",
@@ -207,6 +219,7 @@ class Physics(RompyBaseModel):
             "single_dir",
             "swave",
             "viscosity",
+            "wci",
             "wind",
         ]
 

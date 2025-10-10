@@ -156,11 +156,6 @@ class Config(XBeachBaseConfig):
         ),
         examples=["seconds since 1970-01-01 00:00:00.00 +1:00"],
     )
-    breaktype: Optional[BreakType] = Field(
-        default=None,
-        description="Type of breaker formulation (XBeach default: roelvink_daly)",
-        alias="break",
-    )
     scheme: Optional[SchemeType] = Field(
         default=None,
         description="Numerical scheme for wave propagation (XBeach default: warmbeam)",
@@ -188,10 +183,6 @@ class Config(XBeachBaseConfig):
         ),
         ge=0.001,
         le=1.0,
-    )
-    wci: Optional[bool] = Field(
-        default=None,
-        description="Turns on wave-current interaction (XBeach default: 0)",
     )
     alpha: Optional[float] = Field(
         default=None,
@@ -340,13 +331,6 @@ class Config(XBeachBaseConfig):
 
     @field_serializer("random")
     def serialize_random(self, value: Optional[bool]):
-        """Serialise bool to int."""
-        if value is None:
-            return None
-        return int(value)
-
-    @field_serializer("wci")
-    def serialize_wci(self, value: Optional[bool]):
         """Serialise bool to int."""
         if value is None:
             return None
