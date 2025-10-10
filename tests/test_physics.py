@@ -2,7 +2,6 @@
 
 import pytest
 import logging
-from pathlib import Path
 from rompy_xbeach.components.physics import (
     Physics,
     Stationary,
@@ -393,7 +392,9 @@ def test_wavemodel_serialization():
         (Nonh(), "nonh"),
     ]
     for component, expected_str in test_cases:
-        physics = Physics(wavemodel=component, swave=False if isinstance(component, Nonh) else None)
+        physics = Physics(
+            wavemodel=component, swave=False if isinstance(component, Nonh) else None
+        )
         params = physics.params
         assert isinstance(params["wavemodel"], str)
         assert params["wavemodel"] == expected_str
@@ -461,7 +462,10 @@ def test_no_log_when_default_enabled_process_is_set(caplog):
 
     # sedtrans, flow, and swave should not trigger DEBUG logs since they're explicitly set
     # But other default-enabled params should still log
-    assert "sedtrans" not in caplog.text or "sedtrans) not explicitly set" not in caplog.text
+    assert (
+        "sedtrans" not in caplog.text
+        or "sedtrans) not explicitly set" not in caplog.text
+    )
     assert "flow" not in caplog.text or "flow) not explicitly set" not in caplog.text
     assert "swave" not in caplog.text or "swave) not explicitly set" not in caplog.text
 
@@ -501,8 +505,10 @@ def test_nonh_with_swave_true_raises_error():
     """Test that setting nonh=True with swave=True raises a validation error."""
     with pytest.raises(ValueError) as exc_info:
         Physics(nonh=True, swave=True)
-    
-    assert "swave' cannot be True when non-hydrostatic mode is enabled" in str(exc_info.value)
+
+    assert "swave' cannot be True when non-hydrostatic mode is enabled" in str(
+        exc_info.value
+    )
     assert "Set swave=False explicitly" in str(exc_info.value)
 
 
@@ -510,8 +516,10 @@ def test_nonh_with_swave_none_raises_error():
     """Test that setting nonh=True without setting swave raises a validation error."""
     with pytest.raises(ValueError) as exc_info:
         Physics(nonh=True)
-    
-    assert "swave' must be explicitly set to False when non-hydrostatic" in str(exc_info.value)
+
+    assert "swave' must be explicitly set to False when non-hydrostatic" in str(
+        exc_info.value
+    )
     assert "XBeach would enable swave by default" in str(exc_info.value)
     assert "Please set swave=False explicitly" in str(exc_info.value)
 
@@ -521,7 +529,7 @@ def test_nonh_with_swave_false_is_valid():
     physics = Physics(nonh=True, swave=False)
     assert physics.nonh is True
     assert physics.swave is False
-    
+
     params = physics.params
     assert params["nonh"] == 1
     assert params["swave"] == 0
@@ -533,7 +541,7 @@ def test_swave_true_without_nonh_is_valid():
     physics1 = Physics(swave=True, nonh=False)
     assert physics1.swave is True
     assert physics1.nonh is False
-    
+
     # nonh=None (default)
     physics2 = Physics(swave=True)
     assert physics2.swave is True
@@ -547,7 +555,7 @@ def test_nonh_with_nhq3d_parameter():
     """Test that Nonh component can specify nhq3d parameter."""
     physics = Physics(wavemodel=Nonh(nhq3d=True), swave=False)
     params = physics.params
-    
+
     assert params["wavemodel"] == "nonh"
     assert params["nhq3d"] == 1
     assert params["swave"] == 0
@@ -557,7 +565,7 @@ def test_nonh_without_nhq3d_parameter():
     """Test that Nonh component without nhq3d doesn't include it in params."""
     physics = Physics(wavemodel=Nonh(), swave=False)
     params = physics.params
-    
+
     assert params["wavemodel"] == "nonh"
     assert "nhq3d" not in params
     assert params["swave"] == 0

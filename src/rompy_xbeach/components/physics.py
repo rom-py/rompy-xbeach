@@ -1,8 +1,8 @@
 """XBeach physical processes configuration."""
 
 import logging
-from typing import Annotated, Literal, Optional, Any, Union
-from pydantic import Field, field_serializer, model_serializer, model_validator
+from typing import Literal, Optional, Any, Union
+from pydantic import Field, model_serializer, model_validator
 
 from rompy.core.types import RompyBaseModel
 
@@ -19,6 +19,7 @@ class Stationary(RompyBaseModel):
     Useful for conditions where incident waves are relatively small and/or short.
 
     """
+
     model_type: Literal["stationary"] = Field(
         default="stationary",
         description="Model type discriminator",
@@ -32,6 +33,7 @@ class Surfbeat(RompyBaseModel):
     and the long waves associated with them. This is the XBeach default mode.
 
     """
+
     model_type: Literal["surfbeat"] = Field(
         default="surfbeat",
         description="Model type discriminator",
@@ -45,6 +47,7 @@ class Nonh(RompyBaseModel):
     allowing modeling of propagation and decay of individual waves.
 
     """
+
     model_type: Literal["nonh"] = Field(
         default="nonh",
         description="Model type discriminator",
@@ -57,6 +60,7 @@ class Nonh(RompyBaseModel):
             "dispersive behavior (XBeach default: 0)"
         ),
     )
+
 
 class Physics(RompyBaseModel):
     """XBeach physical processes configuration.
@@ -188,11 +192,11 @@ class Physics(RompyBaseModel):
         """Swave must be False if nonh is True or wavemodel is Nonh."""
         # Check if nonh parameter is True
         nonh_enabled = self.nonh is True
-        
+
         # Also check if wavemodel is set to Nonh
         if self.wavemodel is not None and isinstance(self.wavemodel, Nonh):
             nonh_enabled = True
-        
+
         if nonh_enabled:
             if self.swave is True:
                 raise ValueError(
@@ -236,20 +240,20 @@ class Physics(RompyBaseModel):
     @model_serializer(mode="wrap")
     def _serialize_with_component_flattening(self, serializer: Any) -> dict:
         """Serialize model with automatic component flattening and bool to int conversion.
-        
+
         This serializer:
         1. Detects nested dictionaries (from XBeachParameterComponent serialization)
         2. Flattens them by setting outer key = inner model_type value
         3. Merges remaining inner key-values into the main dict
         4. Converts booleans to integers for XBeach compatibility
-        
+
         Example:
             {'wavemodel': {'model_type': 'nonh', 'nhq3d': True}}
             becomes:
             {'wavemodel': 'nonh', 'nhq3d': True}
         """
         data = serializer(self)
-        
+
         # Flatten any nested dictionaries (parameter components)
         for field_name, field_value in list(data.items()):
             if isinstance(field_value, dict):
@@ -259,12 +263,12 @@ class Physics(RompyBaseModel):
                 data[field_name] = nested.pop("model_type")
                 # Merge remaining nested key-values
                 data.update(nested)
-        
+
         # Convert booleans to integers
         for key, value in list(data.items()):
             if isinstance(value, bool):
                 data[key] = int(value)
-        
+
         return data
 
     @property
