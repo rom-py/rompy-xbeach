@@ -1,10 +1,9 @@
 """XBeach physical processes configuration."""
 
 import logging
-from typing import Annotated, Literal, Optional, Any, Union
-from pydantic import Field, model_serializer, model_validator
+from typing import Literal, Optional, Union
+from pydantic import Field, model_validator
 
-from rompy.core.types import RompyBaseModel
 from rompy_xbeach.types import XBeachBaseModel
 
 
@@ -13,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 class Janssen(XBeachBaseModel):
     """Janssen & Battjes (2007) breaker model configuration."""
+
     model_type: Literal["janssen"] = Field(
         default="janssen",
         description="Model type discriminator",
@@ -21,6 +21,7 @@ class Janssen(XBeachBaseModel):
 
 class Baldock(XBeachBaseModel):
     """Baldock breaker model configuration."""
+
     model_type: Literal["baldock"] = Field(
         default="baldock",
         description="Model type discriminator",
@@ -35,6 +36,7 @@ class Baldock(XBeachBaseModel):
 
 class Roelvink1(XBeachBaseModel):
     """Roelvink (1993a) breaker model configuration."""
+
     model_type: Literal["roelvink1"] = Field(
         default="roelvink1",
         description="Model type discriminator",
@@ -67,6 +69,7 @@ class Roelvink1(XBeachBaseModel):
 
 class Roelvink2(Roelvink1):
     """Roelvink (1993a) extended breaker model configuration."""
+
     model_type: Literal["roelvink2"] = Field(
         default="roelvink2",
         description="Model type discriminator",
@@ -75,6 +78,7 @@ class Roelvink2(Roelvink1):
 
 class RoelvinkDaly(XBeachBaseModel):
     """Daly et al. (2010) breaker model configuration."""
+
     model_type: Literal["roelvink_daly"] = Field(
         default="roelvink_daly",
         description="Model type discriminator",
