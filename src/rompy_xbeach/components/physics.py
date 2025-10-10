@@ -2,7 +2,7 @@
 
 import logging
 from typing import Literal, Optional, Any
-from pydantic import Field, field_serializer, model_serializer
+from pydantic import Field, field_serializer, model_serializer, model_validator
 
 from rompy.core.types import RompyBaseModel
 
@@ -123,6 +123,31 @@ class Physics(RompyBaseModel):
         default=None,
         description="Include wind in flow solver (XBeach default: 1)",
     )
+
+    @model_validator(mode="after")
+    def log_default_enabled_processes(self) -> "Physics":
+        """Logging for default-enabled processes that are not explicitly set."""
+        default_enabled_fields = [
+            "advection",
+            "avalanching",
+            "flow",
+            "lwave",
+            "sedtrans",
+            "single_dir",
+            "swave",
+            "viscosity",
+            "wind",
+        ]
+
+        for field_name in default_enabled_fields:
+            value = getattr(self, field_name)
+            if value is None:
+                logger.debug(
+                    f"Parameter '{field_name}' not explicitly set - "
+                    f"will be ENABLED by XBeach default."
+                )
+
+        return self
 
     @model_serializer(mode="wrap")
     def _serialize_bools_to_ints(self, serializer: Any) -> dict:

@@ -1,6 +1,7 @@
 """Tests for the XBeach Physics component."""
 
 import pytest
+import logging
 from pathlib import Path
 from rompy_xbeach.components.physics import Physics
 
@@ -421,3 +422,70 @@ def test_boolean_fields_accept_bool_only():
     # Integer 0 is coerced to False
     physics = Physics(morphology=0)
     assert physics.morphology is False
+
+
+# =====================================================================================
+# Validator tests for default enabled processes
+# =====================================================================================
+def test_log_default_enabled_processes(caplog):
+    """Test that DEBUG messages are logged for default-enabled processes not set."""
+    with caplog.at_level(logging.DEBUG):
+        Physics()
+
+    # Check that DEBUG messages are logged for all default-enabled processes
+    default_enabled_params = [
+        "advection",
+        "avalanching",
+        "flow",
+        "lwave",
+        "sedtrans",
+        "single_dir",
+        "swave",
+        "viscosity",
+        "wind",
+    ]
+
+    for param in default_enabled_params:
+        assert param in caplog.text
+        assert "not explicitly set" in caplog.text
+        assert "will be ENABLED by XBeach default" in caplog.text
+
+
+def test_no_log_when_default_enabled_process_is_set(caplog):
+    """Test that no DEBUG message is logged when default-enabled process is explicitly set."""
+    with caplog.at_level(logging.DEBUG):
+        Physics(sedtrans=True, flow=False, swave=True)
+
+    # sedtrans, flow, and swave should not trigger DEBUG logs since they're explicitly set
+    # But other default-enabled params should still log
+    assert "sedtrans" not in caplog.text or "sedtrans) not explicitly set" not in caplog.text
+    assert "flow" not in caplog.text or "flow) not explicitly set" not in caplog.text
+    assert "swave" not in caplog.text or "swave) not explicitly set" not in caplog.text
+
+    # Other default-enabled params should still log
+    assert "advection" in caplog.text
+    assert "avalanching" in caplog.text
+
+
+def test_no_log_for_default_disabled_processes(caplog):
+    """Test that no DEBUG messages are logged for processes that default to disabled."""
+    with caplog.at_level(logging.DEBUG):
+        Physics()
+
+    # These parameters default to 0 (disabled) in XBeach, so no DEBUG should be logged
+    default_disabled_params = [
+        "cyclic",
+        "gwflow",
+        "morphology",
+        "nonh",
+        "q3d",
+        "setbathy",
+        "ships",
+        "snells",
+        "swrunup",
+        "vegetation",
+    ]
+
+    for param in default_disabled_params:
+        # These should not appear in the "not explicitly set" messages
+        assert f"{param}) not explicitly set" not in caplog.text
