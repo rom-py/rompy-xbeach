@@ -15,6 +15,7 @@ from rompy_xbeach.types import XBeachBaseModel
 # Breaker Formulation Models
 # =============================================================================
 
+
 class Janssen(XBeachBaseModel):
     """Janssen & Battjes (2007) breaker model configuration."""
 
@@ -99,6 +100,7 @@ class RoelvinkDaly(XBeachBaseModel):
 # =============================================================================
 # Wave Model Configurations
 # =============================================================================
+
 
 class Stationary(XBeachBaseModel):
     """Stationary wave model configuration.
