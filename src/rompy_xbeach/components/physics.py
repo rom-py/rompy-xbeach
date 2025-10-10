@@ -1,13 +1,59 @@
 """XBeach physical processes configuration."""
 
 import logging
-from typing import Literal, Optional, Any
+from typing import Annotated, Literal, Optional, Any, Union
 from pydantic import Field, field_serializer, model_serializer, model_validator
 
 from rompy.core.types import RompyBaseModel
 
 logger = logging.getLogger(__name__)
 
+
+class Stationary(RompyBaseModel):
+    """Stationary wave model configuration.
+
+    Efficiently solves wave-averaged equations but neglects infragravity waves.
+    Useful for conditions where incident waves are relatively small and/or short.
+
+    """
+    model_type: Literal["stationary"] = Field(
+        default="stationary",
+        description="Model type discriminator",
+    )
+
+
+class Surfbeat(RompyBaseModel):
+    """Surfbeat (instationary) wave model configuration.
+
+    Resolves short wave variations on the wave group scale (short wave envelope)
+    and the long waves associated with them. This is the XBeach default mode.
+
+    """
+    model_type: Literal["surfbeat"] = Field(
+        default="surfbeat",
+        description="Model type discriminator",
+    )
+
+
+class Nonh(RompyBaseModel):
+    """Non-hydrostatic (wave-resolving) wave model configuration.
+
+    Uses non-linear shallow water equations with a pressure correction term,
+    allowing modeling of propagation and decay of individual waves.
+
+    """
+    model_type: Literal["nonh"] = Field(
+        default="nonh",
+        description="Model type discriminator",
+    )
+
+    nhq3d: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Turn on reduced two-layer non-hydrostatic model for improved "
+            "dispersive behavior (XBeach default: 0)"
+        ),
+    )
 
 class Physics(RompyBaseModel):
     """XBeach physical processes configuration.
@@ -29,12 +75,13 @@ class Physics(RompyBaseModel):
         default="physics",
         description="Model type discriminator",
     )
-    wavemodel: Optional[Literal["stationary", "surfbeat", "nonh"]] = Field(
+    wavemodel: Optional[Union[Stationary, Surfbeat, Nonh]] = Field(
         default=None,
         description=(
-            "Wave model type: stationary (0), surfbeat (1) or non-hydrostatic (2) "
+            "Wave model configuration: Stationary, Surfbeat or Nonh component "
             "(XBeach default: surfbeat)"
         ),
+        discriminator="model_type",
     )
     advection: Optional[bool] = Field(
         default=None,
@@ -126,17 +173,24 @@ class Physics(RompyBaseModel):
 
     @model_validator(mode="after")
     def swave_must_be_false_if_nonh(self) -> "Physics":
-        """Swave must be False if nonh is True."""
-        if self.nonh is True:
+        """Swave must be False if nonh is True or wavemodel is Nonh."""
+        # Check if nonh parameter is True
+        nonh_enabled = self.nonh is True
+        
+        # Also check if wavemodel is set to Nonh
+        if self.wavemodel is not None and isinstance(self.wavemodel, Nonh):
+            nonh_enabled = True
+        
+        if nonh_enabled:
             if self.swave is True:
                 raise ValueError(
-                    "Parameter 'swave' cannot be True when 'nonh' is True. "
+                    "Parameter 'swave' cannot be True when non-hydrostatic mode is enabled. "
                     "Set swave=False explicitly."
                 )
             elif self.swave is None:
                 raise ValueError(
-                    "Parameter 'swave' must be explicitly set to False when 'nonh' is "
-                    "True. XBeach would enable swave by default (swave=1), which "
+                    "Parameter 'swave' must be explicitly set to False when non-hydrostatic "
+                    "mode is enabled. XBeach would enable swave by default (swave=1), which "
                     "conflicts with nonh mode. Please set swave=False explicitly."
                 )
         return self
@@ -167,12 +221,37 @@ class Physics(RompyBaseModel):
         return self
 
     @model_serializer(mode="wrap")
-    def _serialize_bools_to_ints(self, serializer: Any) -> dict:
-        """Serialize model with automatic bool to int conversion."""
+    def _serialize_with_component_flattening(self, serializer: Any) -> dict:
+        """Serialize model with automatic component flattening and bool to int conversion.
+        
+        This serializer:
+        1. Detects nested dictionaries (from XBeachParameterComponent serialization)
+        2. Flattens them by setting outer key = inner model_type value
+        3. Merges remaining inner key-values into the main dict
+        4. Converts booleans to integers for XBeach compatibility
+        
+        Example:
+            {'wavemodel': {'model_type': 'nonh', 'nhq3d': True}}
+            becomes:
+            {'wavemodel': 'nonh', 'nhq3d': True}
+        """
         data = serializer(self)
+        
+        # Flatten any nested dictionaries (parameter components)
+        for field_name, field_value in list(data.items()):
+            if isinstance(field_value, dict):
+                # This is a nested dict - flatten it
+                nested = data.pop(field_name)
+                # Set the outer key to the model_type value
+                data[field_name] = nested.pop("model_type")
+                # Merge remaining nested key-values
+                data.update(nested)
+        
+        # Convert booleans to integers
         for key, value in list(data.items()):
             if isinstance(value, bool):
                 data[key] = int(value)
+        
         return data
 
     @property

@@ -3,7 +3,12 @@
 import pytest
 import logging
 from pathlib import Path
-from rompy_xbeach.components.physics import Physics
+from rompy_xbeach.components.physics import (
+    Physics,
+    Stationary,
+    Surfbeat,
+    Nonh,
+)
 
 
 # =====================================================================================
@@ -21,14 +26,14 @@ def test_physics_default():
 
 def test_physics_with_wavemodel():
     """Test Physics with wavemodel specified."""
-    physics = Physics(wavemodel="stationary")
-    assert physics.wavemodel == "stationary"
+    physics = Physics(wavemodel=Stationary())
+    assert isinstance(physics.wavemodel, Stationary)
 
-    physics = Physics(wavemodel="surfbeat")
-    assert physics.wavemodel == "surfbeat"
+    physics = Physics(wavemodel=Surfbeat())
+    assert isinstance(physics.wavemodel, Surfbeat)
 
-    physics = Physics(wavemodel="nonh")
-    assert physics.wavemodel == "nonh"
+    physics = Physics(wavemodel=Nonh(), swave=False)
+    assert isinstance(physics.wavemodel, Nonh)
 
 
 def test_physics_with_boolean_switches():
@@ -64,23 +69,14 @@ def test_params_empty():
     """Test params property with empty Physics."""
     physics = Physics()
     params = physics.params
-    assert "model_type" not in params
     assert len(params) == 0
 
 
 def test_params_with_wavemodel():
     """Test params property with wavemodel."""
-    physics = Physics(wavemodel="stationary")
-    params = physics.params
-    assert params["wavemodel"] == "stationary"
-
-    physics = Physics(wavemodel="surfbeat")
+    physics = Physics(wavemodel=Surfbeat())
     params = physics.params
     assert params["wavemodel"] == "surfbeat"
-
-    physics = Physics(wavemodel="nonh")
-    params = physics.params
-    assert params["wavemodel"] == "nonh"
 
 
 def test_params_with_boolean_switches():
@@ -166,7 +162,7 @@ def test_get_method_without_destdir():
     physics = Physics(
         morphology=True,
         sedtrans=True,
-        wavemodel="surfbeat",
+        wavemodel=Surfbeat(),
     )
     params = physics.get()
     assert params["morphology"] == 1
@@ -191,11 +187,11 @@ def test_get_method_with_destdir(tmp_path):
 def test_get_method_preserves_all_params():
     """Test that get() method preserves all parameters."""
     physics = Physics(
-        wavemodel="nonh",
+        wavemodel=Nonh(),
         morphology=True,
         sedtrans=True,
         flow=True,
-        swave=False,  # Must be False when nonh=True
+        swave=False,  # Must be False when wavemodel=Nonh
         wind=False,
         nonh=True,
     )
@@ -205,7 +201,7 @@ def test_get_method_preserves_all_params():
     assert params["morphology"] == 1
     assert params["sedtrans"] == 1
     assert params["flow"] == 1
-    assert params["swave"] == 0  # Changed to 0
+    assert params["swave"] == 0
     assert params["wind"] == 0
     assert params["nonh"] == 1
 
@@ -216,7 +212,7 @@ def test_get_method_preserves_all_params():
 def test_physics_morphological_simulation():
     """Test Physics configuration for morphological simulation."""
     physics = Physics(
-        wavemodel="surfbeat",
+        wavemodel=Surfbeat(),
         morphology=True,
         sedtrans=True,
         avalanching=True,
@@ -238,7 +234,7 @@ def test_physics_morphological_simulation():
 def test_physics_hydrodynamic_only_simulation():
     """Test Physics configuration for hydrodynamic-only simulation."""
     physics = Physics(
-        wavemodel="surfbeat",
+        wavemodel=Surfbeat(),
         morphology=False,
         sedtrans=False,
         flow=True,
@@ -256,9 +252,9 @@ def test_physics_hydrodynamic_only_simulation():
 def test_physics_nonhydrostatic_simulation():
     """Test Physics configuration for non-hydrostatic simulation."""
     physics = Physics(
-        wavemodel="nonh",
+        wavemodel=Nonh(),
         nonh=True,
-        swave=False,  # Must be explicitly False when nonh=True
+        swave=False,  # Must be explicitly False when wavemodel=Nonh
         flow=True,
         morphology=False,
         sedtrans=False,
@@ -276,7 +272,7 @@ def test_physics_nonhydrostatic_simulation():
 def test_physics_stationary_simulation():
     """Test Physics configuration for stationary simulation."""
     physics = Physics(
-        wavemodel="stationary",
+        wavemodel=Stationary(),
         flow=False,
         morphology=False,
         sedtrans=False,
@@ -390,20 +386,25 @@ def test_bool_serialization_to_int():
 
 
 def test_wavemodel_serialization():
-    """Test that wavemodel string is preserved as string."""
-    for wavemodel_str in ["stationary", "surfbeat", "nonh"]:
-        physics = Physics(wavemodel=wavemodel_str)
+    """Test that wavemodel component is serialized to string."""
+    test_cases = [
+        (Stationary(), "stationary"),
+        (Surfbeat(), "surfbeat"),
+        (Nonh(), "nonh"),
+    ]
+    for component, expected_str in test_cases:
+        physics = Physics(wavemodel=component, swave=False if isinstance(component, Nonh) else None)
         params = physics.params
         assert isinstance(params["wavemodel"], str)
-        assert params["wavemodel"] == wavemodel_str
+        assert params["wavemodel"] == expected_str
 
 
 # =====================================================================================
 # Validation tests
 # =====================================================================================
 def test_wavemodel_invalid_value():
-    """Test that invalid wavemodel values are rejected."""
-    with pytest.raises(Exception):  # Pydantic validation error
+    """Test that invalid wavemodel values raise an error."""
+    with pytest.raises(Exception):  # Will raise validation error
         Physics(wavemodel="invalid")
 
 
@@ -501,7 +502,7 @@ def test_nonh_with_swave_true_raises_error():
     with pytest.raises(ValueError) as exc_info:
         Physics(nonh=True, swave=True)
     
-    assert "swave' cannot be True when 'nonh' is True" in str(exc_info.value)
+    assert "swave' cannot be True when non-hydrostatic mode is enabled" in str(exc_info.value)
     assert "Set swave=False explicitly" in str(exc_info.value)
 
 
@@ -510,7 +511,7 @@ def test_nonh_with_swave_none_raises_error():
     with pytest.raises(ValueError) as exc_info:
         Physics(nonh=True)
     
-    assert "swave' must be explicitly set to False when 'nonh' is True" in str(exc_info.value)
+    assert "swave' must be explicitly set to False when non-hydrostatic" in str(exc_info.value)
     assert "XBeach would enable swave by default" in str(exc_info.value)
     assert "Please set swave=False explicitly" in str(exc_info.value)
 
@@ -537,3 +538,26 @@ def test_swave_true_without_nonh_is_valid():
     physics2 = Physics(swave=True)
     assert physics2.swave is True
     assert physics2.nonh is None
+
+
+# =====================================================================================
+# Parameter component tests
+# =====================================================================================
+def test_nonh_with_nhq3d_parameter():
+    """Test that Nonh component can specify nhq3d parameter."""
+    physics = Physics(wavemodel=Nonh(nhq3d=True), swave=False)
+    params = physics.params
+    
+    assert params["wavemodel"] == "nonh"
+    assert params["nhq3d"] == 1
+    assert params["swave"] == 0
+
+
+def test_nonh_without_nhq3d_parameter():
+    """Test that Nonh component without nhq3d doesn't include it in params."""
+    physics = Physics(wavemodel=Nonh(), swave=False)
+    params = physics.params
+    
+    assert params["wavemodel"] == "nonh"
+    assert "nhq3d" not in params
+    assert params["swave"] == 0
