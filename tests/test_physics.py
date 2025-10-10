@@ -195,7 +195,7 @@ def test_get_method_preserves_all_params():
         morphology=True,
         sedtrans=True,
         flow=True,
-        swave=True,
+        swave=False,  # Must be False when nonh=True
         wind=False,
         nonh=True,
     )
@@ -205,7 +205,7 @@ def test_get_method_preserves_all_params():
     assert params["morphology"] == 1
     assert params["sedtrans"] == 1
     assert params["flow"] == 1
-    assert params["swave"] == 1
+    assert params["swave"] == 0  # Changed to 0
     assert params["wind"] == 0
     assert params["nonh"] == 1
 
@@ -258,6 +258,7 @@ def test_physics_nonhydrostatic_simulation():
     physics = Physics(
         wavemodel="nonh",
         nonh=True,
+        swave=False,  # Must be explicitly False when nonh=True
         flow=True,
         morphology=False,
         sedtrans=False,
@@ -266,6 +267,7 @@ def test_physics_nonhydrostatic_simulation():
 
     assert params["wavemodel"] == "nonh"
     assert params["nonh"] == 1
+    assert params["swave"] == 0
     assert params["flow"] == 1
     assert params["morphology"] == 0
     assert params["sedtrans"] == 0
@@ -489,3 +491,49 @@ def test_no_log_for_default_disabled_processes(caplog):
     for param in default_disabled_params:
         # These should not appear in the "not explicitly set" messages
         assert f"{param}) not explicitly set" not in caplog.text
+
+
+# =====================================================================================
+# Cross-parameter validation tests
+# =====================================================================================
+def test_nonh_with_swave_true_raises_error():
+    """Test that setting nonh=True with swave=True raises a validation error."""
+    with pytest.raises(ValueError) as exc_info:
+        Physics(nonh=True, swave=True)
+    
+    assert "swave' cannot be True when 'nonh' is True" in str(exc_info.value)
+    assert "Set swave=False explicitly" in str(exc_info.value)
+
+
+def test_nonh_with_swave_none_raises_error():
+    """Test that setting nonh=True without setting swave raises a validation error."""
+    with pytest.raises(ValueError) as exc_info:
+        Physics(nonh=True)
+    
+    assert "swave' must be explicitly set to False when 'nonh' is True" in str(exc_info.value)
+    assert "XBeach would enable swave by default" in str(exc_info.value)
+    assert "Please set swave=False explicitly" in str(exc_info.value)
+
+
+def test_nonh_with_swave_false_is_valid():
+    """Test that setting nonh=True with swave=False is valid."""
+    physics = Physics(nonh=True, swave=False)
+    assert physics.nonh is True
+    assert physics.swave is False
+    
+    params = physics.params
+    assert params["nonh"] == 1
+    assert params["swave"] == 0
+
+
+def test_swave_true_without_nonh_is_valid():
+    """Test that swave=True is valid when nonh is not True."""
+    # nonh=False
+    physics1 = Physics(swave=True, nonh=False)
+    assert physics1.swave is True
+    assert physics1.nonh is False
+    
+    # nonh=None (default)
+    physics2 = Physics(swave=True)
+    assert physics2.swave is True
+    assert physics2.nonh is None

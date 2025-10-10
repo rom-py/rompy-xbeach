@@ -125,6 +125,23 @@ class Physics(RompyBaseModel):
     )
 
     @model_validator(mode="after")
+    def swave_must_be_false_if_nonh(self) -> "Physics":
+        """Swave must be False if nonh is True."""
+        if self.nonh is True:
+            if self.swave is True:
+                raise ValueError(
+                    "Parameter 'swave' cannot be True when 'nonh' is True. "
+                    "Set swave=False explicitly."
+                )
+            elif self.swave is None:
+                raise ValueError(
+                    "Parameter 'swave' must be explicitly set to False when 'nonh' is "
+                    "True. XBeach would enable swave by default (swave=1), which "
+                    "conflicts with nonh mode. Please set swave=False explicitly."
+                )
+        return self
+
+    @model_validator(mode="after")
     def log_default_enabled_processes(self) -> "Physics":
         """Logging for default-enabled processes that are not explicitly set."""
         default_enabled_fields = [
