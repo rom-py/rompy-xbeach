@@ -3,7 +3,7 @@
 import logging
 from pathlib import Path
 from typing import Literal, Optional, Union, Annotated
-from pydantic import Field, field_serializer
+from pydantic import Field, field_serializer, model_validator
 
 from rompy.core.types import RompyBaseModel
 from rompy.core.time import TimeRange
@@ -332,6 +332,11 @@ class Config(XBeachBaseConfig):
         ),
     )
     _params = {}
+
+    @model_validator(mode="after")
+    def set_dtheta_if_surfbeat(self) -> "Config":
+        """Placeholder validator for future dtheta logic."""
+        return self
 
     @field_serializer("random")
     def serialize_random(self, value: Optional[bool]):

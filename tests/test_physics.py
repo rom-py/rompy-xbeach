@@ -382,11 +382,11 @@ def test_bool_serialization_to_int():
     )
     params = physics.params
 
-    # Check types are int, not bool
-    assert isinstance(params["morphology"], int)
-    assert isinstance(params["sedtrans"], int)
+    # Check that booleans are converted to integers
     assert params["morphology"] == 1
     assert params["sedtrans"] == 0
+    assert isinstance(params["morphology"], int)
+    assert isinstance(params["sedtrans"], int)
 
 
 def test_wavemodel_serialization():
