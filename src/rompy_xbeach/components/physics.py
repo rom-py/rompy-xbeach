@@ -5,11 +5,13 @@ from typing import Annotated, Literal, Optional, Any, Union
 from pydantic import Field, model_serializer, model_validator
 
 from rompy.core.types import RompyBaseModel
+from rompy_xbeach.types import XBeachBaseModel
+
 
 logger = logging.getLogger(__name__)
 
 
-class Janssen(RompyBaseModel):
+class Janssen(XBeachBaseModel):
     """Janssen & Battjes (2007) breaker model configuration."""
     model_type: Literal["janssen"] = Field(
         default="janssen",
@@ -17,7 +19,7 @@ class Janssen(RompyBaseModel):
     )
 
 
-class Baldock(RompyBaseModel):
+class Baldock(XBeachBaseModel):
     """Baldock breaker model configuration."""
     model_type: Literal["baldock"] = Field(
         default="baldock",
@@ -31,7 +33,7 @@ class Baldock(RompyBaseModel):
     )
 
 
-class Roelvink1(RompyBaseModel):
+class Roelvink1(XBeachBaseModel):
     """Roelvink (1993a) breaker model configuration."""
     model_type: Literal["roelvink1"] = Field(
         default="roelvink1",
@@ -71,7 +73,7 @@ class Roelvink2(Roelvink1):
     )
 
 
-class RoelvinkDaly(RompyBaseModel):
+class RoelvinkDaly(XBeachBaseModel):
     """Daly et al. (2010) breaker model configuration."""
     model_type: Literal["roelvink_daly"] = Field(
         default="roelvink_daly",
@@ -85,7 +87,7 @@ class RoelvinkDaly(RompyBaseModel):
     )
 
 
-class Stationary(RompyBaseModel):
+class Stationary(XBeachBaseModel):
     """Stationary wave model configuration.
 
     Efficiently solves wave-averaged equations but neglects infragravity waves.
@@ -105,7 +107,7 @@ class Stationary(RompyBaseModel):
     )
 
 
-class Surfbeat(RompyBaseModel):
+class Surfbeat(XBeachBaseModel):
     """Surfbeat (instationary) wave model configuration.
 
     Resolves short wave variations on the wave group scale (short wave envelope)
@@ -125,7 +127,7 @@ class Surfbeat(RompyBaseModel):
     )
 
 
-class Nonh(RompyBaseModel):
+class Nonh(XBeachBaseModel):
     """Non-hydrostatic (wave-resolving) wave model configuration.
 
     Uses non-linear shallow water equations with a pressure correction term,
@@ -147,7 +149,7 @@ class Nonh(RompyBaseModel):
     )
 
 
-class Physics(RompyBaseModel):
+class Physics(XBeachBaseModel):
     """XBeach physical processes configuration.
 
     XBeach supports a variety of physical processes from generic, like waves and flow,
@@ -175,11 +177,6 @@ class Physics(RompyBaseModel):
         ),
         discriminator="model_type",
     )
-    # breaktype: Optional[BreakType] = Field(
-    #     default=None,
-    #     description="Type of breaker formulation (XBeach default: roelvink_daly)",
-    #     alias="break",
-    # )
     advection: Optional[bool] = Field(
         default=None,
         description="Include advection in flow solver (XBeach default: 1)",
@@ -321,69 +318,3 @@ class Physics(RompyBaseModel):
                 )
 
         return self
-
-    @model_serializer(mode="wrap")
-    def _serialize_with_component_flattening(self, serializer: Any) -> dict:
-        """Serialize model with recursive component flattening and bool to int conversion.
-
-        This serializer:
-        1. Recursively detects nested dictionaries (from parameter component serialization)
-        2. Flattens them by setting outer key = inner model_type value
-        3. Merges remaining inner key-values into the main dict
-        4. Converts booleans to integers for XBeach compatibility
-
-        Example:
-            {'wavemodel': {'model_type': 'surfbeat', 'break': {'model_type': 'roelvink1', 'alpha': 1.0}}}
-            becomes:
-            {'wavemodel': 'surfbeat', 'break': 'roelvink1', 'alpha': 1.0}
-
-        """
-        data = serializer(self)
-
-        def flatten_nested_dicts(d: dict) -> dict:
-            """Recursively flatten nested dictionaries with model_type discriminators."""
-            result = {}
-
-            for key, value in d.items():
-                if isinstance(value, dict) and "model_type" in value:
-                    # This is a nested component - flatten it recursively
-                    nested = value.copy()
-                    model_type = nested.pop("model_type")
-
-                    # Set the outer key to the model_type value
-                    result[key] = model_type
-
-                    # Recursively flatten any nested dicts within this component
-                    flattened_nested = flatten_nested_dicts(nested)
-
-                    # Merge the flattened nested values
-                    result.update(flattened_nested)
-                else:
-                    # Not a component dict, keep as-is
-                    result[key] = value
-
-            return result
-
-        # Flatten all nested dictionaries recursively
-        data = flatten_nested_dicts(data)
-
-        # Convert booleans to integers
-        for key, value in list(data.items()):
-            if isinstance(value, bool):
-                data[key] = int(value)
-
-        return data
-
-    @property
-    def params(self) -> dict:
-        """Return the XBeach parameters for the physics component."""
-        return self.model_dump(exclude_none=True, exclude=["model_type"], by_alias=True)
-
-    def get(self, destdir=None) -> dict:
-        """Return the params dict.
-
-        The destdir parameter is included for consistency with other components
-        but is not used by the Physics component as it doesn't fetch external files.
-
-        """
-        return self.params

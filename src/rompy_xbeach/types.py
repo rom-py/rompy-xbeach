@@ -1,7 +1,98 @@
 from enum import Enum
-from pydantic import ConfigDict
+from typing import Any
+from pydantic import ConfigDict, model_serializer
 
 from rompy.core.config import BaseConfig
+from rompy.core.types import RompyBaseModel
+
+
+class XBeachBaseModel(RompyBaseModel):
+    """Base model class for all XBeach parameter models.
+
+    Provides automatic serialization with:
+    - Recursive flattening of nested components (model_type discriminators)
+    - Boolean to integer conversion for XBeach compatibility
+    - Standard params property and get() method
+
+    All XBeach parameter models should inherit from this class.
+
+    """
+
+    @model_serializer(mode="wrap")
+    def _serialize_with_component_flattening(self, serializer: Any) -> dict:
+        """Serialize model with recursive component flattening and bool to int conversion.
+
+        This serializer:
+        1. Recursively detects nested dictionaries (from parameter component serialization)
+        2. Flattens them by setting outer key = inner model_type value
+        3. Merges remaining inner key-values into the main dict
+        4. Converts booleans to integers for XBeach compatibility
+
+        Example:
+            {'wavemodel': {'model_type': 'surfbeat', 'break': {'model_type': 'roelvink1', 'alpha': 1.0}}}
+            becomes:
+            {'wavemodel': 'surfbeat', 'break': 'roelvink1', 'alpha': 1.0}
+
+        """
+        data = serializer(self)
+
+        def flatten_nested_dicts(d: dict) -> dict:
+            """Recursively flatten nested dictionaries with model_type discriminators."""
+            result = {}
+
+            for key, value in d.items():
+                if isinstance(value, dict) and "model_type" in value:
+                    # This is a nested component - flatten it recursively
+                    nested = value.copy()
+                    model_type = nested.pop("model_type")
+
+                    # Set the outer key to the model_type value
+                    result[key] = model_type
+
+                    # Recursively flatten any nested dicts within this component
+                    flattened_nested = flatten_nested_dicts(nested)
+
+                    # Merge the flattened nested values
+                    result.update(flattened_nested)
+                else:
+                    # Not a component dict, keep as-is
+                    result[key] = value
+
+            return result
+
+        # Flatten all nested dictionaries recursively
+        data = flatten_nested_dicts(data)
+
+        # Convert booleans to integers
+        for key, value in list(data.items()):
+            if isinstance(value, bool):
+                data[key] = int(value)
+
+        return data
+
+    @property
+    def params(self) -> dict:
+        """Return the XBeach parameters as a flat dictionary.
+
+        Excludes None values and model_type discriminators, uses field aliases.
+
+        """
+        return self.model_dump(exclude_none=True, exclude=["model_type"], by_alias=True)
+
+    def get(self, destdir=None) -> dict:
+        """Return the params dict.
+
+        Parameters
+        ----------
+        destdir: str | Path
+            Optional directory path to keep the api consistent.
+
+        Returns
+        -------
+        Flat dictionary of XBeach parameters.
+
+        """
+        return self.params
 
 
 class XBeachBaseConfig(BaseConfig):
