@@ -80,7 +80,6 @@ class DataInterface(RompyBaseModel):
         return params
 
 
-BreakType = Literal["roelvink1", "baldock", "roelvink2", "roelvink_daly", "janssen"]
 FrontType = Literal["abs_1d", "abs_2d", "wall", "wlevel", "nonh_1d", "waveflume"]
 BackType = Literal["wall", "abs_1d", "abs_2d", "wlevel"]
 LeftRightType = Literal["neumann", "wall", "no_advec", "neumann_v", "abs_1d"]
@@ -184,28 +183,6 @@ class Config(XBeachBaseConfig):
         ge=0.001,
         le=1.0,
     )
-    alpha: Optional[float] = Field(
-        default=None,
-        description=(
-            "Wave dissipation coefficient in roelvink formulation(XBeach default: 1.38)"
-        ),
-        ge=0.5,
-        le=2.0,
-    )
-    delta: Optional[float] = Field(
-        default=None,
-        description=(
-            "Fraction of wave height to add to water depth (XBeach default: 0.0)"
-        ),
-        ge=0.0,
-        le=1.0,
-    )
-    n: Optional[float] = Field(
-        default=None,
-        description="Power in roelvink dissipation model (Xbeach default: 10.0)",
-        ge=5.0,
-        le=20.0,
-    )
     rho: Optional[float] = Field(
         default=None,
         description="Density of water (kgm-3) (XBeach default: 1025.0)",
@@ -251,15 +228,6 @@ class Config(XBeachBaseConfig):
     roller: Optional[bool] = Field(
         default=None,
         description="Switch to enable roller model (XBeach default: 1)",
-    )
-    gamma: Optional[float] = Field(
-        default=None,
-        description=(
-            "Breaker parameter in baldock or roelvink formulation "
-            "(XBeach default: 0.46)"
-        ),
-        ge=0.4,
-        le=0.9,
     )
     gammax: Optional[float] = Field(
         default=None,

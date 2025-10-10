@@ -71,7 +71,12 @@ input:
 physics:
   wavemodel:
     model_type: surfbeat
-    break: roelvink_daly
+    break:
+      model_type: roelvink1
+      alpha: 1.0
+      delta: 0.0
+      gamma: 0.55
+      n: 10
   wci: False
   sedtrans: False
   morphology: 0
@@ -88,9 +93,6 @@ lateralwave: wavecrest
 random: 1
 zs0: null
 hmin: 0.01
-alpha: 1
-delta: 0.0
-n: 10
 rho: 1025
 g: 9.81
 thetamin: -80
@@ -98,7 +100,6 @@ thetamax: 80
 dtheta: 10.0
 beta: 0.1
 roller: 1
-gamma: 0.55
 gammax: 1.0
 morfac: 0.0
 cf: 0.01

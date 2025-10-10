@@ -9,6 +9,82 @@ from rompy.core.types import RompyBaseModel
 logger = logging.getLogger(__name__)
 
 
+class Janssen(RompyBaseModel):
+    """Janssen & Battjes (2007) breaker model configuration."""
+    model_type: Literal["janssen"] = Field(
+        default="janssen",
+        description="Model type discriminator",
+    )
+
+
+class Baldock(RompyBaseModel):
+    """Baldock breaker model configuration."""
+    model_type: Literal["baldock"] = Field(
+        default="baldock",
+        description="Model type discriminator",
+    )
+    gamma: Optional[float] = Field(
+        default=None,
+        description="Breaker parameter gamma (XBeach default: 0.46)",
+        ge=0.4,
+        le=0.9,
+    )
+
+
+class Roelvink1(RompyBaseModel):
+    """Roelvink (1993a) breaker model configuration."""
+    model_type: Literal["roelvink1"] = Field(
+        default="roelvink1",
+        description="Model type discriminator",
+    )
+    alpha: Optional[float] = Field(
+        default=None,
+        description="Wave dissipation coefficient (XBeach default: 1.38)",
+        ge=0.5,
+        le=2.0,
+    )
+    delta: Optional[float] = Field(
+        default=None,
+        description="Fraction of wave height to add to water depth (XBeach default: 0.0)",
+        ge=0.0,
+        le=1.0,
+    )
+    gamma: Optional[float] = Field(
+        default=None,
+        description="Breaker parameter gamma (XBeach default: 0.46)",
+        ge=0.4,
+        le=0.9,
+    )
+    n: Optional[float] = Field(
+        default=None,
+        description="Power in roelvink dissipation model (Xbeach default: 10.0)",
+        ge=5.0,
+        le=20.0,
+    )
+
+
+class Roelvink2(Roelvink1):
+    """Roelvink (1993a) extended breaker model configuration."""
+    model_type: Literal["roelvink2"] = Field(
+        default="roelvink2",
+        description="Model type discriminator",
+    )
+
+
+class RoelvinkDaly(RompyBaseModel):
+    """Daly et al. (2010) breaker model configuration."""
+    model_type: Literal["roelvink_daly"] = Field(
+        default="roelvink_daly",
+        description="Model type discriminator",
+    )
+    gamma2: Optional[float] = Field(
+        default=None,
+        description="End of breaking parameter (XBeach default: 0.34)",
+        ge=0.0,
+        le=0.5,
+    )
+
+
 class Stationary(RompyBaseModel):
     """Stationary wave model configuration.
 
@@ -21,9 +97,10 @@ class Stationary(RompyBaseModel):
         default="stationary",
         description="Model type discriminator",
     )
-    breaktype: Optional[Literal["baldock", "janssen"]] = Field(
+    breaktype: Optional[Union[Baldock, Janssen]] = Field(
         default=None,
-        description="Type of breaker formulation (XBeach default: roelvink_daly)",
+        description="Type of breaker formulation for the stationary wave model",
+        discriminator="model_type",
         alias="break",
     )
 
@@ -40,9 +117,10 @@ class Surfbeat(RompyBaseModel):
         default="surfbeat",
         description="Model type discriminator",
     )
-    breaktype: Optional[Literal["roelvink1", "roelvink2", "roelvink_daly"]] = Field(
+    breaktype: Optional[Union[Roelvink1, Roelvink2, RoelvinkDaly]] = Field(
         default=None,
-        description="Type of breaker formulation (XBeach default: roelvink_daly)",
+        description="Type of breaker formulation for the surfbeat wave model",
+        discriminator="model_type",
         alias="break",
     )
 
