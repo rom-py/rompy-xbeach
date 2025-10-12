@@ -3,7 +3,7 @@
 import pytest
 import logging
 from rompy_xbeach.components.physics import Physics
-from rompy_xbeach.components.physics._wavemodel import Stationary, Surfbeat, Nonh
+from rompy_xbeach.components.physics.wavemodel import Stationary, Surfbeat, Nonh
 
 
 # =====================================================================================

@@ -5,7 +5,7 @@ from typing import Literal, Optional, Union
 
 from pydantic import Field, model_validator
 
-from rompy_xbeach.components.physics._wavemodel import Nonh, Stationary, Surfbeat
+from rompy_xbeach.components.physics.wavemodel import Nonh, Stationary, Surfbeat
 from rompy_xbeach.types import XBeachBaseModel
 
 
