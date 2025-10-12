@@ -5,7 +5,7 @@ from typing import Literal, Optional, Union
 
 from pydantic import Field, model_validator
 
-from rompy_xbeach.components.physics.wavemodel import Nonh, Stationary, Surfbeat
+from rompy_xbeach.components.physics.wavemodel import Nonh, Stationary, Surfbeat, Roller
 from rompy_xbeach.types import XBeachBaseModel
 
 
@@ -82,6 +82,10 @@ class Physics(XBeachBaseModel):
         default=None,
         description="Turn on quasi-3D sediment transport (XBeach default: 0)",
     )
+    roller: Optional[Union[bool, Roller]] = Field(
+        default=None,
+        description="Switch to enable roller model (XBeach default: 1)",
+    )
     sedtrans: Optional[bool] = Field(
         default=None,
         description="Turn on sediment transport (XBeach default: 1)",
@@ -113,6 +117,12 @@ class Physics(XBeachBaseModel):
         default=None,
         description="Turn on short wave runup (XBeach default: 0)",
     )
+    turb: Optional[Literal["wave_averaged", "bore_averaged", "none"]] = Field(
+        default=None,
+        description=(
+            "Switch to include short wave turbulence (XBeach default: wave_averaged)"
+        ),
+    )
     vegetation: Optional[bool] = Field(
         default=None,
         description=(
@@ -122,6 +132,10 @@ class Physics(XBeachBaseModel):
     viscosity: Optional[bool] = Field(
         default=None,
         description="Include viscosity in flow solver (XBeach default: 1)",
+    )
+    waveform: Optional[Literal["ruessink_vanrijn", "vanthiel"]] = Field(
+        default=None,
+        description="Wave shape model (XBeach default: vanthiel)",
     )
     wci: Optional[bool] = Field(
         default=None,

@@ -219,16 +219,6 @@ class Config(XBeachBaseConfig):
         ge=0.1,
         le=180.0,
     )
-    beta: Optional[float] = Field(
-        default=None,
-        description="Breaker slope coefficient in roller model (XBeach default: 0.08)",
-        ge=0.05,
-        le=0.3,
-    )
-    roller: Optional[bool] = Field(
-        default=None,
-        description="Switch to enable roller model (XBeach default: 1)",
-    )
     gammax: Optional[float] = Field(
         default=None,
         description="Maximum ratio wave height to water depth (XBeach default: 2.0)",
@@ -299,13 +289,6 @@ class Config(XBeachBaseConfig):
 
     @field_serializer("random")
     def serialize_random(self, value: Optional[bool]):
-        """Serialise bool to int."""
-        if value is None:
-            return None
-        return int(value)
-
-    @field_serializer("roller")
-    def serialize_roller(self, value: Optional[bool]):
         """Serialise bool to int."""
         if value is None:
             return None

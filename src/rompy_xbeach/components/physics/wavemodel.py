@@ -1,14 +1,56 @@
 """XBeach wavemodel parameter configurations.
 
 This module contains all models used by the Physics.wavemodel field, including:
+
 - Breaker formulation models (used by wave models)
 - Wave model configurations (Stationary, Surfbeat, Nonh)
+
 """
 
 from typing import Literal, Optional, Union
 from pydantic import Field
 
 from rompy_xbeach.types import XBeachBaseModel
+
+
+# =============================================================================
+# Roller model
+# =============================================================================
+
+
+class Roller(XBeachBaseModel):
+    """Roller model configuration.
+    
+    When used in Physics.roller field, this enables the roller model (roller=1)
+    and allows specification of roller-specific parameters.
+    """
+
+    model_type: Literal[True] = Field(
+        default=True,
+        description="Model type discriminator - set to True to enable roller",
+    )
+    beta: Optional[float] = Field(
+        default=None,
+        description="Breaker slope coefficient in roller model (XBeach default: 0.08)",
+        ge=0.05,
+        le=0.3,
+    )
+    nuhfac: Optional[float] = Field(
+        default=None,
+        description=(
+            "Viscosity switch for roller induced turbulent horizontal viscosity "
+            "(XBeach default: 1.0)"
+        ),
+        ge=0.0,
+        le=1.0,
+    )
+    rfb: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Switch to feed back maximum wave surface slope in roller energy balance "
+            "(XBeach default: 0)"
+        ),
+    )
 
 
 # =============================================================================
