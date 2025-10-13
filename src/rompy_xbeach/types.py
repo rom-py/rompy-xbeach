@@ -43,17 +43,7 @@ class XBeachBaseModel(RompyBaseModel):
 
     All XBeach parameter models should inherit from this class.
 
-    Class Attributes
-    ----------------
-    _is_boolean_switch : bool
-        Set to True for components that represent boolean switches (e.g., Roller, Vegetation).
-        These components have model_type=True and need special handling in parent get() methods.
-        Discriminated union components (model_type="string") should leave this as False.
-
     """
-
-    # Class attribute to explicitly mark boolean switch components
-    _is_boolean_switch: bool = False
 
     @model_serializer(mode="wrap")
     def _serialize_with_component_flattening(self, serializer: Any) -> dict:
@@ -121,14 +111,14 @@ class XBeachBaseModel(RompyBaseModel):
         """Return the params dict with file fetching for nested components.
 
         This method handles two types of nested components:
-        1. Boolean switch components (_is_boolean_switch=True): Need special handling
-           to set the parent field and merge their params
+        1. Components with explicit parameter fields: Need special handling to extract
+           the field value and merge remaining params
         2. Discriminated union components: Already flattened by the serializer
 
         The default implementation:
-        - For boolean switch components: includes model_type in return dict
+        - For components with explicit fields: includes that field in return dict
         - For discriminated unions or leaf components: returns standard params
-        - For parent components: processes boolean switch children recursively
+        - For parent components: processes XBeachBaseModel children recursively
 
         Override this method if you need custom file fetching logic (e.g., DataBlob).
 
@@ -142,52 +132,54 @@ class XBeachBaseModel(RompyBaseModel):
         Flat dictionary of XBeach parameters.
 
         """
-        # Identify boolean switch components that need special handling
-        boolean_switch_components = {}
+        # Identify XBeachBaseModel child components with explicit parameter fields
+        # These need special handling (e.g., Roller with 'roller' field, Vegetation with 'vegetation')
+        # Discriminated unions don't have explicit fields and are handled by the serializer
+        components_with_explicit_fields = {}
         for field_name in self.model_fields_set:
             field_value = getattr(self, field_name, None)
             if isinstance(field_value, XBeachBaseModel):
-                # Check if this is a boolean switch component
-                if getattr(field_value, "_is_boolean_switch", False):
-                    boolean_switch_components[field_name] = field_value
+                # Check if the component has a field matching the parent field name
+                if hasattr(field_value, field_name):
+                    components_with_explicit_fields[field_name] = field_value
 
-        # If this component has boolean switch children, process them
-        if boolean_switch_components:
-            # Serialize own fields, excluding boolean switch components
+        # If this component has children with explicit fields, process them
+        if components_with_explicit_fields:
+            # Serialize own fields, excluding only components with explicit fields
             # Discriminated unions are included and flattened by the serializer
             params = self.model_dump(
-                exclude=["model_type"] + list(boolean_switch_components.keys()),
+                exclude=["model_type"] + list(components_with_explicit_fields.keys()),
                 exclude_none=True,
                 exclude_unset=True,
                 by_alias=True,
             )
 
-            # Process each boolean switch component
-            for field_name, field_value in boolean_switch_components.items():
-                # Get the component's params (includes model_type)
+            # Process each component with explicit fields
+            for field_name, field_value in components_with_explicit_fields.items():
+                # Get the component's params
                 component_params = field_value.get(destdir)
 
-                # Extract model_type and set the parent field
-                if "model_type" in component_params:
-                    model_type_value = component_params.pop("model_type")
+                # Extract the explicit field value and set it in parent
+                if field_name in component_params:
+                    field_param_value = component_params.pop(field_name)
                     # Convert boolean to integer for XBeach
-                    params[field_name] = int(model_type_value)
+                    if isinstance(field_param_value, bool):
+                        params[field_name] = int(field_param_value)
+                    else:
+                        params[field_name] = field_param_value
 
                 # Merge remaining component params
                 params.update(component_params)
 
             return params
 
-        # No boolean switch children - check if this IS a boolean switch
-        if self._is_boolean_switch:
-            # Boolean switch component - include model_type for parent
-            return self.model_dump(
-                exclude_none=True,
-                by_alias=True,
-            )
-
-        # Discriminated union or leaf component - return standard params
-        return self.params.copy()
+        # No child components - return all params including defaults
+        # (don't use exclude_unset so explicit fields like 'roller' are included)
+        return self.model_dump(
+            exclude=["model_type"],
+            exclude_none=True,
+            by_alias=True,
+        )
 
 
 class XBeachBaseConfig(BaseConfig):

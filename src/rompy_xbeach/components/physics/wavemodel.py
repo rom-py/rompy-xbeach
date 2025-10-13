@@ -7,10 +7,11 @@ This module contains all models used by the Physics.wavemodel field, including:
 
 """
 
+from pathlib import Path
 from typing import Literal, Optional, Union
 from pydantic import Field
 
-from rompy_xbeach.types import XBeachBaseModel
+from rompy_xbeach.types import XBeachBaseModel, XBeachDataBlob
 
 
 # =============================================================================
@@ -25,11 +26,9 @@ class Roller(XBeachBaseModel):
     and allows specification of roller-specific parameters.
     """
 
-    _is_boolean_switch = True
-
-    model_type: Literal[True] = Field(
+    roller: Literal[True] = Field(
         default=True,
-        description="Model type discriminator - set to True to enable roller",
+        description="Enable roller model",
     )
     beta: Optional[float] = Field(
         default=None,
@@ -53,6 +52,65 @@ class Roller(XBeachBaseModel):
             "(XBeach default: 0)"
         ),
     )
+
+
+# =============================================================================
+# Short Wave Friction
+
+
+class ShortWaveFriction(XBeachBaseModel):
+    """Short wave friction model configuration.
+
+    XBeach allows the user to specify a short wave friction coefficient that is used
+    to calculate the dissipation of short wave energy due to bottom friction. This
+    friction coefficient can be specified as a constant value or spatially varying
+    through a file.
+
+    When used in Physics.wavfriction field, this allows specification of short wave
+    friction parameters.
+
+    See https://xbeach.readthedocs.io/en/latest/xbeach_manual.html#bottom-friction
+    for more information.
+
+    """
+    wavfriccoef: Optional[float] = Field(
+        default=None,
+        description=(
+            "Wave friction coefficient used in Reniers formulation for dissipation "
+            "(XBeach default: 0.0)"
+        ),
+        ge=0.0,
+    )
+    wavfricfile: Optional[XBeachDataBlob] = Field(
+        default=None,
+        description=(
+            "Name of file with spatially varying wave friction coefficients. "
+            "If specified, overrides wavfriccoef."
+        ),
+    )
+
+    def get(self, destdir: str | Path) -> dict:
+        """Fetch external friction file if specified, and return the params dict.
+
+        Parameters
+        ----------
+        destdir : str | Path
+            Destination directory for fetching files.
+
+        Returns
+        -------
+        dict
+            Parameters dictionary with file paths updated to workspace directory.
+
+        """
+        # Get base params (XBeachDataBlob fields are automatically excluded by serializer)
+        params = super().get(destdir)
+
+        # Fetch DataBlob file and add the fetched file path
+        if self.wavfricfile:
+            params["wavfricfile"] = self.wavfricfile.get(destdir).name
+
+        return params
 
 
 # =============================================================================

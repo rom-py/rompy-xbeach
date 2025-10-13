@@ -13,15 +13,26 @@ from rompy_xbeach.types import XBeachBaseModel, XBeachDataBlob
 class Vegetation(XBeachBaseModel):
     """Vegetation model configuration.
 
-    When used in Physics.vegetation field, this enables vegetation modeling (vegetation=1)
-    and allows specification of vegetation-specific parameters.
+    The presence of aquatic vegetation within the area of wave propagation or wave
+    breaking results in an additional dissipation mechanism for short waves. This is
+    modeled using the approach of [Mendez and Losada, 2004], which was adjusted by
+    [Suzuki et al., 2012] to take into account vertically heterogeneous vegetation,
+    see [van Rooijen et al., 2015]. The short wave dissipation due to vegetation is
+    calculated as function of the local wave height and several vegetation parameters.
+    The vegetation can be schematized in a number of vertical elements with each
+    pecific property. In this way the wave damping effect of vegetation such as mangrove
+    trees, with a relatively dense root system but sparse stem area, can be modeled.
+    The dissipation term is then computed as the sum of the dissipation per vegetation
+    layer ([Suzuki et al., 2012])
+
+    See https://xbeach.readthedocs.io/en/latest/xbeach_manual.html#vegetation for more
+    information.
+
     """
 
-    _is_boolean_switch = True
-
-    model_type: Literal[True] = Field(
+    vegetation: Literal[True] = Field(
         default=True,
-        description="Model type discriminator - set to True to enable vegetation",
+        description="Enable vegetation model",
     )
     nveg: Optional[int] = Field(
         default=None,
