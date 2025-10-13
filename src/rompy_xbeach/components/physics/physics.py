@@ -5,7 +5,8 @@ from typing import Literal, Optional, Union
 
 from pydantic import Field, model_validator
 
-from rompy_xbeach.components.physics.wavemodel import Nonh, Stationary, Surfbeat, Roller
+from rompy_xbeach.components.physics.vegetation import Vegetation
+from rompy_xbeach.components.physics.wavemodel import Nonh, Roller, Stationary, Surfbeat
 from rompy_xbeach.types import XBeachBaseModel
 
 
@@ -123,7 +124,7 @@ class Physics(XBeachBaseModel):
             "Switch to include short wave turbulence (XBeach default: wave_averaged)"
         ),
     )
-    vegetation: Optional[bool] = Field(
+    vegetation: Optional[Union[bool, Vegetation]] = Field(
         default=None,
         description=(
             "Turn on interaction of waves and flow with vegetation (XBeach default: 0)"

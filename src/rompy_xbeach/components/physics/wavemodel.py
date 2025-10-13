@@ -20,7 +20,7 @@ from rompy_xbeach.types import XBeachBaseModel
 
 class Roller(XBeachBaseModel):
     """Roller model configuration.
-    
+
     When used in Physics.roller field, this enables the roller model (roller=1)
     and allows specification of roller-specific parameters.
     """

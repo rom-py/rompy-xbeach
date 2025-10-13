@@ -79,6 +79,8 @@ physics:
       n: 10
   roller:
     beta: 0.1
+  vegetation:
+    nveg: 2
   wci: False
   sedtrans: False
   morphology: 0
