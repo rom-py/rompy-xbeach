@@ -11,10 +11,7 @@ from pydantic import (
     field_serializer,
 )
 
-from rompy.core.types import RompyBaseModel
-from rompy.core.data import DataBlob
-from rompy_xbeach.types import XBeachBaseModel
-from rompy_xbeach.types import OutputVarsEnum
+from rompy_xbeach.types import XBeachBaseModel, XBeachDataBlob, OutputVarsEnum
 
 logger = logging.getLogger(__name__)
 
@@ -174,15 +171,15 @@ class Output(XBeachBaseModel):
         ),
         gt=0.0,
     )
-    tsglobal: Optional[DataBlob] = Field(
+    tsglobal: Optional[XBeachDataBlob] = Field(
         default=None,
         description="File source containing timings of global output",
     )
-    tsmean: Optional[DataBlob] = Field(
+    tsmean: Optional[XBeachDataBlob] = Field(
         default=None,
         description="File source containing timings of mean, max, min and var output",
     )
-    tspoint: Optional[DataBlob] = Field(
+    tspoint: Optional[XBeachDataBlob] = Field(
         default=None,
         description="File source containing timings of point output",
     )

@@ -5,6 +5,32 @@ from pydantic import ConfigDict, model_serializer
 
 from rompy.core.config import BaseConfig
 from rompy.core.types import RompyBaseModel
+from rompy.core.data import DataBlob
+
+
+class XBeachDataBlob(DataBlob):
+    """Custom DataBlob for XBeach that excludes itself from serialization.
+
+    This prevents DataBlob internal fields (id, source, link, model_type) from
+    appearing in the serialized params dict. The actual file path is added
+    during the get() method after fetching.
+
+    Usage:
+        veggiefile: Optional[XBeachDataBlob] = Field(default=None, ...)
+
+        def get(self, destdir: Path) -> dict:
+            params = super().get(destdir)
+            if self.veggiefile:
+                params["veggiefile"] = self.veggiefile.get(destdir).name
+            return params
+    """
+
+    @model_serializer(mode="wrap")
+    def _serialize_skip(self, serializer: Any) -> None:
+        """Skip serialization - DataBlob fields are handled in get() method."""
+        # Return None to exclude this field from serialization
+        # The field will be added back in the component's get() method
+        return None
 
 
 class XBeachBaseModel(RompyBaseModel):
@@ -17,7 +43,17 @@ class XBeachBaseModel(RompyBaseModel):
 
     All XBeach parameter models should inherit from this class.
 
+    Class Attributes
+    ----------------
+    _is_boolean_switch : bool
+        Set to True for components that represent boolean switches (e.g., Roller, Vegetation).
+        These components have model_type=True and need special handling in parent get() methods.
+        Discriminated union components (model_type="string") should leave this as False.
+
     """
+
+    # Class attribute to explicitly mark boolean switch components
+    _is_boolean_switch: bool = False
 
     @model_serializer(mode="wrap")
     def _serialize_with_component_flattening(self, serializer: Any) -> dict:
@@ -82,16 +118,19 @@ class XBeachBaseModel(RompyBaseModel):
         )
 
     def get(self, destdir: str | Path) -> dict:
-        """Return the params dict with recursive processing of nested components.
+        """Return the params dict with file fetching for nested components.
 
-        This method recursively processes nested XBeachBaseModel instances,
-        calling their get() methods to handle any file fetching or data
-        preparation. This allows nested components like Vegetation or Roller
-        to fetch external files and update paths before serialization.
+        This method handles two types of nested components:
+        1. Boolean switch components (_is_boolean_switch=True): Need special handling
+           to set the parent field and merge their params
+        2. Discriminated union components: Already flattened by the serializer
 
-        The default implementation serializes to params and then recursively
-        processes nested components, merging their results. Subclasses can
-        override this to add custom file fetching logic.
+        The default implementation:
+        - For boolean switch components: includes model_type in return dict
+        - For discriminated unions or leaf components: returns standard params
+        - For parent components: processes boolean switch children recursively
+
+        Override this method if you need custom file fetching logic (e.g., DataBlob).
 
         Parameters
         ----------
@@ -103,50 +142,52 @@ class XBeachBaseModel(RompyBaseModel):
         Flat dictionary of XBeach parameters.
 
         """
-        # Identify nested XBeachBaseModel components
-        nested_components = {}
+        # Identify boolean switch components that need special handling
+        boolean_switch_components = {}
         for field_name in self.model_fields_set:
             field_value = getattr(self, field_name, None)
             if isinstance(field_value, XBeachBaseModel):
-                nested_components[field_name] = field_value
-        
-        # Serialize own fields, excluding nested components
-        if nested_components:
+                # Check if this is a boolean switch component
+                if getattr(field_value, "_is_boolean_switch", False):
+                    boolean_switch_components[field_name] = field_value
+
+        # If this component has boolean switch children, process them
+        if boolean_switch_components:
+            # Serialize own fields, excluding boolean switch components
+            # Discriminated unions are included and flattened by the serializer
             params = self.model_dump(
-                exclude=["model_type"] + list(nested_components.keys()),
+                exclude=["model_type"] + list(boolean_switch_components.keys()),
                 exclude_none=True,
                 exclude_unset=True,
                 by_alias=True,
             )
-        else:
-            # No nested components - include model_type for parent to use
-            params = self.model_dump(
+
+            # Process each boolean switch component
+            for field_name, field_value in boolean_switch_components.items():
+                # Get the component's params (includes model_type)
+                component_params = field_value.get(destdir)
+
+                # Extract model_type and set the parent field
+                if "model_type" in component_params:
+                    model_type_value = component_params.pop("model_type")
+                    # Convert boolean to integer for XBeach
+                    params[field_name] = int(model_type_value)
+
+                # Merge remaining component params
+                params.update(component_params)
+
+            return params
+
+        # No boolean switch children - check if this IS a boolean switch
+        if self._is_boolean_switch:
+            # Boolean switch component - include model_type for parent
+            return self.model_dump(
                 exclude_none=True,
                 by_alias=True,
             )
-            # model_type is included here for parent flattening (don't use exclude_unset)
-        
-        # Process nested XBeachBaseModel components
-        for field_name, field_value in nested_components.items():
-            # Get the nested component's params
-            nested_params = field_value.get(destdir)
-            
-            # Handle model_type field: if present, use it to set the parent field
-            if "model_type" in nested_params:
-                model_type_value = nested_params.pop("model_type")
-                # Set the parent field based on model_type value
-                if isinstance(model_type_value, bool):
-                    # Boolean model_type (e.g., Roller/Vegetation with model_type=True)
-                    # Convert to integer for XBeach (True -> 1, False -> 0)
-                    params[field_name] = int(model_type_value)
-                else:
-                    # String model_type for discriminated unions (e.g., wavemodel="surfbeat")
-                    params[field_name] = model_type_value
-            
-            # Merge remaining nested params
-            params.update(nested_params)
 
-        return params
+        # Discriminated union or leaf component - return standard params
+        return self.params.copy()
 
 
 class XBeachBaseConfig(BaseConfig):

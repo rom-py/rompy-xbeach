@@ -25,6 +25,8 @@ class Roller(XBeachBaseModel):
     and allows specification of roller-specific parameters.
     """
 
+    _is_boolean_switch = True
+
     model_type: Literal[True] = Field(
         default=True,
         description="Model type discriminator - set to True to enable roller",
