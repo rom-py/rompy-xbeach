@@ -77,7 +77,7 @@ class ShortWaveFriction(XBeachBaseModel):
         default=None,
         description=(
             "Wave friction coefficient used in Reniers formulation for dissipation "
-            "(XBeach default: 0.0)"
+            "(XBeach default: -123)"
         ),
         ge=0.0,
     )

@@ -83,6 +83,8 @@ physics:
     nveg: 2
     veggiefile:
       source: /source/csiro/rompy-xbeach/tests/data/wind.csv
+  wavfric:
+    wavfriccoef: 0.1
   wci: False
   sedtrans: False
   morphology: 0

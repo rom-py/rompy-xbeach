@@ -6,7 +6,7 @@ from typing import Literal, Optional, Union
 from pydantic import Field, model_validator
 
 from rompy_xbeach.components.physics.vegetation import Vegetation
-from rompy_xbeach.components.physics.wavemodel import Nonh, Roller, Stationary, Surfbeat
+from rompy_xbeach.components.physics.wavemodel import Nonh, Roller, Stationary, Surfbeat, ShortWaveFriction
 from rompy_xbeach.types import XBeachBaseModel
 
 
@@ -133,6 +133,10 @@ class Physics(XBeachBaseModel):
     viscosity: Optional[bool] = Field(
         default=None,
         description="Include viscosity in flow solver (XBeach default: 1)",
+    )
+    wavfric: Optional[ShortWaveFriction] = Field(
+        default=None,
+        description="Short wave friction specification",
     )
     waveform: Optional[Literal["ruessink_vanrijn", "vanthiel"]] = Field(
         default=None,
