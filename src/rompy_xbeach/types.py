@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Any
+from pathlib import Path
 from pydantic import ConfigDict, model_serializer
 
 from rompy.core.config import BaseConfig
@@ -72,27 +73,47 @@ class XBeachBaseModel(RompyBaseModel):
 
     @property
     def params(self) -> dict:
-        """Return the XBeach parameters as a flat dictionary.
+        """Return the XBeach parameters as a flat dictionary."""
+        return self.model_dump(
+            exclude=["model_type"],
+            exclude_none=True,
+            exclude_unset=True,
+            by_alias=True,
+        )
 
-        Excludes None values and model_type discriminators, uses field aliases.
+    def get(self, destdir: str | Path) -> dict:
+        """Return the params dict with recursive processing of nested components.
 
-        """
-        return self.model_dump(exclude_none=True, exclude=["model_type"], by_alias=True)
+        This method recursively processes nested XBeachBaseModel instances,
+        calling their get() methods to handle any file fetching or data
+        preparation. This allows nested components like Vegetation or Roller
+        to fetch external files and update paths before serialization.
 
-    def get(self, destdir=None) -> dict:
-        """Return the params dict.
+        The default implementation serializes to params and then recursively
+        processes nested components, merging their results. Subclasses can
+        override this to add custom file fetching logic.
 
         Parameters
         ----------
         destdir: str | Path
-            Optional directory path to keep the api consistent.
+            Directory path for file operations.
 
         Returns
         -------
         Flat dictionary of XBeach parameters.
 
         """
-        return self.params
+        # Start with own params (excluding nested XBeachBaseModel fields)
+        params = self.params.copy()
+
+        # Recursively process nested XBeachBaseModel components
+        for field_name in self.model_fields_set:
+            field_value = getattr(self, field_name, None)
+            if isinstance(field_value, XBeachBaseModel):
+                # Call get() on nested component and merge results
+                params.update(field_value.get(destdir))
+
+        return params
 
 
 class XBeachBaseConfig(BaseConfig):

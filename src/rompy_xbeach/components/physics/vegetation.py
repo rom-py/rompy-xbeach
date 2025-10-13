@@ -3,9 +3,11 @@
 This module contains the Vegetation model used by the Physics.vegetation field.
 """
 
-from typing import Literal, Optional
+from pathlib import Path
+from typing import Literal, Optional, Union
 from pydantic import Field
 
+from rompy.core.data import DataBlob
 from rompy_xbeach.types import XBeachBaseModel
 
 
@@ -16,8 +18,8 @@ class Vegetation(XBeachBaseModel):
     and allows specification of vegetation-specific parameters.
     """
 
-    model_type: Literal[True] = Field(
-        default=True,
+    model_type: Literal["vegetation"] = Field(
+        default="vegetation",
         description="Model type discriminator - set to True to enable vegetation",
     )
     nveg: Optional[int] = Field(
@@ -25,11 +27,11 @@ class Vegetation(XBeachBaseModel):
         description="Number of vegetation species",
         ge=1,
     )
-    veggiefile: Optional[str] = Field(
+    veggiefile: Optional[Union[str, DataBlob]] = Field(
         default=None,
         description="Name of veggie species list file",
     )
-    veggiemapfile: Optional[str] = Field(
+    veggiemapfile: Optional[Union[str, DataBlob]] = Field(
         default=None,
         description="Name of veggie species map file",
     )
@@ -45,3 +47,30 @@ class Vegetation(XBeachBaseModel):
         default=None,
         description="Include undertow in phase-averaged vegetation (XBeach default: 1)",
     )
+
+    def get(self, destdir: str | Path) -> dict:
+        """Fetch external vegetation files if specified, and return the params dict.
+        
+        Parameters
+        ----------
+        destdir : str | Path
+            Destination directory for fetching files.
+            
+        Returns
+        -------
+        dict
+            Parameters dictionary with file paths updated to workspace directory.
+
+        """
+        params = self.params.copy()
+
+        # Set the vegetation switch
+        params[self.model_type] = True
+
+        # Fetch data blob and update params with the fetched file path
+        file_fields = ["veggiefile", "veggiemapfile"]
+        for field in file_fields:
+            if getattr(self, field) and isinstance(getattr(self, field), DataBlob):
+                params[field] = getattr(self, field).get(destdir).name
+        
+        return params

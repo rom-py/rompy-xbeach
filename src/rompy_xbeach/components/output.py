@@ -13,6 +13,7 @@ from pydantic import (
 
 from rompy.core.types import RompyBaseModel
 from rompy.core.data import DataBlob
+from rompy_xbeach.types import XBeachBaseModel
 from rompy_xbeach.types import OutputVarsEnum
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 # TODO: Interface to allow fetching output times from files
 
 
-class Output(RompyBaseModel):
+class Output(XBeachBaseModel):
     """XBeach output configuration.
 
     XBeach supports four different types of output: 1) instantaneous spatial output 2)
@@ -309,18 +310,13 @@ class Output(RompyBaseModel):
 
         return data
 
-    @property
-    def params(self) -> dict:
-        """Return the XBeach parameters for the output component."""
-        return self.model_dump(exclude_none=True, exclude=["model_type"])
-
     def get(self, destdir: str | Path) -> dict:
         """Fetch external timing files if specified, and return the params dict."""
         params = self.params.copy()
         if self.tsglobal:
-            params["tsglobal"] = self.tsglobal.get(destdir)
+            params["tsglobal"] = self.tsglobal.get(destdir).name
         if self.tsmean:
-            params["tsmean"] = self.tsmean.get(destdir)
+            params["tsmean"] = self.tsmean.get(destdir).name
         if self.tspoint:
-            params["tspoint"] = self.tspoint.get(destdir)
+            params["tspoint"] = self.tspoint.get(destdir).name
         return params

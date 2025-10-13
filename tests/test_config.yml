@@ -81,6 +81,8 @@ physics:
     beta: 0.1
   vegetation:
     nveg: 2
+    veggiefile:
+      source: /source/csiro/rompy-xbeach/tests/data/wind.csv
   wci: False
   sedtrans: False
   morphology: 0
@@ -117,6 +119,8 @@ output:
   timings: True
   tstart: 0.
   tintm: 3600.0
+  tspoint:
+    source: /source/csiro/rompy-xbeach/tests/data/ssh.csv
   meanvars:
     - H
     - thetamean
