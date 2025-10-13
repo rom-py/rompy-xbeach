@@ -18,8 +18,8 @@ class Vegetation(XBeachBaseModel):
     and allows specification of vegetation-specific parameters.
     """
 
-    model_type: Literal["vegetation"] = Field(
-        default="vegetation",
+    model_type: Literal[True] = Field(
+        default=True,
         description="Model type discriminator - set to True to enable vegetation",
     )
     nveg: Optional[int] = Field(
@@ -62,12 +62,10 @@ class Vegetation(XBeachBaseModel):
             Parameters dictionary with file paths updated to workspace directory.
 
         """
-        params = self.params.copy()
+        # Call parent get() to get base params with model_type included
+        params = super().get(destdir)
 
-        # Set the vegetation switch
-        params[self.model_type] = True
-
-        # Fetch data blob and update params with the fetched file path
+        # Fetch DataBlob files and update params with the fetched file paths
         file_fields = ["veggiefile", "veggiemapfile"]
         for field in file_fields:
             if getattr(self, field) and isinstance(getattr(self, field), DataBlob):

@@ -25,8 +25,8 @@ class Roller(XBeachBaseModel):
     and allows specification of roller-specific parameters.
     """
 
-    model_type: Literal["foller"] = Field(
-        default="foller",
+    model_type: Literal[True] = Field(
+        default=True,
         description="Model type discriminator - set to True to enable roller",
     )
     beta: Optional[float] = Field(

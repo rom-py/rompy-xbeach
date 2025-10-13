@@ -103,15 +103,48 @@ class XBeachBaseModel(RompyBaseModel):
         Flat dictionary of XBeach parameters.
 
         """
-        # Start with own params (excluding nested XBeachBaseModel fields)
-        params = self.params.copy()
-
-        # Recursively process nested XBeachBaseModel components
+        # Identify nested XBeachBaseModel components
+        nested_components = {}
         for field_name in self.model_fields_set:
             field_value = getattr(self, field_name, None)
             if isinstance(field_value, XBeachBaseModel):
-                # Call get() on nested component and merge results
-                params.update(field_value.get(destdir))
+                nested_components[field_name] = field_value
+        
+        # Serialize own fields, excluding nested components
+        if nested_components:
+            params = self.model_dump(
+                exclude=["model_type"] + list(nested_components.keys()),
+                exclude_none=True,
+                exclude_unset=True,
+                by_alias=True,
+            )
+        else:
+            # No nested components - include model_type for parent to use
+            params = self.model_dump(
+                exclude_none=True,
+                by_alias=True,
+            )
+            # model_type is included here for parent flattening (don't use exclude_unset)
+        
+        # Process nested XBeachBaseModel components
+        for field_name, field_value in nested_components.items():
+            # Get the nested component's params
+            nested_params = field_value.get(destdir)
+            
+            # Handle model_type field: if present, use it to set the parent field
+            if "model_type" in nested_params:
+                model_type_value = nested_params.pop("model_type")
+                # Set the parent field based on model_type value
+                if isinstance(model_type_value, bool):
+                    # Boolean model_type (e.g., Roller/Vegetation with model_type=True)
+                    # Convert to integer for XBeach (True -> 1, False -> 0)
+                    params[field_name] = int(model_type_value)
+                else:
+                    # String model_type for discriminated unions (e.g., wavemodel="surfbeat")
+                    params[field_name] = model_type_value
+            
+            # Merge remaining nested params
+            params.update(nested_params)
 
         return params
 
