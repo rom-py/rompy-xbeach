@@ -158,6 +158,24 @@ class Physics(XBeachBaseModel):
     )
 
     @model_validator(mode="after")
+    def no_bore_averaged_with_ruessink_vanrijn(self) -> "Physics":
+        """Bore-averaged turbulence cannot be used with ruessink_vanrijn waveform.
+        
+        The Ruessink et al. (2012) formulation does not determine an exact wave shape,
+        so the bore interval cannot be calculated. Bore-averaged short-wave turbulence
+        requires the bore interval to be computed from the wave shape.
+        """
+        if self.turb == "bore_averaged" and self.waveform == "ruessink_vanrijn":
+            logger.warning(
+                "Bore-averaged turbulence (turb='bore_averaged') cannot be combined with "
+                "the Ruessink et al. (2012) wave form (waveform='ruessink_vanrijn'). "
+                "The Ruessink formulation does not determine an exact wave shape, which is "
+                "required to calculate the bore interval for bore-averaged turbulence. "
+                "Consider using waveform='vanthiel' or turb='wave_averaged' instead."
+            )
+        return self
+
+    @model_validator(mode="after")
     def swave_must_be_false_if_nonh(self) -> "Physics":
         """Swave must be False if nonh is True or wavemodel is Nonh."""
         # Check if nonh parameter is True
