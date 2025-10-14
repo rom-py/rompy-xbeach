@@ -180,7 +180,7 @@ def test_params_with_timing_fields():
 
 def test_params_with_file_timing(timing_file):
     """Test params with file-based timing.
-    
+
     Note: DataBlob fields are excluded from .params to prevent field leakage.
     Use .get() to fetch files and get the file paths.
     """
@@ -190,12 +190,12 @@ def test_params_with_file_timing(timing_file):
         tspoint=dict(source=str(timing_file)),
     )
     params = output.params
-    
+
     # DataBlob fields are excluded from params to prevent leakage
     assert "tsglobal" not in params
     assert "tsmean" not in params
     assert "tspoint" not in params
-    
+
     # But the DataBlob objects are accessible on the instance
     assert output.tsglobal is not None
     assert output.tsmean is not None
@@ -245,7 +245,7 @@ def test_get_method_with_single_timing_file(timing_file, tmp_path):
 
     # Should have fetched the timing file
     assert "tsglobal" in params
-    
+
     # params contains just the filename, file should exist in destdir
     fetched_file = tmp_path / params["tsglobal"]
     assert fetched_file.exists()

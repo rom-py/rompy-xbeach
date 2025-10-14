@@ -311,7 +311,7 @@ class Output(XBeachBaseModel):
         """Fetch external timing files if specified, and return the params dict."""
         # Get base params (XBeachDataBlob fields are automatically excluded by serializer)
         params = super().get(destdir)
-        
+
         # Fetch DataBlob files and add the fetched file paths (just filename, not full path)
         if self.tsglobal:
             params["tsglobal"] = self.tsglobal.get(destdir).name

@@ -24,7 +24,7 @@ class XBeachDataBlob(DataBlob):
                 params["veggiefile"] = self.veggiefile.get(destdir).name
             return params
     """
-    
+
     @model_serializer(mode="wrap")
     def _serialize_skip_for_params(self, serializer: Any) -> dict:
         """Skip serialization to prevent field leakage in params."""
@@ -106,7 +106,7 @@ class XBeachBaseModel(RompyBaseModel):
             field_value = getattr(self, field_name, None)
             if isinstance(field_value, XBeachDataBlob):
                 datablob_fields.append(field_name)
-        
+
         return self.model_dump(
             exclude=["model_type"] + datablob_fields,
             exclude_none=True,

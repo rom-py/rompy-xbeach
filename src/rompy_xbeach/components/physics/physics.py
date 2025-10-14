@@ -160,7 +160,7 @@ class Physics(XBeachBaseModel):
     @model_validator(mode="after")
     def no_bore_averaged_with_ruessink_vanrijn(self) -> "Physics":
         """Bore-averaged turbulence cannot be used with ruessink_vanrijn waveform.
-        
+
         The Ruessink et al. (2012) formulation does not determine an exact wave shape,
         so the bore interval cannot be calculated. Bore-averaged short-wave turbulence
         requires the bore interval to be computed from the wave shape.

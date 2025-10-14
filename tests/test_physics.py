@@ -155,6 +155,7 @@ def test_params_all_boolean_fields():
 def test_get_method_without_destdir():
     """Test get() method with destdir."""
     from pathlib import Path
+
     physics = Physics(
         morphology=True,
         sedtrans=True,
@@ -183,6 +184,7 @@ def test_get_method_with_destdir(tmp_path):
 def test_get_method_preserves_all_params():
     """Test that get() method preserves all parameters."""
     from pathlib import Path
+
     physics = Physics(
         wavemodel=Nonh(),
         morphology=True,
