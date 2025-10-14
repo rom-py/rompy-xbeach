@@ -309,7 +309,10 @@ class Output(XBeachBaseModel):
 
     def get(self, destdir: str | Path) -> dict:
         """Fetch external timing files if specified, and return the params dict."""
-        params = self.params.copy()
+        # Get base params (XBeachDataBlob fields are automatically excluded by serializer)
+        params = super().get(destdir)
+        
+        # Fetch DataBlob files and add the fetched file paths (just filename, not full path)
         if self.tsglobal:
             params["tsglobal"] = self.tsglobal.get(destdir).name
         if self.tsmean:

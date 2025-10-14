@@ -9,28 +9,28 @@ from rompy.core.data import DataBlob
 
 
 class XBeachDataBlob(DataBlob):
-    """Custom DataBlob for XBeach that excludes itself from serialization.
+    """Custom DataBlob for XBeach with special handling in get() method.
 
-    This prevents DataBlob internal fields (id, source, link, model_type) from
-    appearing in the serialized params dict. The actual file path is added
-    during the get() method after fetching.
+    XBeachDataBlob fields are excluded from .params serialization to prevent
+    internal fields (id, source, link) from leaking into params.txt.
+    In .get() they are replaced with the fetched file path.
 
     Usage:
         veggiefile: Optional[XBeachDataBlob] = Field(default=None, ...)
 
         def get(self, destdir: Path) -> dict:
             params = super().get(destdir)
-            if self.veggiefile:
+            if self.veggiefile and destdir:
                 params["veggiefile"] = self.veggiefile.get(destdir).name
             return params
     """
-
+    
     @model_serializer(mode="wrap")
-    def _serialize_skip(self, serializer: Any) -> None:
-        """Skip serialization - DataBlob fields are handled in get() method."""
-        # Return None to exclude this field from serialization
+    def _serialize_skip_for_params(self, serializer: Any) -> dict:
+        """Skip serialization to prevent field leakage in params."""
+        # Return empty dict so the field gets excluded by exclude_none
         # The field will be added back in the component's get() method
-        return None
+        return {}
 
 
 class XBeachBaseModel(RompyBaseModel):
@@ -100,10 +100,16 @@ class XBeachBaseModel(RompyBaseModel):
     @property
     def params(self) -> dict:
         """Return the XBeach parameters as a flat dictionary."""
+        # Identify XBeachDataBlob fields to exclude from params
+        datablob_fields = []
+        for field_name in self.model_fields_set:
+            field_value = getattr(self, field_name, None)
+            if isinstance(field_value, XBeachDataBlob):
+                datablob_fields.append(field_name)
+        
         return self.model_dump(
-            exclude=["model_type"],
+            exclude=["model_type"] + datablob_fields,
             exclude_none=True,
-            exclude_unset=True,
             by_alias=True,
         )
 

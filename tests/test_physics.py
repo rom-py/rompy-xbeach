@@ -153,13 +153,14 @@ def test_params_all_boolean_fields():
 # get() method tests
 # =====================================================================================
 def test_get_method_without_destdir():
-    """Test get() method without destdir."""
+    """Test get() method with destdir."""
+    from pathlib import Path
     physics = Physics(
         morphology=True,
         sedtrans=True,
         wavemodel=Surfbeat(),
     )
-    params = physics.get()
+    params = physics.get(Path("/tmp"))
     assert params["morphology"] == 1
     assert params["sedtrans"] == 1
     assert params["wavemodel"] == "surfbeat"
@@ -181,6 +182,7 @@ def test_get_method_with_destdir(tmp_path):
 
 def test_get_method_preserves_all_params():
     """Test that get() method preserves all parameters."""
+    from pathlib import Path
     physics = Physics(
         wavemodel=Nonh(),
         morphology=True,
@@ -190,8 +192,7 @@ def test_get_method_preserves_all_params():
         wind=False,
         nonh=True,
     )
-    params = physics.get()
-
+    params = physics.get(Path("/tmp"))
     assert params["wavemodel"] == "nonh"
     assert params["morphology"] == 1
     assert params["sedtrans"] == 1

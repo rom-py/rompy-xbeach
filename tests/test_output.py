@@ -179,16 +179,27 @@ def test_params_with_timing_fields():
 
 
 def test_params_with_file_timing(timing_file):
-    """Test params with file-based timing."""
+    """Test params with file-based timing.
+    
+    Note: DataBlob fields are excluded from .params to prevent field leakage.
+    Use .get() to fetch files and get the file paths.
+    """
     output = Output(
         tsglobal=dict(source=str(timing_file)),
         tsmean=dict(source=str(timing_file)),
         tspoint=dict(source=str(timing_file)),
     )
     params = output.params
-    assert str(params["tsglobal"]["source"]) == str(timing_file)
-    assert str(params["tsmean"]["source"]) == str(timing_file)
-    assert str(params["tspoint"]["source"]) == str(timing_file)
+    
+    # DataBlob fields are excluded from params to prevent leakage
+    assert "tsglobal" not in params
+    assert "tsmean" not in params
+    assert "tspoint" not in params
+    
+    # But the DataBlob objects are accessible on the instance
+    assert output.tsglobal is not None
+    assert output.tsmean is not None
+    assert output.tspoint is not None
 
 
 def test_params_timings_bool_to_int():
@@ -234,9 +245,9 @@ def test_get_method_with_single_timing_file(timing_file, tmp_path):
 
     # Should have fetched the timing file
     assert "tsglobal" in params
-    fetched_file = Path(params["tsglobal"])
-
-    # File should exist in destdir
+    
+    # params contains just the filename, file should exist in destdir
+    fetched_file = tmp_path / params["tsglobal"]
     assert fetched_file.exists()
     assert fetched_file.parent == tmp_path
 
@@ -271,16 +282,15 @@ def test_get_method_with_multiple_timing_files(timing_file, tmp_path):
     assert "tsmean" in params
     assert "tspoint" in params
 
-    # All files should exist in destdir
-    global_file = Path(params["tsglobal"])
-    mean_file = Path(params["tsmean"])
-    point_file = Path(params["tspoint"])
+    # params contains just filenames, files should exist in destdir
+    global_file = tmp_path / params["tsglobal"]
+    mean_file = tmp_path / params["tsmean"]
+    point_file = tmp_path / params["tspoint"]
 
     assert global_file.exists()
     assert mean_file.exists()
     assert point_file.exists()
 
-    # All should be in destdir
     assert global_file.parent == tmp_path
     assert mean_file.parent == tmp_path
     assert point_file.parent == tmp_path
@@ -318,9 +328,9 @@ def test_get_method_preserves_other_params(timing_file, tmp_path):
     assert params["tintm"] == 3600.0
     assert params["timings"] == 1
 
-    # Timing file should be fetched
+    # Timing file should be fetched (params contains just filename)
     assert "tsglobal" in params
-    assert Path(params["tsglobal"]).exists()
+    assert (tmp_path / params["tsglobal"]).exists()
 
 
 # =====================================================================================
