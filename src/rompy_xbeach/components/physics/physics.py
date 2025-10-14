@@ -5,6 +5,13 @@ from typing import Literal, Optional, Union
 
 from pydantic import Field, model_validator
 
+from rompy_xbeach.components.physics.friction import (
+    Cf,
+    Chezy,
+    Manning,
+    WhiteColebrook,
+    WhiteColebrookGrainsize,
+)
 from rompy_xbeach.components.physics.vegetation import Vegetation
 from rompy_xbeach.components.physics.wavemodel import (
     Nonh,
@@ -54,6 +61,15 @@ class Physics(XBeachBaseModel):
     avalanching: Optional[bool] = Field(
         default=None,
         description="Turn on avalanching (XBeach default: 1)",
+    )
+    bedfriction: Optional[
+        Union[Cf, Chezy, Manning, WhiteColebrook, WhiteColebrookGrainsize]
+    ] = Field(
+        default=None,
+        description=(
+            "Bed friction formulation (XBeach default: manning)"
+        ),
+        discriminator="model_type",
     )
     cyclic: Optional[bool] = Field(
         default=None,
