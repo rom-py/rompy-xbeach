@@ -9,7 +9,7 @@ This module contains all models used by the Physics.wavemodel field, including:
 
 from pathlib import Path
 from typing import Literal, Optional, Union
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from rompy_xbeach.types import XBeachBaseModel, XBeachDataBlob
 

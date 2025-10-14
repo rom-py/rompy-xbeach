@@ -217,3 +217,43 @@ def test_white_colebrook_grainsize_with_xbeachg_params():
     assert params["friction_infiltration"] == 1
     assert params["friction_turbulence"] == 1
     assert params["fwcutoff"] == 50.0
+
+
+def test_xbeachg_params_apply_to_all_formulations():
+    """Test that XBeach-G friction parameters apply to all formulations."""
+    # Test with Manning
+    physics_manning = Physics(
+        bedfriction=Manning(
+            bedfriccoef=0.02,
+            friction_acceleration="nielsen",
+            friction_infiltration=True,
+            friction_turbulence=True,
+        )
+    )
+    params = physics_manning.params
+    assert params["bedfriction"] == "manning"
+    assert params["friction_acceleration"] == "nielsen"
+    assert params["friction_infiltration"] == 1
+    assert params["friction_turbulence"] == 1
+
+    # Test with Chezy
+    physics_chezy = Physics(
+        bedfriction=Chezy(
+            bedfriccoef=55.0,
+            friction_acceleration="mccall",
+        )
+    )
+    params = physics_chezy.params
+    assert params["bedfriction"] == "chezy"
+    assert params["friction_acceleration"] == "mccall"
+
+    # Test with WhiteColebrook
+    physics_wc = Physics(
+        bedfriction=WhiteColebrook(
+            bedfriccoef=0.05,
+            friction_infiltration=True,
+        )
+    )
+    params = physics_wc.params
+    assert params["bedfriction"] == "white-colebrook"
+    assert params["friction_infiltration"] == 1

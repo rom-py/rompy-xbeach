@@ -2,21 +2,66 @@
 
 This module contains models for bed friction formulations used to calculate
 bed shear stress in the shallow water equations.
+
 """
 
 from pathlib import Path
 from typing import Literal, Optional
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from rompy_xbeach.types import XBeachBaseModel, XBeachDataBlob
 
 
-class BedFriction(XBeachBaseModel):
+class FrictionModifiers(XBeachBaseModel):
+    """Mixin class for XBeach-G friction modification parameters.
+    
+    These parameters apply to all friction formulations and modify the
+    bed shear stress calculation through acceleration, infiltration, and
+    turbulence effects.
+    """
+    
+    fwcutoff: Optional[float] = Field(
+        default=None,
+        description=(
+            "Depth greater than which the bed friction factor is not applied "
+            "(XBeach default: 1000.0 m)"
+        ),
+        ge=0.0,
+        le=1000.0,
+    )
+    friction_acceleration: Optional[Literal["none", "mccall", "nielsen"]] = Field(
+        default=None,
+        description=(
+            "Turn on or off the effect of acceleration on bed roughness. "
+            "Applies to all friction formulations (XBeach default: none). "
+            "Options: none, mccall, nielsen"
+        ),
+    )
+    friction_infiltration: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Turn on or off the effect of infiltration on bed roughness "
+            "following Conley and Inman. Applies to all friction formulations "
+            "(XBeach default: 0)"
+        ),
+    )
+    friction_turbulence: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Turn on or off the effect of turbulence on bed roughness "
+            "following Reniers and van Thiel. Applies to all friction formulations "
+            "(XBeach default: 0)"
+        ),
+    )
+
+
+class BedFriction(FrictionModifiers):
     """Base class for bed friction formulations with common parameters.
 
     Most bed friction formulations allow specification of a friction coefficient
     either as a single value or spatially varying via a file. Additional parameters
-    control depth cutoffs and XBeach-G specific friction modifications.
+    control depth cutoffs and XBeach-G specific friction modifications that apply
+    to all friction formulations.
 
     """
 
@@ -31,15 +76,6 @@ class BedFriction(XBeachBaseModel):
             "Bed friction file with spatially varying friction coefficients. "
             "If specified, overrides bedfriccoef."
         ),
-    )
-    fwcutoff: Optional[float] = Field(
-        default=None,
-        description=(
-            "Depth greater than which the bed friction factor is not applied "
-            "(XBeach default: 1000.0 m)"
-        ),
-        ge=0.0,
-        le=1000.0,
     )
 
     def get(self, destdir: str | Path) -> dict:
@@ -118,6 +154,14 @@ class Manning(BedFriction):
         ge=0.0,
         le=1.0,
     )
+    maxcf: Optional[float] = Field(
+        default=None,
+        description=(
+            "Maximum dimensionless friction coefficient for Manning formulation "
+            "(XBeach default: no limit)"
+        ),
+        ge=0.0,
+    )
 
 
 class WhiteColebrook(BedFriction):
@@ -141,9 +185,17 @@ class WhiteColebrook(BedFriction):
         ge=0.0,
         le=1.0,
     )
+    maxcf: Optional[float] = Field(
+        default=None,
+        description=(
+            "Maximum dimensionless friction coefficient for White-Colebrook formulation "
+            "(XBeach default: no limit)"
+        ),
+        ge=0.0,
+    )
 
 
-class WhiteColebrookGrainsize(XBeachBaseModel):
+class WhiteColebrookGrainsize(FrictionModifiers):
     """White-Colebrook grain size bed friction formulation.
 
     Based on the relation between the D90 of the top bed layer and the
@@ -151,44 +203,32 @@ class WhiteColebrookGrainsize(XBeachBaseModel):
     a value for the bed friction coefficient as it is computed from the
     sediment grain size distribution.
 
-    This formulation is the XBeach-G default and supports additional
-    XBeach-G specific friction modifications for acceleration, infiltration,
-    and turbulence effects.
+    This formulation is the XBeach-G default. Like other friction formulations,
+    it supports friction limits (mincf/maxcf) and inherits XBeach-G friction
+    modifiers (fwcutoff, acceleration, infiltration, turbulence) from FrictionModifiers.
+    
+    Note: This formulation does NOT use bedfriccoef or bedfricfile as it computes
+    friction from the sediment grain size (D90).
     """
 
     model_type: Literal["white-colebrook-grainsize"] = Field(
         default="white-colebrook-grainsize",
         description="Model type discriminator",
     )
-    fwcutoff: Optional[float] = Field(
+    mincf: Optional[float] = Field(
         default=None,
         description=(
-            "Depth greater than which the bed friction factor is not applied "
-            "(XBeach default: 1000.0 m)"
+            "Minimum dimensionless friction coefficient for grain size formulation "
+            "(XBeach default: 0)"
         ),
         ge=0.0,
-        le=1000.0,
+        le=1.0,
     )
-    friction_acceleration: Optional[Literal["none", "mccall", "nielsen"]] = Field(
+    maxcf: Optional[float] = Field(
         default=None,
         description=(
-            "Turn on or off the effect of acceleration on bed roughness "
-            "(XBeach default: none). Options: none, mccall, nielsen"
+            "Maximum dimensionless friction coefficient for grain size formulation "
+            "(XBeach default: no limit)"
         ),
+        ge=0.0,
     )
-    friction_infiltration: Optional[bool] = Field(
-        default=None,
-        description=(
-            "Turn on or off the effect of infiltration on bed roughness "
-            "following Conley and Inman (XBeach default: 0)"
-        ),
-    )
-    friction_turbulence: Optional[bool] = Field(
-        default=None,
-        description=(
-            "Turn on or off the effect of turbulence on bed roughness "
-            "following Reniers and van Thiel (XBeach default: 0)"
-        ),
-    )
-    # Note: This formulation does not use bedfriccoef or bedfricfile
-    # as it computes friction from the sediment grain size (D90)
