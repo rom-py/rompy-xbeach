@@ -37,10 +37,10 @@ def test_cf_with_file(tmp_path):
     # Create a dummy friction file
     fric_file = tmp_path / "friction.txt"
     fric_file.write_text("0.005 0.006 0.007\n")
-    
+
     friction = Cf(bedfricfile={"source": str(fric_file)})
     params = friction.get(tmp_path)
-    
+
     assert "bedfricfile" in params
     assert Path(tmp_path / params["bedfricfile"]).exists()
 
@@ -85,10 +85,10 @@ def test_manning_with_file(tmp_path):
     """Test Manning formulation with friction file."""
     fric_file = tmp_path / "manning.txt"
     fric_file.write_text("0.02 0.025 0.03\n")
-    
+
     friction = Manning(bedfricfile={"source": str(fric_file)})
     params = friction.get(tmp_path)
-    
+
     assert "bedfricfile" in params
 
 
@@ -139,7 +139,7 @@ def test_bedfriccoef_range_validation():
     Cf(bedfriccoef=0.0)
     Cf(bedfriccoef=0.5)
     Chezy(bedfriccoef=100.0)  # Chezy can be larger
-    
+
     # Invalid values
     with pytest.raises(ValueError):
         Cf(bedfriccoef=-0.1)
@@ -152,7 +152,7 @@ def test_friction_serialization_in_physics():
     """Test that friction models serialize correctly in Physics context."""
     physics = Physics(bedfriction=Manning(bedfriccoef=0.025))
     params = physics.params
-    
+
     # Should have bedfriction as the discriminator value
     assert "bedfriction" in params
     assert params["bedfriction"] == "manning"
@@ -164,10 +164,10 @@ def test_friction_get_without_file(tmp_path):
     """Test get() method when no file is specified."""
     friction = Chezy(bedfriccoef=50.0)
     params = friction.get(tmp_path)
-    
+
     assert params["bedfriccoef"] == 50.0
     assert "bedfricfile" not in params
-    
+
     # No files should be created
     assert len(list(tmp_path.iterdir())) == 0
 

@@ -66,9 +66,7 @@ class Physics(XBeachBaseModel):
         Union[Cf, Chezy, Manning, WhiteColebrook, WhiteColebrookGrainsize]
     ] = Field(
         default=None,
-        description=(
-            "Bed friction formulation (XBeach default: manning)"
-        ),
+        description=("Bed friction formulation (XBeach default: manning)"),
         discriminator="model_type",
     )
     cyclic: Optional[bool] = Field(
