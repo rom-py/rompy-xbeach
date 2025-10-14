@@ -183,6 +183,13 @@ class Output(XBeachBaseModel):
         default=None,
         description="File source containing timings of point output",
     )
+    remdryoutput: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Switch to Remove dry output points from output data of zs etc "
+            "(XBeach default: False)"
+        ),
+    )
 
     @field_validator("meanvars", "globalvars", "pointvars")
     @classmethod
