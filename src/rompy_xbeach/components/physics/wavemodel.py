@@ -119,7 +119,38 @@ class ShortWaveFriction(XBeachBaseModel):
 # =============================================================================
 
 
-class Janssen(XBeachBaseModel):
+class Breaking(XBeachBaseModel):
+    """Base class for wave breaking formulations with common breaking parameters.
+
+    These parameters apply to all breaker formulations and control the breaking
+    process characteristics such as delay and viscosity effects.
+
+    """
+
+    breakerdelay: Optional[float] = Field(
+        default=None,
+        description="Switch to enable breaker delay model (XBeach default: 1.0)",
+        ge=0.0,
+        le=3.0,
+    )
+    breakviscfac: Optional[float] = Field(
+        default=None,
+        description="Factor to increase viscosity during breaking (XBeach default: 1.5)",
+        ge=1.0,
+        le=3.0,
+    )
+    breakvisclen: Optional[float] = Field(
+        default=None,
+        description=(
+            "Ratio between local depth and length scale in extra breaking viscosity "
+            "(XBeach default: 1.0)"
+        ),
+        ge=0.75,
+        le=3.0,
+    )
+
+
+class Janssen(Breaking):
     """Janssen & Battjes (2007) breaker model configuration."""
 
     model_type: Literal["janssen"] = Field(
@@ -128,7 +159,7 @@ class Janssen(XBeachBaseModel):
     )
 
 
-class Baldock(XBeachBaseModel):
+class Baldock(Breaking):
     """Baldock breaker model configuration."""
 
     model_type: Literal["baldock"] = Field(
@@ -143,7 +174,7 @@ class Baldock(XBeachBaseModel):
     )
 
 
-class Roelvink1(XBeachBaseModel):
+class Roelvink1(Breaking):
     """Roelvink (1993a) breaker model configuration."""
 
     model_type: Literal["roelvink1"] = Field(
@@ -185,7 +216,7 @@ class Roelvink2(Roelvink1):
     )
 
 
-class RoelvinkDaly(XBeachBaseModel):
+class RoelvinkDaly(Breaking):
     """Daly et al. (2010) breaker model configuration."""
 
     model_type: Literal["roelvink_daly"] = Field(
