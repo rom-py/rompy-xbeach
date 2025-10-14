@@ -132,29 +132,45 @@ class XBeachBaseModel(RompyBaseModel):
         Flat dictionary of XBeach parameters.
 
         """
-        # Identify XBeachBaseModel child components with explicit parameter fields
-        # These need special handling (e.g., Roller with 'roller' field, Vegetation with 'vegetation')
-        # Discriminated unions don't have explicit fields and are handled by the serializer
+        # Identify XBeachBaseModel child components
+        # Three types:
+        # 1. Discriminated unions (have model_type) - handled by serializer
+        # 2. Components with explicit fields (e.g., Roller with 'roller') - need extraction
+        # 3. Components without explicit fields (e.g., ShortWaveFriction) - just merge params
         components_with_explicit_fields = {}
+        components_without_explicit_fields = {}
+
         for field_name in self.model_fields_set:
             field_value = getattr(self, field_name, None)
             if isinstance(field_value, XBeachBaseModel):
+                # Check if this is a discriminated union (has model_type field)
+                if hasattr(field_value, "model_type") and not isinstance(
+                    getattr(field_value, "model_type", None), bool
+                ):
+                    # Discriminated union - will be handled by serializer
+                    continue
                 # Check if the component has a field matching the parent field name
-                if hasattr(field_value, field_name):
+                elif hasattr(field_value, field_name):
                     components_with_explicit_fields[field_name] = field_value
+                else:
+                    # Component without explicit field - just merge its params
+                    components_without_explicit_fields[field_name] = field_value
 
-        # If this component has children with explicit fields, process them
-        if components_with_explicit_fields:
-            # Serialize own fields, excluding only components with explicit fields
+        # If this component has child components, process them
+        if components_with_explicit_fields or components_without_explicit_fields:
+            # Serialize own fields, excluding child components
             # Discriminated unions are included and flattened by the serializer
+            all_components = list(components_with_explicit_fields.keys()) + list(
+                components_without_explicit_fields.keys()
+            )
             params = self.model_dump(
-                exclude=["model_type"] + list(components_with_explicit_fields.keys()),
+                exclude=["model_type"] + all_components,
                 exclude_none=True,
                 exclude_unset=True,
                 by_alias=True,
             )
 
-            # Process each component with explicit fields
+            # Process components with explicit fields
             for field_name, field_value in components_with_explicit_fields.items():
                 # Get the component's params
                 component_params = field_value.get(destdir)
@@ -169,6 +185,11 @@ class XBeachBaseModel(RompyBaseModel):
                         params[field_name] = field_param_value
 
                 # Merge remaining component params
+                params.update(component_params)
+
+            # Process components without explicit fields - just merge their params
+            for field_name, field_value in components_without_explicit_fields.items():
+                component_params = field_value.get(destdir)
                 params.update(component_params)
 
             return params

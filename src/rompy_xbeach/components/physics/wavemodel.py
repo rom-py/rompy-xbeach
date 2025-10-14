@@ -73,6 +73,7 @@ class ShortWaveFriction(XBeachBaseModel):
     for more information.
 
     """
+
     wavfriccoef: Optional[float] = Field(
         default=None,
         description=(

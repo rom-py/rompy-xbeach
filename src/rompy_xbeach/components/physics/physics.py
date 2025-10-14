@@ -6,7 +6,13 @@ from typing import Literal, Optional, Union
 from pydantic import Field, model_validator
 
 from rompy_xbeach.components.physics.vegetation import Vegetation
-from rompy_xbeach.components.physics.wavemodel import Nonh, Roller, Stationary, Surfbeat, ShortWaveFriction
+from rompy_xbeach.components.physics.wavemodel import (
+    Nonh,
+    Roller,
+    Stationary,
+    Surfbeat,
+    ShortWaveFriction,
+)
 from rompy_xbeach.types import XBeachBaseModel
 
 
