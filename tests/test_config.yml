@@ -85,6 +85,9 @@ physics:
       source: /source/csiro/rompy-xbeach/tests/data/wind.csv
   wavfric:
     wavfriccoef: 0.1
+  bedfriction:
+    model_type: cf
+    bedfriccoef: 0.01
   wci: False
   sedtrans: False
   morphology: 0

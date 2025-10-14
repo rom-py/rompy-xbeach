@@ -17,6 +17,7 @@ class BedFriction(XBeachBaseModel):
     Most bed friction formulations allow specification of a friction coefficient
     either as a single value or spatially varying via a file. Additional parameters
     control depth cutoffs and XBeach-G specific friction modifications.
+
     """
 
     bedfriccoef: Optional[float] = Field(
@@ -62,6 +63,12 @@ class BedFriction(XBeachBaseModel):
             params["bedfricfile"] = self.bedfricfile.get(destdir).name
 
         return params
+
+    @model_validator(mode="after")
+    def check_mutually_exclusive(self):
+        if self.bedfriccoef is not None and self.bedfricfile is not None:
+            raise ValueError("Only one of bedfriccoef or bedfricfile can be specified.")
+        return self
 
 
 class Cf(BedFriction):

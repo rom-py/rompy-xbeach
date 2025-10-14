@@ -113,6 +113,12 @@ class ShortWaveFriction(XBeachBaseModel):
 
         return params
 
+    @model_validator(mode="after")
+    def check_mutually_exclusive(self):
+        if self.wavfriccoef is not None and self.wavfricfile is not None:
+            raise ValueError("Only one of wavfriccoef or wavfricfile can be specified.")
+        return self
+
 
 # =============================================================================
 # Breaker Formulation Models
