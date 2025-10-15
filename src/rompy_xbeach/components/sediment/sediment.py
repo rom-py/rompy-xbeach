@@ -1,0 +1,151 @@
+"""XBeach sediment and morphology configuration."""
+
+import logging
+from typing import Literal, Optional
+
+from pydantic import Field
+
+from rompy_xbeach.components.sediment.bed import BedComposition, Quasi3D
+from rompy_xbeach.components.sediment.morphology import (
+    Avalanching,
+    Morphology,
+    PrescribedBathymetry,
+)
+from rompy_xbeach.components.sediment.transport import (
+    BedSlopeEffect,
+    SedimentFormulation,
+    TransportCalibration,
+    TransportNumerics,
+    TransportProcesses,
+)
+from rompy_xbeach.types import XBeachBaseModel
+
+
+logger = logging.getLogger(__name__)
+
+
+class Sediment(XBeachBaseModel):
+    """XBeach sediment transport and morphology configuration.
+    
+    This component groups all sediment-related parameters including:
+    - Sediment transport formulations and processes
+    - Bed slope effects
+    - Morphological evolution (morfac, time windows)
+    - Avalanching
+    - Bed composition and layering
+    - Quasi-3D sediment transport
+    - Prescribed bathymetry evolution
+    
+    All fields default to None, meaning XBeach's default values will be used
+    unless explicitly specified.
+    
+    Examples
+    --------
+    >>> from rompy_xbeach.components.sediment import Sediment
+    >>> from rompy_xbeach.components.sediment.transport import SedimentFormulation
+    >>> from rompy_xbeach.components.sediment.morphology import Morphology
+    >>> 
+    >>> sediment = Sediment(
+    ...     formulation=SedimentFormulation(
+    ...         form="vanthiel_vanrijn",
+    ...         facua=0.15,
+    ...     ),
+    ...     morphology=Morphology(
+    ...         morfac=10.0,
+    ...         morstart=0.0,
+    ...         morstop=3600.0,
+    ...     ),
+    ... )
+    
+    See Also
+    --------
+    rompy_xbeach.components.sediment.transport : Sediment transport parameters
+    rompy_xbeach.components.sediment.morphology : Morphology parameters
+    rompy_xbeach.components.sediment.bed : Bed composition parameters
+    
+    References
+    ----------
+    Roelvink, D., & Reniers, A. (2011). A guide to modeling coastal morphology.
+    Advances in Coastal and Ocean Engineering, Vol. 12.
+    """
+    
+    model_type: Literal["sediment"] = Field(
+        default="sediment",
+        description="Model type discriminator",
+    )
+    
+    # Sediment transport
+    formulation: Optional[SedimentFormulation] = Field(
+        default=None,
+        description=(
+            "Sediment transport formulation and wave form parameters "
+            "(form, waveform, facAs, facSk, facua, z0)"
+        ),
+    )
+    bed_slope: Optional[BedSlopeEffect] = Field(
+        default=None,
+        description=(
+            "Bed slope effect parameters "
+            "(bdslpeffmag, bdslpeffdir, bdslpeffdirfac, bdslpeffini, facsl, reposeangle)"
+        ),
+    )
+    processes: Optional[TransportProcesses] = Field(
+        default=None,
+        description=(
+            "Sediment transport process switches "
+            "(sws, lws, lwt, turb, turbadv, bed, sus, bulk, fallvelred, dilatancy)"
+        ),
+    )
+    calibration: Optional[TransportCalibration] = Field(
+        default=None,
+        description=(
+            "Advanced sediment transport calibration parameters "
+            "(Tsmin, tsfac, facDc, Tbfac, BRfac, betad, smax, phit, ci, cm, etc.)"
+        ),
+    )
+    numerics: Optional[TransportNumerics] = Field(
+        default=None,
+        description=(
+            "Sediment transport numerical parameters "
+            "(cmax, sourcesink, thetanum, dtlimts, oldTsmin)"
+        ),
+    )
+    
+    # Morphology
+    morphology: Optional[Morphology] = Field(
+        default=None,
+        description=(
+            "Morphological evolution parameters "
+            "(morfac, morfacopt, morstart, morstop, lsgrad, struct, ne_layer)"
+        ),
+    )
+    avalanching: Optional[Avalanching] = Field(
+        default=None,
+        description=(
+            "Avalanching parameters "
+            "(dryslp, wetslp, hswitch, dzmax)"
+        ),
+    )
+    prescribed_bathy: Optional[PrescribedBathymetry] = Field(
+        default=None,
+        description=(
+            "Prescribed bathymetry evolution parameters "
+            "(nsetbathy, setbathyfile)"
+        ),
+    )
+    
+    # Bed composition
+    bed_composition: Optional[BedComposition] = Field(
+        default=None,
+        description=(
+            "Bed composition and layering parameters "
+            "(frac_dz, split, merge, nd_var)"
+        ),
+    )
+    quasi3d: Optional[Quasi3D] = Field(
+        default=None,
+        description=(
+            "Quasi-3D sediment transport parameters "
+            "(kmax, sigfac, deltar, rwave, vonkar, vicmol)"
+        ),
+    )

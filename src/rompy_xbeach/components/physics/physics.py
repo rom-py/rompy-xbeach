@@ -5,12 +5,23 @@ from typing import Literal, Optional, Union
 
 from pydantic import Field, model_validator
 
+from rompy_xbeach.components.physics.boundary import WaveBoundaryConditions
+from rompy_xbeach.components.physics.constants import Coriolis, PhysicalConstants
+from rompy_xbeach.components.physics.flow import (
+    FlowNumerics,
+    HorizontalViscosity,
+    WaveCurrentInteraction,
+)
 from rompy_xbeach.components.physics.friction import (
     Cf,
     Chezy,
     Manning,
     WhiteColebrook,
     WhiteColebrookGrainsize,
+)
+from rompy_xbeach.components.physics.numerics import (
+    NonHydrostaticNumerics,
+    WaveNumerics,
 )
 from rompy_xbeach.components.physics.vegetation import Vegetation
 from rompy_xbeach.components.physics.wavemodel import (
@@ -169,6 +180,45 @@ class Physics(XBeachBaseModel):
     wind: Optional[bool] = Field(
         default=None,
         description="Include wind in flow solver (XBeach default: 1)",
+    )
+    viscosity_params: Optional[HorizontalViscosity] = Field(
+        default=None,
+        description="Horizontal viscosity parameters (nuh, smag, nuhv, gamma_turb)",
+    )
+    wci_params: Optional[WaveCurrentInteraction] = Field(
+        default=None,
+        description="Wave-current interaction parameters (cats, hwci, hwcimax)",
+    )
+    flow_numerics: Optional[FlowNumerics] = Field(
+        default=None,
+        description=(
+            "Flow numerical parameters (eps, hmin, deltahmin, umin, secorder, etc.)"
+        ),
+    )
+    wave_numerics: Optional[WaveNumerics] = Field(
+        default=None,
+        description="Wave numerical parameters (scheme, maxiter, maxerror, wavint)",
+    )
+    wave_boundary: Optional[WaveBoundaryConditions] = Field(
+        default=None,
+        description=(
+            "Wave boundary condition parameters (nmax, wbcevarreduce, bclwonly, etc.)"
+        ),
+    )
+    nonhydrostatic_numerics: Optional[NonHydrostaticNumerics] = Field(
+        default=None,
+        description=(
+            "Non-hydrostatic solver parameters (solver, solver_acc, maxbrsteep, etc.). "
+            "Only applies when wavemodel=nonh or nonh=1"
+        ),
+    )
+    constants: Optional[PhysicalConstants] = Field(
+        default=None,
+        description="Physical constants (g, rho, depthscale)",
+    )
+    coriolis: Optional[Coriolis] = Field(
+        default=None,
+        description="Coriolis force parameters (lat, wearth)",
     )
 
     @model_validator(mode="after")

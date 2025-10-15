@@ -129,7 +129,7 @@ class Breaking(XBeachBaseModel):
     """Base class for wave breaking formulations with common breaking parameters.
 
     These parameters apply to all breaker formulations and control the breaking
-    process characteristics such as delay and viscosity effects.
+    process characteristics such as delay, viscosity effects, and wave runup.
 
     """
 
@@ -153,6 +153,40 @@ class Breaking(XBeachBaseModel):
         ),
         ge=0.75,
         le=3.0,
+    )
+    facrun: Optional[float] = Field(
+        default=None,
+        description=(
+            "Calibration coefficient for short wave runup "
+            "(XBeach default: 1.0)"
+        ),
+        ge=0.0,
+        le=2.0,
+    )
+    facsd: Optional[float] = Field(
+        default=None,
+        description=(
+            "Fraction of the local wave length to use for shoaling delay depth "
+            "(XBeach default: 1.0)"
+        ),
+        ge=0.0,
+        le=2.0,
+    )
+    gammax: Optional[float] = Field(
+        default=None,
+        description=(
+            "Maximum ratio of wave height to water depth "
+            "(XBeach default: 2.0)"
+        ),
+        ge=0.4,
+        le=5.0,
+    )
+    shoaldelay: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Switch to enable shoaling delay "
+            "(XBeach default: 0)"
+        ),
     )
 
 
