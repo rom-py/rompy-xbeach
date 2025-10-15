@@ -157,8 +157,7 @@ class Breaking(XBeachBaseModel):
     facrun: Optional[float] = Field(
         default=None,
         description=(
-            "Calibration coefficient for short wave runup "
-            "(XBeach default: 1.0)"
+            "Calibration coefficient for short wave runup (XBeach default: 1.0)"
         ),
         ge=0.0,
         le=2.0,
@@ -175,18 +174,14 @@ class Breaking(XBeachBaseModel):
     gammax: Optional[float] = Field(
         default=None,
         description=(
-            "Maximum ratio of wave height to water depth "
-            "(XBeach default: 2.0)"
+            "Maximum ratio of wave height to water depth (XBeach default: 2.0)"
         ),
         ge=0.4,
         le=5.0,
     )
     shoaldelay: Optional[bool] = Field(
         default=None,
-        description=(
-            "Switch to enable shoaling delay "
-            "(XBeach default: 0)"
-        ),
+        description=("Switch to enable shoaling delay (XBeach default: 0)"),
     )
 
 

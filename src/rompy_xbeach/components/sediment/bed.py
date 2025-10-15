@@ -11,15 +11,15 @@ from rompy_xbeach.types import XBeachBaseModel
 
 class BedComposition(XBeachBaseModel):
     """Bed composition and layering parameters.
-    
+
     Controls the vertical structure of the bed when using multiple sediment
     fractions and bed layers. Parameters determine when layers split or merge
     based on their thickness relative to nominal values.
-    
+
     The variable thickness layer (specified by nd_var) can grow or shrink
     during the simulation to accommodate sediment deposition or erosion.
     """
-    
+
     frac_dz: Optional[float] = Field(
         default=None,
         description=(
@@ -52,8 +52,7 @@ class BedComposition(XBeachBaseModel):
     nd_var: Optional[int] = Field(
         default=None,
         description=(
-            "Index of layer with variable thickness (1-indexed) "
-            "(XBeach default: 2)"
+            "Index of layer with variable thickness (1-indexed) (XBeach default: 2)"
         ),
         ge=1,
     )
@@ -61,21 +60,21 @@ class BedComposition(XBeachBaseModel):
 
 class Quasi3D(XBeachBaseModel):
     """Quasi-3D sediment transport parameters.
-    
+
     Controls the vertical structure of flow and sediment concentration when
     quasi-3D mode is enabled (q3d=1). The vertical domain is divided into
     sigma layers with specified distribution.
-    
+
     The quasi-3D model resolves vertical variations in horizontal velocity
     and sediment concentration, improving accuracy for situations with strong
     vertical gradients.
-    
+
     References
     ----------
     Van Thiel de Vries, J. S. M. (2009). Dune erosion during storm surges.
     PhD thesis, Delft University of Technology.
     """
-    
+
     kmax: Optional[int] = Field(
         default=None,
         description=(
@@ -106,27 +105,20 @@ class Quasi3D(XBeachBaseModel):
     rwave: Optional[float] = Field(
         default=None,
         description=(
-            "User-defined wave roughness adjustment factor "
-            "(XBeach default: 2.0)"
+            "User-defined wave roughness adjustment factor (XBeach default: 2.0)"
         ),
         ge=0.1,
         le=10.0,
     )
     vonkar: Optional[float] = Field(
         default=None,
-        description=(
-            "Von Karman constant "
-            "(XBeach default: 0.4)"
-        ),
+        description=("Von Karman constant (XBeach default: 0.4)"),
         ge=0.01,
         le=1.0,
     )
     vicmol: Optional[float] = Field(
         default=None,
-        description=(
-            "Molecular viscosity "
-            "(XBeach default: 1e-06 m²/s)"
-        ),
+        description=("Molecular viscosity (XBeach default: 1e-06 m²/s)"),
         ge=0.0,
         le=0.001,
     )

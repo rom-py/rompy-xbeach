@@ -13,19 +13,19 @@ from rompy_xbeach.types import XBeachBaseModel, XBeachDataBlob
 
 class Morphology(XBeachBaseModel):
     """Morphological evolution parameters.
-    
+
     Controls morphological time acceleration (morfac), the period during which
     morphology is active, and non-erodible structures.
-    
+
     The morfac parameter allows decoupling of hydrodynamic and morphological time
     scales, enabling faster simulation of slow morphological processes.
-    
+
     References
     ----------
     Roelvink, D. (2006). Coastal morphodynamic evolution techniques.
     Coastal Engineering, 53(2-3), 277-287.
     """
-    
+
     morfac: Optional[float] = Field(
         default=None,
         description=(
@@ -47,16 +47,14 @@ class Morphology(XBeachBaseModel):
     morstart: Optional[float] = Field(
         default=None,
         description=(
-            "Start time for morphology in morphological time "
-            "(XBeach default: 0.0 s)"
+            "Start time for morphology in morphological time (XBeach default: 0.0 s)"
         ),
         ge=0.0,
     )
     morstop: Optional[float] = Field(
         default=None,
         description=(
-            "Stop time for morphology in morphological time "
-            "(XBeach default: 2000.0 s)"
+            "Stop time for morphology in morphological time (XBeach default: 2000.0 s)"
         ),
         ge=0.0,
         le=10000000.0,
@@ -86,15 +84,15 @@ class Morphology(XBeachBaseModel):
             "of erodible layer on top of non-erodible layer (m)"
         ),
     )
-    
+
     def get(self, destdir: str | Path) -> dict:
         """Fetch external ne_layer file if specified, and return the params dict.
-        
+
         Parameters
         ----------
         destdir : str | Path
             Destination directory for fetching files.
-        
+
         Returns
         -------
         dict
@@ -102,25 +100,25 @@ class Morphology(XBeachBaseModel):
         """
         # Get base params (XBeachDataBlob fields are automatically excluded by serializer)
         params = super().get(destdir)
-        
+
         # Fetch DataBlob file and add the fetched file path
         if self.ne_layer:
             params["ne_layer"] = self.ne_layer.get(destdir).name
-        
+
         return params
 
 
 class Avalanching(XBeachBaseModel):
     """Avalanching parameters.
-    
+
     Controls critical avalanching slopes above and below water, and limits
     on bed level change due to avalanching.
-    
+
     When bed slopes exceed the critical slope, the bed collapses and slides
     downward (avalanching). Different critical slopes apply above and below
     water due to different effective friction.
     """
-    
+
     dryslp: Optional[float] = Field(
         default=None,
         description=(
@@ -161,25 +159,24 @@ class Avalanching(XBeachBaseModel):
 
 class PrescribedBathymetry(XBeachBaseModel):
     """Prescribed bathymetry evolution parameters.
-    
+
     Allows specification of pre-defined bed evolution time series, useful for
     imposing known morphological changes or testing model response to specific
     bathymetric scenarios.
-    
+
     When setbathy is enabled, XBeach interpolates bed levels from the time series
     at each computational time step, overriding computed morphological change.
-    
+
     Note
     ----
     It is strongly advised to turn off morphology computation (morphology=0)
     when using setbathy, as computed changes will be overridden.
     """
-    
+
     nsetbathy: Optional[int] = Field(
         default=None,
         description=(
-            "Number of prescribed bed updates in setbathyfile "
-            "(XBeach default: 1)"
+            "Number of prescribed bed updates in setbathyfile (XBeach default: 1)"
         ),
         ge=1,
         le=1000,
@@ -192,7 +189,7 @@ class PrescribedBathymetry(XBeachBaseModel):
             "at every grid point in same format as initial bathymetry file"
         ),
     )
-    
+
     @model_validator(mode="after")
     def validate_setbathy_consistency(self) -> "PrescribedBathymetry":
         """Validate that nsetbathy is specified if setbathyfile is provided."""
@@ -202,15 +199,15 @@ class PrescribedBathymetry(XBeachBaseModel):
                 "It defines the number of bed update time steps in the file."
             )
         return self
-    
+
     def get(self, destdir: str | Path) -> dict:
         """Fetch external setbathyfile if specified, and return the params dict.
-        
+
         Parameters
         ----------
         destdir : str | Path
             Destination directory for fetching files.
-        
+
         Returns
         -------
         dict
@@ -218,9 +215,9 @@ class PrescribedBathymetry(XBeachBaseModel):
         """
         # Get base params (XBeachDataBlob fields are automatically excluded by serializer)
         params = super().get(destdir)
-        
+
         # Fetch DataBlob file and add the fetched file path
         if self.setbathyfile:
             params["setbathyfile"] = self.setbathyfile.get(destdir).name
-        
+
         return params

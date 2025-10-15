@@ -11,25 +11,21 @@ from rompy_xbeach.types import XBeachBaseModel
 
 class PhysicalConstants(XBeachBaseModel):
     """Physical constants used in XBeach computations.
-    
+
     These fundamental physical constants are used throughout XBeach calculations.
     The depthscale parameter allows scaling of various depth-related thresholds
     for laboratory-scale simulations.
     """
-    
+
     g: Optional[float] = Field(
         default=None,
-        description=(
-            "Gravitational acceleration (XBeach default: 9.81 m/s²)"
-        ),
+        description=("Gravitational acceleration (XBeach default: 9.81 m/s²)"),
         ge=9.7,
         le=9.9,
     )
     rho: Optional[float] = Field(
         default=None,
-        description=(
-            "Density of water (XBeach default: 1025.0 kg/m³ for seawater)"
-        ),
+        description=("Density of water (XBeach default: 1025.0 kg/m³ for seawater)"),
         ge=1000.0,
         le=1040.0,
     )
@@ -47,14 +43,14 @@ class PhysicalConstants(XBeachBaseModel):
 
 class Coriolis(XBeachBaseModel):
     """Coriolis force parameters.
-    
+
     The Coriolis force affects the shallow water equations and becomes important
     for large-scale coastal applications or long simulation times. The effect
     depends on the latitude of the model location.
-    
+
     The Coriolis parameter f is calculated as: f = 2 * wearth * sin(lat)
     """
-    
+
     lat: Optional[float] = Field(
         default=None,
         description=(

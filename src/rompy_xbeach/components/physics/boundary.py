@@ -12,14 +12,14 @@ from rompy_xbeach.types import XBeachBaseModel
 
 class WaveBoundaryConditions(XBeachBaseModel):
     """Wave boundary condition parameters.
-    
+
     These parameters control how short waves (wave action balance) and long waves
     (infragravity waves) are specified and handled at the offshore boundary.
-    
+
     The boundary conditions affect wave generation, energy scaling, and the
     treatment of Stokes drift and wave group variance at the boundary.
     """
-    
+
     nmax: Optional[float] = Field(
         default=None,
         description=(
@@ -41,8 +41,7 @@ class WaveBoundaryConditions(XBeachBaseModel):
     bclwonly: Optional[bool] = Field(
         default=None,
         description=(
-            "Switch to run boundary conditions with long waves only "
-            "(XBeach default: 0)"
+            "Switch to run boundary conditions with long waves only (XBeach default: 0)"
         ),
     )
     swkhmin: Optional[float] = Field(

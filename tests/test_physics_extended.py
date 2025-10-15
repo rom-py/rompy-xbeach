@@ -194,40 +194,40 @@ def test_physics_with_all_new_components():
             lat=-33.5,
         ),
     )
-    
+
     # Use get() method which flattens nested components
     params = physics.get(destdir="/tmp")
-    
+
     # Check viscosity params
     assert params["smag"] == 1
     assert params["nuh"] == 0.1
     assert params["nuhv"] == 1.5
     assert params["gamma_turb"] == 1.0
-    
+
     # Check WCI params
     assert params["cats"] == 5.0
     assert params["hwci"] == 0.15
     assert params["hwcimax"] == 80.0
-    
+
     # Check flow numerics
     assert params["eps"] == 0.005
     assert params["hmin"] == 0.05
     assert params["deltahmin"] == 0.1
     assert params["umin"] == 0.01
-    
+
     # Check wave numerics
     assert params["scheme"] == "warmbeam"
     assert params["maxiter"] == 500
     assert params["maxerror"] == 0.0005
-    
+
     # Check wave boundary
     assert params["nmax"] == 0.8
     assert params["wbcScaleEnergy"] == 1
-    
+
     # Check constants
     assert params["g"] == 9.81
     assert params["rho"] == 1025.0
-    
+
     # Check Coriolis
     assert params["lat"] == -33.5
 
@@ -243,7 +243,7 @@ def test_physics_nonhydrostatic_numerics():
             nhbreaker=2,
         ),
     )
-    
+
     # Use get() method which flattens nested components
     params = physics.get(destdir="/tmp")
     assert params["nonh"] == 1
@@ -258,19 +258,19 @@ def test_validation_ranges():
     # Test valid ranges
     visc = HorizontalViscosity(nuh=0.5, nuhv=10.0, gamma_turb=1.5)
     assert visc.nuh == 0.5
-    
+
     # Test invalid ranges
     with pytest.raises(ValueError):
         HorizontalViscosity(nuh=2.0)  # > 1.0
-    
+
     with pytest.raises(ValueError):
         WaveCurrentInteraction(cats=100.0)  # > 50.0
-    
+
     with pytest.raises(ValueError):
         FlowNumerics(eps=0.5)  # > 0.1
-    
+
     with pytest.raises(ValueError):
         PhysicalConstants(g=10.0)  # > 9.9
-    
+
     with pytest.raises(ValueError):
         Coriolis(lat=100.0)  # > 90.0

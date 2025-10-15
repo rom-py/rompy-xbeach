@@ -14,12 +14,12 @@ from rompy_xbeach.types import XBeachBaseModel, XBeachDataBlob
 
 class FrictionModifiers(XBeachBaseModel):
     """Mixin class for XBeach-G friction modification parameters.
-    
+
     These parameters apply to all friction formulations and modify the
     bed shear stress calculation through acceleration, infiltration, and
     turbulence effects.
     """
-    
+
     fwcutoff: Optional[float] = Field(
         default=None,
         description=(
@@ -206,7 +206,7 @@ class WhiteColebrookGrainsize(FrictionModifiers):
     This formulation is the XBeach-G default. Like other friction formulations,
     it supports friction limits (mincf/maxcf) and inherits XBeach-G friction
     modifiers (fwcutoff, acceleration, infiltration, turbulence) from FrictionModifiers.
-    
+
     Note: This formulation does NOT use bedfriccoef or bedfricfile as it computes
     friction from the sediment grain size (D90).
     """

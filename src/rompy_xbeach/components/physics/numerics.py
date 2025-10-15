@@ -12,27 +12,29 @@ from rompy_xbeach.types import XBeachBaseModel
 
 class WaveNumerics(XBeachBaseModel):
     """Wave action balance numerical parameters.
-    
+
     These parameters control the numerical aspects of the wave action balance
     solver, including the numerical scheme and convergence criteria.
-    
+
     The Warming and Beam (1976) scheme is used by default to overcome undesired
     effects of steepening of wave groups through a small additional diffusion term.
-    
+
     References
     ----------
     Beam, R. M., & Warming, R. F. (1976). An implicit finite-difference algorithm
     for hyperbolic systems in conservation-law form. Journal of computational
     physics, 22(1), 87-110.
     """
-    
-    scheme: Optional[Literal["upwind_1", "lax_wendroff", "upwind_2", "warmbeam"]] = Field(
-        default=None,
-        description=(
-            "Numerical scheme for wave propagation. Options: "
-            "upwind_1 (first-order upwind), lax_wendroff (Lax-Wendroff), "
-            "upwind_2 (second-order upwind), warmbeam (Warming-Beam, default)"
-        ),
+
+    scheme: Optional[Literal["upwind_1", "lax_wendroff", "upwind_2", "warmbeam"]] = (
+        Field(
+            default=None,
+            description=(
+                "Numerical scheme for wave propagation. Options: "
+                "upwind_1 (first-order upwind), lax_wendroff (Lax-Wendroff), "
+                "upwind_2 (second-order upwind), warmbeam (Warming-Beam, default)"
+            ),
+        )
     )
     maxiter: Optional[int] = Field(
         default=None,
@@ -65,14 +67,14 @@ class WaveNumerics(XBeachBaseModel):
 
 class NonHydrostaticNumerics(XBeachBaseModel):
     """Non-hydrostatic solver numerical parameters.
-    
+
     These parameters control the non-hydrostatic pressure correction solver,
     including the linear solver method, convergence criteria, and wave breaking
     detection in non-hydrostatic mode.
-    
+
     These parameters only apply when wavemodel='nonh' or nonh=1.
     """
-    
+
     solver: Optional[Literal["sip", "tridiag"]] = Field(
         default=None,
         description=(
@@ -92,8 +94,7 @@ class NonHydrostaticNumerics(XBeachBaseModel):
     solver_maxit: Optional[int] = Field(
         default=None,
         description=(
-            "Maximum number of iterations in the linear SIP solver "
-            "(XBeach default: 30)"
+            "Maximum number of iterations in the linear SIP solver (XBeach default: 30)"
         ),
         ge=1,
         le=1000,
@@ -101,8 +102,7 @@ class NonHydrostaticNumerics(XBeachBaseModel):
     solver_urelax: Optional[float] = Field(
         default=None,
         description=(
-            "Under-relaxation parameter for SIP solver "
-            "(XBeach default: 0.92)"
+            "Under-relaxation parameter for SIP solver (XBeach default: 0.92)"
         ),
         ge=0.5,
         le=0.99,
@@ -127,18 +127,14 @@ class NonHydrostaticNumerics(XBeachBaseModel):
     )
     kdmin: Optional[float] = Field(
         default=None,
-        description=(
-            "Minimum value of kd (pi/dx > min(kd)) "
-            "(XBeach default: 0.0)"
-        ),
+        description=("Minimum value of kd (pi/dx > min(kd)) (XBeach default: 0.0)"),
         ge=0.0,
         le=0.05,
     )
     nhlay: Optional[float] = Field(
         default=None,
         description=(
-            "Layer distribution in the non-hydrostatic model "
-            "(XBeach default: 0.33)"
+            "Layer distribution in the non-hydrostatic model (XBeach default: 0.33)"
         ),
         ge=0.0,
         le=1.0,

@@ -220,40 +220,40 @@ def test_sediment_component_with_all_subcomponents():
             kmax=50,
         ),
     )
-    
+
     # Use get() to flatten nested components
     params = sediment.get(destdir="/tmp")
-    
+
     # Check formulation params
     assert params["form"] == "vanthiel_vanrijn"
     assert params["facua"] == 0.15
-    
+
     # Check bed slope params
     assert params["bdslpeffmag"] == "roelvink_total"
     assert params["facsl"] == 1.6
-    
+
     # Check process params
     assert params["sws"] == 1
     assert params["lws"] == 1
-    
+
     # Check calibration params
     assert params["Tsmin"] == 0.5
     assert params["tsfac"] == 0.1
-    
+
     # Check numerics params
     assert params["cmax"] == 0.1
-    
+
     # Check morphology params
     assert params["morfac"] == 10.0
     assert params["morstart"] == 0.0
-    
+
     # Check avalanching params
     assert params["dryslp"] == 1.0
     assert params["wetslp"] == 0.3
-    
+
     # Check bed composition params
     assert params["frac_dz"] == 0.7
-    
+
     # Check quasi3d params
     assert params["kmax"] == 50
 
@@ -263,29 +263,27 @@ def test_validation_ranges():
     # Test valid ranges
     formulation = SedimentFormulation(facAs=0.5, facSk=0.3)
     assert formulation.facAs == 0.5
-    
+
     # Test invalid ranges
     with pytest.raises(ValueError):
         SedimentFormulation(facAs=1.5)  # > 1.0
-    
+
     with pytest.raises(ValueError):
         Morphology(morfac=2000.0)  # > 1000.0
-    
+
     with pytest.raises(ValueError):
         Avalanching(dryslp=3.0)  # > 2.0
-    
+
     with pytest.raises(ValueError):
         TransportNumerics(cmax=1.5)  # > 1.0
-    
+
     with pytest.raises(ValueError):
         Quasi3D(kmax=2000)  # > 1000
 
 
 def test_sediment_minimal_configuration():
     """Test Sediment with minimal configuration."""
-    sediment = Sediment(
-        morphology=Morphology(morfac=5.0)
-    )
+    sediment = Sediment(morphology=Morphology(morfac=5.0))
     params = sediment.get(destdir="/tmp")
     assert params["morfac"] == 5.0
     assert len(params) == 1

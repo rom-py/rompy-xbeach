@@ -82,19 +82,19 @@ class HorizontalViscosity(XBeachBaseModel):
 
 class WaveCurrentInteraction(XBeachBaseModel):
     """Wave-current interaction parameters.
-    
+
     Wave-current interaction (WCI) accounts for the feedback of currents on wave
     propagation. When enabled, currents affect the wave celerity and direction
     through Doppler shifting.
-    
+
     The WCI computation is limited to specific depth ranges (hwci to hwcimax) to
     avoid numerical issues in very shallow or deep water.
-    
+
     References
     ----------
     Dingemans et al. (1987). Water wave propagation over uneven bottoms.
     """
-    
+
     cats: Optional[float] = Field(
         default=None,
         description=(
@@ -126,14 +126,14 @@ class WaveCurrentInteraction(XBeachBaseModel):
 
 class FlowNumerics(XBeachBaseModel):
     """Flow numerical parameters.
-    
+
     These parameters control numerical aspects of the shallow water equations,
     particularly handling of very shallow water and wet/dry transitions.
-    
+
     The threshold parameters (eps, hmin, umin) prevent unrealistic behavior in
     shallow water by setting minimum values for depth and velocity calculations.
     """
-    
+
     eps: Optional[float] = Field(
         default=None,
         description=(
@@ -198,8 +198,5 @@ class FlowNumerics(XBeachBaseModel):
     )
     oldhu: Optional[bool] = Field(
         default=None,
-        description=(
-            "Switch to enable old hu calculation "
-            "(XBeach default: 0)"
-        ),
+        description=("Switch to enable old hu calculation (XBeach default: 0)"),
     )

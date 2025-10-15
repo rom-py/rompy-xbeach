@@ -11,11 +11,11 @@ from rompy_xbeach.types import XBeachBaseModel
 
 class SedimentFormulation(XBeachBaseModel):
     """Sediment transport formulation configuration.
-    
+
     XBeach supports multiple equilibrium sediment concentration formulations
     and wave form models that affect sediment transport through wave asymmetry
     and skewness effects.
-    
+
     References
     ----------
     Soulsby, R. (1997). Dynamics of marine sands.
@@ -23,19 +23,20 @@ class SedimentFormulation(XBeachBaseModel):
     and coastal seas.
     Van Thiel de Vries, J. S. M. (2009). Dune erosion during storm surges.
     """
-    
-    form: Optional[Literal["soulsby_vanrijn", "vanthiel_vanrijn", "vanrijn1993"]] = Field(
-        default=None,
-        description=(
-            "Equilibrium sediment concentration formulation "
-            "(XBeach default: vanthiel_vanrijn)"
-        ),
+
+    form: Optional[Literal["soulsby_vanrijn", "vanthiel_vanrijn", "vanrijn1993"]] = (
+        Field(
+            default=None,
+            description=(
+                "Equilibrium sediment concentration formulation "
+                "(XBeach default: vanthiel_vanrijn)"
+            ),
+        )
     )
     waveform: Optional[Literal["ruessink_vanrijn", "vanthiel"]] = Field(
         default=None,
         description=(
-            "Wave shape model for asymmetry and skewness "
-            "(XBeach default: vanthiel)"
+            "Wave shape model for asymmetry and skewness (XBeach default: vanthiel)"
         ),
     )
     facAs: Optional[float] = Field(
@@ -79,12 +80,12 @@ class SedimentFormulation(XBeachBaseModel):
 
 class BedSlopeEffect(XBeachBaseModel):
     """Bed slope effect on sediment transport.
-    
+
     Bed slopes affect sediment transport in three ways:
     1. Magnitude modification (bdslpeffmag)
     2. Direction modification (bdslpeffdir)
     3. Critical shields parameter modification (bdslpeffini)
-    
+
     References
     ----------
     Roelvink, D., & Reniers, A. (2011). A guide to modeling coastal morphology.
@@ -92,9 +93,11 @@ class BedSlopeEffect(XBeachBaseModel):
     Talmon, A. M., et al. (1995). Laboratory measurements of the direction of
     sediment transport on transverse alluvial-bed slopes.
     """
-    
+
     bdslpeffmag: Optional[
-        Literal["none", "roelvink_total", "roelvink_bed", "soulsby_total", "soulsby_bed"]
+        Literal[
+            "none", "roelvink_total", "roelvink_bed", "soulsby_total", "soulsby_bed"
+        ]
     ] = Field(
         default=None,
         description=(
@@ -127,19 +130,13 @@ class BedSlopeEffect(XBeachBaseModel):
     )
     facsl: Optional[float] = Field(
         default=None,
-        description=(
-            "Factor for bed slope effect "
-            "(XBeach default: 1.6)"
-        ),
+        description=("Factor for bed slope effect (XBeach default: 1.6)"),
         ge=0.0,
         le=1.6,
     )
     reposeangle: Optional[float] = Field(
         default=None,
-        description=(
-            "Angle of internal friction "
-            "(XBeach default: 30.0 degrees)"
-        ),
+        description=("Angle of internal friction (XBeach default: 30.0 degrees)"),
         ge=0.0,
         le=45.0,
     )
@@ -147,12 +144,12 @@ class BedSlopeEffect(XBeachBaseModel):
 
 class TransportProcesses(XBeachBaseModel):
     """Sediment transport process switches and calibration factors.
-    
+
     Controls which physical processes contribute to sediment transport,
     including short-wave stirring, long-wave stirring, turbulence, and
     the split between bed and suspended load.
     """
-    
+
     sws: Optional[bool] = Field(
         default=None,
         description=(
@@ -162,46 +159,34 @@ class TransportProcesses(XBeachBaseModel):
     )
     lws: Optional[bool] = Field(
         default=None,
-        description=(
-            "Switch to enable long wave stirring "
-            "(XBeach default: 1)"
-        ),
+        description=("Switch to enable long wave stirring (XBeach default: 1)"),
     )
     lwt: Optional[bool] = Field(
         default=None,
-        description=(
-            "Switch to enable long wave turbulence "
-            "(XBeach default: 0)"
-        ),
+        description=("Switch to enable long wave turbulence (XBeach default: 0)"),
     )
     turb: Optional[Literal["none", "wave_averaged", "bore_averaged"]] = Field(
         default=None,
         description=(
-            "Switch to include short wave turbulence "
-            "(XBeach default: wave_averaged)"
+            "Switch to include short wave turbulence (XBeach default: wave_averaged)"
         ),
     )
     turbadv: Optional[Literal["none", "lagrangian", "eulerian"]] = Field(
         default=None,
         description=(
-            "Switch to activate turbulence advection model "
-            "(XBeach default: none)"
+            "Switch to activate turbulence advection model (XBeach default: none)"
         ),
     )
     bed: Optional[float] = Field(
         default=None,
-        description=(
-            "Calibration factor for bed transports "
-            "(XBeach default: 1.0)"
-        ),
+        description=("Calibration factor for bed transports (XBeach default: 1.0)"),
         ge=0.0,
         le=1.0,
     )
     sus: Optional[float] = Field(
         default=None,
         description=(
-            "Calibration factor for suspension transports "
-            "(XBeach default: 1.0)"
+            "Calibration factor for suspension transports (XBeach default: 1.0)"
         ),
         ge=0.0,
     )
@@ -215,8 +200,7 @@ class TransportProcesses(XBeachBaseModel):
     fallvelred: Optional[bool] = Field(
         default=None,
         description=(
-            "Switch to reduce fall velocity for high concentrations "
-            "(XBeach default: 0)"
+            "Switch to reduce fall velocity for high concentrations (XBeach default: 0)"
         ),
     )
     dilatancy: Optional[bool] = Field(
@@ -230,12 +214,12 @@ class TransportProcesses(XBeachBaseModel):
 
 class TransportCalibration(XBeachBaseModel):
     """Advanced sediment transport calibration parameters.
-    
+
     These parameters provide fine-tuning control over sediment transport
     calculations, including adaptation time scales, diffusion coefficients,
     and various physical process calibration factors.
     """
-    
+
     Tsmin: Optional[float] = Field(
         default=None,
         description=(
@@ -257,8 +241,7 @@ class TransportCalibration(XBeachBaseModel):
     facDc: Optional[float] = Field(
         default=None,
         description=(
-            "Option to control sediment diffusion coefficient "
-            "(XBeach default: 1.0)"
+            "Option to control sediment diffusion coefficient (XBeach default: 1.0)"
         ),
         ge=0.0,
         le=1.0,
@@ -274,10 +257,7 @@ class TransportCalibration(XBeachBaseModel):
     )
     BRfac: Optional[float] = Field(
         default=None,
-        description=(
-            "Calibration factor for surface slope "
-            "(XBeach default: 1.0)"
-        ),
+        description=("Calibration factor for surface slope (XBeach default: 1.0)"),
         ge=0.0,
         le=1.0,
     )
@@ -310,45 +290,34 @@ class TransportCalibration(XBeachBaseModel):
     )
     ci: Optional[float] = Field(
         default=None,
-        description=(
-            "Mass coefficient in shields inertia term "
-            "(XBeach default: 1.0)"
-        ),
+        description=("Mass coefficient in shields inertia term (XBeach default: 1.0)"),
         ge=0.5,
         le=1.5,
     )
     cm: Optional[float] = Field(
         default=None,
-        description=(
-            "Mass coefficient in shields inertia term "
-            "(XBeach default: 1.5)"
-        ),
+        description=("Mass coefficient in shields inertia term (XBeach default: 1.5)"),
         ge=0.0,
         le=3.0,
     )
     pormax: Optional[float] = Field(
         default=None,
         description=(
-            "Maximum porosity used in the expression of Van Rhee "
-            "(XBeach default: 0.5)"
+            "Maximum porosity used in the expression of Van Rhee (XBeach default: 0.5)"
         ),
         ge=0.3,
         le=0.6,
     )
     rheeA: Optional[float] = Field(
         default=None,
-        description=(
-            "A parameter in the Van Rhee expression "
-            "(XBeach default: 0.75)"
-        ),
+        description=("A parameter in the Van Rhee expression (XBeach default: 0.75)"),
         ge=0.75,
         le=2.0,
     )
     bermslope: Optional[float] = Field(
         default=None,
         description=(
-            "Swash zone slope for (semi-)reflective beaches "
-            "(XBeach default: 0.0)"
+            "Swash zone slope for (semi-)reflective beaches (XBeach default: 0.0)"
         ),
         ge=0.0,
         le=1.0,
@@ -366,17 +335,14 @@ class TransportCalibration(XBeachBaseModel):
 
 class TransportNumerics(XBeachBaseModel):
     """Sediment transport numerical parameters.
-    
+
     These parameters control numerical aspects of sediment transport calculations,
     including maximum concentration limits and numerical scheme selection.
     """
-    
+
     cmax: Optional[float] = Field(
         default=None,
-        description=(
-            "Maximum allowed sediment concentration "
-            "(XBeach default: 0.1)"
-        ),
+        description=("Maximum allowed sediment concentration (XBeach default: 0.1)"),
         ge=0.0,
         le=1.0,
     )
@@ -408,7 +374,6 @@ class TransportNumerics(XBeachBaseModel):
     oldTsmin: Optional[bool] = Field(
         default=None,
         description=(
-            "Switch to apply the Tsmin parameter instead of dtlimts "
-            "(XBeach default: 0)"
+            "Switch to apply the Tsmin parameter instead of dtlimts (XBeach default: 0)"
         ),
     )
