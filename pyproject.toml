@@ -6,34 +6,18 @@ build-backend = "setuptools.build_meta"
 name = "rompy_xbeach"
 description = "Rompy Xbeach Config package."
 readme = "README.rst"
-authors = [
-  {name = "Rompy Developers", email = "developers@rompy.com"}
-]
-maintainers = [
-  {name = "Rompy Developers", email = "developers@rompy.com"}
-]
-classifiers = [
+authors = [{ name = "Rompy Developers", email = "developers@rompy.com" }]
+maintainers = [{ name = "Rompy Developers", email = "developers@rompy.com" }]
+classifiers = []
+license = { text = "BSD 3-Clause License" }
+dependencies = ["rioxarray", "rompy", "oceantide", "typer"]
 
-]
-license = {text = "BSD 3-Clause License"}
-dependencies = [
-  "rioxarray",
-  "rompy",
-  "oceantide",
-  "typer",
-]
 dynamic = ["version"]
 
 [project.optional-dependencies]
-extra = [
-  "rompy-binary-datasources",
-]
-dev = [
-  "coverage",
-  "mypy",
-  "pytest",
-  "ruff"
-]
+extra = ["rompy-binary-datasources"]
+dev = ["coverage", "mypy", "pytest", "ruff"]
+docs = ["mkdocs", "mkdocs-material", "mkdocstrings[python]"]
 
 [project.scripts]
 rompy_xbeach = "rompy_xbeach.cli:app"
@@ -77,16 +61,14 @@ changelog = "https://github.com/rom-py/rompy_xbeach/blob/master/changelog.md"
 homepage = "https://github.com/rom-py/rompy_xbeach"
 
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = { "" = "src" }
 
 [tool.setuptools.package-data]
 "*" = ["*.*"]
 "rompy_xbeach" = ["templates/**/*", "templates/**/.*"]
 
 [tool.setuptools.dynamic]
-version = {attr = "rompy_xbeach.__version__"}
+version = { attr = "rompy_xbeach.__version__" }
 
 [tool.pytest.ini_options]
-filterwarnings = [
-    "ignore:numpy.ndarray size changed:RuntimeWarning",
-]
+filterwarnings = ["ignore:numpy.ndarray size changed:RuntimeWarning"]
