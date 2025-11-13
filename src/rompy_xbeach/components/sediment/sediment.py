@@ -7,7 +7,6 @@ from pydantic import Field
 
 from rompy_xbeach.components.sediment.bed import BedComposition
 from rompy_xbeach.components.sediment.morphology import (
-    Avalanching,
     Morphology,
     PrescribedBathymetry,
 )
@@ -89,13 +88,10 @@ class Sediment(XBeachBaseModel):
     morphology: Optional[Union[bool, Morphology]] = Field(
         default=None,
         description=(
-            "Morphological evolution parameters "
-            "(morfac, morfacopt, morstart, morstop, lsgrad, struct, ne_layer)"
+            "Morphological evolution parameters from XBeach Table 39 "
+            "(morfac, morfacopt, morstart, morstop, lsgrad, struct, ne_layer, "
+            "dryslp, wetslp, hswitch, dzmax)"
         ),
-    )
-    avalanching: Optional[Avalanching] = Field(
-        default=None,
-        description=("Avalanching parameters (dryslp, wetslp, hswitch, dzmax)"),
     )
     prescribed_bathy: Optional[PrescribedBathymetry] = Field(
         default=None,

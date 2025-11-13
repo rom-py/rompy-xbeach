@@ -68,6 +68,9 @@ input:
     coords:
       x: lon
       y: lat
+# ========
+# Physics
+# ========
 physics:
   wavemodel:
     model_type: surfbeat
@@ -118,7 +121,9 @@ physics:
     rho: 1025
     g: 9.81
     depthscale: 1.0
+# =========
 # Sediment
+# =========
 sediment:
   morphology:
     morfac: 1.0

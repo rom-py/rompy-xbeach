@@ -4,7 +4,6 @@ import pytest
 from rompy_xbeach.components.sediment import Sediment
 from rompy_xbeach.components.sediment.bed import BedComposition
 from rompy_xbeach.components.sediment.morphology import (
-    Avalanching,
     Morphology,
     PrescribedBathymetry,
 )
@@ -101,15 +100,17 @@ def test_morphology():
     assert params["struct"] == 0
 
 
-def test_avalanching():
-    """Test Avalanching model."""
-    avalanching = Avalanching(
+def test_morphology_with_avalanching():
+    """Test Morphology model with avalanching parameters."""
+    morphology = Morphology(
+        morfac=10.0,
         dryslp=1.0,
         wetslp=0.3,
         hswitch=0.1,
         dzmax=0.05,
     )
-    params = avalanching.params
+    params = morphology.params
+    assert params["morfac"] == 10.0
     assert params["dryslp"] == 1.0
     assert params["wetslp"] == 0.3
     assert params["hswitch"] == 0.1
@@ -167,7 +168,7 @@ def test_sediment_component_empty():
 def test_sediment_component_with_all_subcomponents():
     """Test Sediment component with all subcomponents."""
     sediment = Sediment(
-        transport=SedimentTransport(
+        sedtrans=SedimentTransport(
             form="vanthiel_vanrijn",
             facua=0.15,
             bdslpeffmag="roelvink_total",
@@ -183,15 +184,13 @@ def test_sediment_component_with_all_subcomponents():
         morphology=Morphology(
             morfac=10.0,
             morstart=0.0,
-        ),
-        avalanching=Avalanching(
             dryslp=1.0,
             wetslp=0.3,
         ),
         bed_composition=BedComposition(
             frac_dz=0.7,
         ),
-        quasi3d=Quasi3D(
+        q3d=Quasi3D(
             kmax=50,
         ),
     )
@@ -241,7 +240,7 @@ def test_validation_ranges():
         Morphology(morfac=2000.0)  # > 1000.0
 
     with pytest.raises(ValueError):
-        Avalanching(dryslp=3.0)  # > 2.0
+        Morphology(dryslp=3.0)  # > 2.0
 
     with pytest.raises(ValueError):
         TransportNumerics(cmax=1.5)  # > 1.0
@@ -255,7 +254,8 @@ def test_sediment_minimal_configuration():
     sediment = Sediment(morphology=Morphology(morfac=5.0))
     params = sediment.get(destdir="/tmp")
     assert params["morfac"] == 5.0
-    assert len(params) == 1
+    assert params["morphology"] == 1  # The morphology switch
+    assert len(params) == 2  # morfac + morphology switch
 
 
 def test_sediment_morphology_only():
@@ -266,8 +266,6 @@ def test_sediment_morphology_only():
             morfacopt=True,
             morstart=0.0,
             morstop=7200.0,
-        ),
-        avalanching=Avalanching(
             dryslp=1.0,
             wetslp=0.3,
         ),

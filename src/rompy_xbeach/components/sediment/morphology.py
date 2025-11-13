@@ -12,13 +12,17 @@ from rompy_xbeach.types import XBeachBaseModel, XBeachDataBlob
 
 
 class Morphology(XBeachBaseModel):
-    """Morphological evolution parameters.
+    """Morphological evolution parameters (XBeach Table 39).
 
     Controls morphological time acceleration (morfac), the period during which
-    morphology is active, and non-erodible structures.
+    morphology is active, avalanching slopes, and non-erodible structures.
 
     The morfac parameter allows decoupling of hydrodynamic and morphological time
     scales, enabling faster simulation of slow morphological processes.
+
+    Avalanching occurs when bed slopes exceed critical values, causing the bed
+    to collapse and slide downward. Different critical slopes apply above and
+    below water due to different effective friction.
 
     References
     ----------
@@ -28,6 +32,43 @@ class Morphology(XBeachBaseModel):
     morphology: Literal[True] = Field(
         default=True,
         description="Turn on morphology (XBeach default: 0)",
+    )
+    dryslp: Optional[float] = Field(
+        default=None,
+        description=(
+            "Critical avalanching slope above water (dz/dx and dz/dy) "
+            "(XBeach default: 1.0)"
+        ),
+        ge=0.1,
+        le=2.0,
+    )
+    dzmax: Optional[float] = Field(
+        default=None,
+        description=(
+            "Maximum bed level change due to avalanching per time step "
+            "(XBeach default: 0.05 m/s/m)"
+        ),
+        ge=0.0,
+        le=1.0,
+    )
+    hswitch: Optional[float] = Field(
+        default=None,
+        description=(
+            "Water depth at which is switched from wetslp to dryslp "
+            "(XBeach default: 0.1 m)"
+        ),
+        ge=0.01,
+        le=1.0,
+    )
+    lsgrad: Optional[float] = Field(
+        default=None,
+        description=(
+            "Factor to include longshore transport gradient in 1D simulations. "
+            "dSy/dy = lsgrad * Sy; dimension 1/length scale of longshore gradients "
+            "(XBeach default: 0.0 m⁻¹)"
+        ),
+        ge=-0.1,
+        le=0.1,
     )
     morfac: Optional[float] = Field(
         default=None,
@@ -62,15 +103,13 @@ class Morphology(XBeachBaseModel):
         ge=0.0,
         le=10000000.0,
     )
-    lsgrad: Optional[float] = Field(
+    ne_layer: Optional[XBeachDataBlob] = Field(
         default=None,
         description=(
-            "Factor to include longshore transport gradient in 1D simulations. "
-            "dSy/dy = lsgrad * Sy; dimension 1/length scale of longshore gradients "
-            "(XBeach default: 0.0 m⁻¹)"
+            "Name of file containing thickness of the erodible layer. "
+            "File format same as bathymetry file. Values define thickness "
+            "of erodible layer on top of non-erodible layer (m)"
         ),
-        ge=-0.1,
-        le=0.1,
     )
     struct: Optional[bool] = Field(
         default=None,
@@ -79,13 +118,14 @@ class Morphology(XBeachBaseModel):
             "(XBeach default: 0)"
         ),
     )
-    ne_layer: Optional[XBeachDataBlob] = Field(
+    wetslp: Optional[float] = Field(
         default=None,
         description=(
-            "Name of file containing thickness of the erodible layer. "
-            "File format same as bathymetry file. Values define thickness "
-            "of erodible layer on top of non-erodible layer (m)"
+            "Critical avalanching slope under water (dz/dx and dz/dy) "
+            "(XBeach default: 0.3)"
         ),
+        ge=0.1,
+        le=1.0,
     )
 
     def get(self, destdir: str | Path) -> dict:
@@ -109,55 +149,6 @@ class Morphology(XBeachBaseModel):
             params["ne_layer"] = self.ne_layer.get(destdir).name
 
         return params
-
-
-class Avalanching(XBeachBaseModel):
-    """Avalanching parameters.
-
-    Controls critical avalanching slopes above and below water, and limits
-    on bed level change due to avalanching.
-
-    When bed slopes exceed the critical slope, the bed collapses and slides
-    downward (avalanching). Different critical slopes apply above and below
-    water due to different effective friction.
-    """
-
-    dryslp: Optional[float] = Field(
-        default=None,
-        description=(
-            "Critical avalanching slope above water (dz/dx and dz/dy) "
-            "(XBeach default: 1.0)"
-        ),
-        ge=0.1,
-        le=2.0,
-    )
-    wetslp: Optional[float] = Field(
-        default=None,
-        description=(
-            "Critical avalanching slope under water (dz/dx and dz/dy) "
-            "(XBeach default: 0.3)"
-        ),
-        ge=0.1,
-        le=1.0,
-    )
-    hswitch: Optional[float] = Field(
-        default=None,
-        description=(
-            "Water depth at which is switched from wetslp to dryslp "
-            "(XBeach default: 0.1 m)"
-        ),
-        ge=0.01,
-        le=1.0,
-    )
-    dzmax: Optional[float] = Field(
-        default=None,
-        description=(
-            "Maximum bed level change due to avalanching per time step "
-            "(XBeach default: 0.05 m/s/m)"
-        ),
-        ge=0.0,
-        le=1.0,
-    )
 
 
 class PrescribedBathymetry(XBeachBaseModel):
