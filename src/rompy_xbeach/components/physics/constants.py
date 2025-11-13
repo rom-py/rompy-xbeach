@@ -17,6 +17,16 @@ class PhysicalConstants(XBeachBaseModel):
     for laboratory-scale simulations.
     """
 
+    depthscale: Optional[float] = Field(
+        default=None,
+        description=(
+            "Depth scale of (lab) test simulated. Affects eps, hmin, hswitch "
+            "and dzmax. A value lower than 1 increases the cut-off values "
+            "(XBeach default: 1.0 for field scale)"
+        ),
+        ge=1.0,
+        le=200.0,
+    )
     g: Optional[float] = Field(
         default=None,
         description="Gravitational acceleration (m/s²) (XBeach default: 9.81)",
@@ -28,16 +38,6 @@ class PhysicalConstants(XBeachBaseModel):
         description="Density of water (kgm-3) (XBeach default: 1025.0)",
         ge=1000.0,
         le=1040.0,
-    )
-    depthscale: Optional[float] = Field(
-        default=None,
-        description=(
-            "Depth scale of (lab) test simulated. Affects eps, hmin, hswitch "
-            "and dzmax. A value lower than 1 increases the cut-off values "
-            "(XBeach default: 1.0 for field scale)"
-        ),
-        ge=1.0,
-        le=200.0,
     )
 
 

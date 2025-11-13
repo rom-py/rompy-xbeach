@@ -13,6 +13,7 @@ from rompy_xbeach.types import XBeachBaseConfig
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.data import XBeachBathy
 
+from rompy_xbeach.components.mpi import Mpi
 from rompy_xbeach.components.output import Output
 from rompy_xbeach.components.physics import Physics
 from rompy_xbeach.components.sediment import Sediment
@@ -116,6 +117,10 @@ class Config(XBeachBaseConfig):
     sediment: Optional[Sediment] = Field(
         default_factory=Sediment,
         description="Sediment transport configuration",
+    )
+    mpi: Optional[Mpi] = Field(
+        default=None,
+        description="MPI parallelisation configuration",
     )
     output: Output = Field(
         default_factory=Output,
