@@ -164,10 +164,6 @@ class Physics(XBeachBaseModel):
         default=None,
         description="Include viscosity in flow solver (XBeach default: 1)",
     )
-    waveform: Optional[Literal["ruessink_vanrijn", "vanthiel"]] = Field(
-        default=None,
-        description="Wave shape model (XBeach default: vanthiel)",
-    )
     wci: Optional[Union[bool, WaveCurrentInteraction]] = Field(
         default=None,
         description="Switch to turn on wave-current interaction (XBeach default: 0)",
