@@ -165,10 +165,6 @@ class Physics(XBeachBaseModel):
         default=None,
         description="Include viscosity in flow solver (XBeach default: 1)",
     )
-    wavfric: Optional[ShortWaveFriction] = Field(
-        default=None,
-        description="Short wave friction specification",
-    )
     waveform: Optional[Literal["ruessink_vanrijn", "vanthiel"]] = Field(
         default=None,
         description="Wave shape model (XBeach default: vanthiel)",

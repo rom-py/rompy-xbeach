@@ -104,7 +104,6 @@ class ShortWaveFriction(XBeachBaseModel):
             Parameters dictionary with file paths updated to workspace directory.
 
         """
-        # Get base params (XBeachDataBlob fields are automatically excluded by serializer)
         params = super().get(destdir)
 
         # Fetch DataBlob file and add the fetched file path
@@ -197,6 +196,10 @@ class Dissipation(XBeachBaseModel):
     shoaldelay: Optional[bool] = Field(
         default=None,
         description=("Switch to enable shoaling delay (XBeach default: 0)"),
+    )
+    wavfric: Optional[ShortWaveFriction] = Field(
+        default=None,
+        description="Short wave friction specification",
     )
 
 

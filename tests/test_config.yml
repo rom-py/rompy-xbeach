@@ -77,14 +77,14 @@ physics:
       delta: 0.0
       gamma: 0.55
       n: 10
+      wavfric:
+        wavfriccoef: 0.1
   roller:
     beta: 0.1
   vegetation:
     nveg: 2
     veggiefile:
       source: /source/csiro/rompy-xbeach/tests/data/wind.csv
-  wavfric:
-    wavfriccoef: 0.1
   bedfriction:
     model_type: cf
     bedfriccoef: 0.01
