@@ -4,7 +4,7 @@ This module contains models for flow-related parameters including horizontal vis
 """
 
 import logging
-from typing import Optional
+from typing import Optional, Literal
 from pydantic import Field, model_validator
 
 from rompy_xbeach.types import XBeachBaseModel
@@ -26,8 +26,13 @@ class WaveCurrentInteraction(XBeachBaseModel):
     References
     ----------
     Dingemans et al. (1987). Water wave propagation over uneven bottoms.
+
     """
 
+    wci: Literal[True] = Field(
+        default=True,
+        description="Enable wave-current interaction",
+    )
     cats: Optional[float] = Field(
         default=None,
         description=(

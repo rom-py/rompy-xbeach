@@ -169,9 +169,9 @@ class Physics(XBeachBaseModel):
         default=None,
         description="Wave shape model (XBeach default: vanthiel)",
     )
-    wci: Optional[bool] = Field(
+    wci: Optional[Union[bool, WaveCurrentInteraction]] = Field(
         default=None,
-        description="Turns on wave-current interaction (XBeach default: 0)",
+        description="Switch to turn on wave-current interaction (XBeach default: 0)",
     )
     wind: Optional[bool] = Field(
         default=None,
@@ -180,10 +180,6 @@ class Physics(XBeachBaseModel):
     viscosity_params: Optional[HorizontalViscosity] = Field(
         default=None,
         description="Horizontal viscosity parameters (nuh, smag, nuhv, gamma_turb)",
-    )
-    wci_params: Optional[WaveCurrentInteraction] = Field(
-        default=None,
-        description="Wave-current interaction parameters (cats, hwci, hwcimax)",
     )
     flow_numerics: Optional[FlowNumerics] = Field(
         default=None,

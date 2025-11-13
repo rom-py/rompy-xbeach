@@ -88,7 +88,10 @@ physics:
   bedfriction:
     model_type: cf
     bedfriccoef: 0.01
-  wci: False
+  wci:
+    cats: 4.0
+    hwci: 0.1
+    hwcimax: 100.0
   sedtrans: False
   morphology: 0
   wave_boundary:
