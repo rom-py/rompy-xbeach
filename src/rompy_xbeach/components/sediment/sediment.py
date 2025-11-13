@@ -5,13 +5,14 @@ from typing import Literal, Optional
 
 from pydantic import Field
 
-from rompy_xbeach.components.sediment.bed import BedComposition, Quasi3D
+from rompy_xbeach.components.sediment.bed import BedComposition
 from rompy_xbeach.components.sediment.morphology import (
     Avalanching,
     Morphology,
     PrescribedBathymetry,
 )
 from rompy_xbeach.components.sediment.transport import (
+    Quasi3D,
     SedimentTransport,
     TransportNumerics,
 )
@@ -71,7 +72,6 @@ class Sediment(XBeachBaseModel):
         description="Model type discriminator",
     )
 
-    # Sediment transport
     transport: Optional[SedimentTransport] = Field(
         default=None,
         description=(

@@ -4,6 +4,7 @@ This module contains models for sediment transport formulations and related para
 """
 
 from typing import Literal, Optional
+
 from pydantic import Field
 
 from rompy_xbeach.types import XBeachBaseModel
@@ -346,5 +347,71 @@ class TransportNumerics(XBeachBaseModel):
             "is used (XBeach default: 1.0)"
         ),
         ge=0.5,
+        le=1.0,
+    )
+
+
+class Quasi3D(XBeachBaseModel):
+    """Quasi-3D sediment transport parameters.
+
+    Controls the vertical structure of flow and sediment concentration when
+    quasi-3D mode is enabled (q3d=1). The vertical domain is divided into
+    sigma layers with specified distribution.
+
+    The quasi-3D model resolves vertical variations in horizontal velocity
+    and sediment concentration, improving accuracy for situations with strong
+    vertical gradients.
+
+    References
+    ----------
+    Van Thiel de Vries, J. S. M. (2009). Dune erosion during storm surges.
+    PhD thesis, Delft University of Technology.
+    """
+
+    deltar: Optional[float] = Field(
+        default=None,
+        description=(
+            "Estimated ripple height for roughness calculations "
+            "(XBeach default: 0.025 m)"
+        ),
+        ge=0.001,
+        le=1.0,
+    )
+    kmax: Optional[int] = Field(
+        default=None,
+        description=(
+            "Number of sigma layers in quasi-3D model. kmax=1 means no vertical "
+            "structure of flow and suspensions (XBeach default: 100)"
+        ),
+        ge=1,
+        le=1000,
+    )
+    rwave: Optional[float] = Field(
+        default=None,
+        description=(
+            "User-defined wave roughness adjustment factor (XBeach default: 2.0)"
+        ),
+        ge=0.1,
+        le=10.0,
+    )
+    sigfac: Optional[float] = Field(
+        default=None,
+        description=(
+            "Dsig scales with log(sigfac). Controls vertical layer distribution "
+            "(XBeach default: 1.3)"
+        ),
+        ge=0.0,
+        le=10.0,
+    )
+    vicmol: Optional[float] = Field(
+        default=None,
+        description=("Molecular viscosity (XBeach default: 1e-06 m²/s)"),
+        ge=0.0,
+        le=0.001,
+    )
+    vonkar: Optional[float] = Field(
+        default=None,
+        description=("Von Karman constant (XBeach default: 0.4)"),
+        ge=0.01,
         le=1.0,
     )

@@ -2,13 +2,14 @@
 
 import pytest
 from rompy_xbeach.components.sediment import Sediment
-from rompy_xbeach.components.sediment.bed import BedComposition, Quasi3D
+from rompy_xbeach.components.sediment.bed import BedComposition
 from rompy_xbeach.components.sediment.morphology import (
     Avalanching,
     Morphology,
     PrescribedBathymetry,
 )
 from rompy_xbeach.components.sediment.transport import (
+    Quasi3D,
     SedimentTransport,
     TransportNumerics,
 )
