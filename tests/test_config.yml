@@ -116,6 +116,10 @@ physics:
     umin: 0.1
     secorder: 1
     oldhu: 1
+  constants:
+    rho: 1025
+    g: 9.81
+    depthscale: 1.0
 # Wave boundary conditions
 front: abs_2d #1
 back: abs_2d #2
@@ -127,9 +131,6 @@ order: 1
 lateralwave: wavecrest
 random: 1
 zs0: null
-hmin: 0.01
-rho: 1025
-g: 9.81
 thetamin: -80
 thetamax: 80
 dtheta: 10.0

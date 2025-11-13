@@ -19,13 +19,13 @@ class PhysicalConstants(XBeachBaseModel):
 
     g: Optional[float] = Field(
         default=None,
-        description=("Gravitational acceleration (XBeach default: 9.81 m/s²)"),
+        description="Gravitational acceleration (m/s²) (XBeach default: 9.81)",
         ge=9.7,
         le=9.9,
     )
     rho: Optional[float] = Field(
         default=None,
-        description=("Density of water (XBeach default: 1025.0 kg/m³ for seawater)"),
+        description="Density of water (kgm-3) (XBeach default: 1025.0)",
         ge=1000.0,
         le=1040.0,
     )

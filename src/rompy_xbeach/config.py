@@ -171,27 +171,6 @@ class Config(XBeachBaseConfig):
             "boundary conditions (XBeach default: 1)",
         ),
     )
-    hmin: Optional[float] = Field(
-        default=None,
-        description=(
-            "Threshold water depth above which stokes drift is included (m) "
-            "(XBeach default: 0.0)",
-        ),
-        ge=0.001,
-        le=1.0,
-    )
-    rho: Optional[float] = Field(
-        default=None,
-        description="Density of water (kgm-3) (XBeach default: 1025.0)",
-        ge=1000.0,
-        le=1040.0,
-    )
-    g: Optional[float] = Field(
-        default=None,
-        description="Gravitational acceleration (ms^-2) (XBeach default: 9.81)",
-        ge=9.7,
-        le=9.9,
-    )
     thetamin: Optional[float] = Field(
         default=None,
         description=(
