@@ -6,7 +6,7 @@ This module contains models for wave-current interaction parameters.
 
 import logging
 from typing import Optional, Literal
-from pydantic import Field, model_validator
+from pydantic import Field
 
 from rompy_xbeach.types import XBeachBaseModel
 

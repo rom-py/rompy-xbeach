@@ -3,6 +3,7 @@
 This module contains models for numerical scheme parameters used in wave
 and non-hydrostatic computations.
 """
+
 import logging
 from typing import Literal, Optional
 from pydantic import Field, model_validator

@@ -4,12 +4,15 @@ This module contains models for bed friction formulations used to calculate
 bed shear stress in the shallow water equations.
 
 """
-
+import logging
 from pathlib import Path
 from typing import Literal, Optional
 from pydantic import Field, model_validator
 
 from rompy_xbeach.types import XBeachBaseModel, XBeachDataBlob
+
+
+logger = logging.getLogger(__name__)
 
 
 class HorizontalViscosity(XBeachBaseModel):

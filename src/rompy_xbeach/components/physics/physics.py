@@ -29,7 +29,6 @@ from rompy_xbeach.components.physics.wavemodel import (
     Roller,
     Stationary,
     Surfbeat,
-    ShortWaveFriction,
 )
 from rompy_xbeach.types import XBeachBaseModel
 

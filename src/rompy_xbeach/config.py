@@ -239,7 +239,6 @@ class Config(XBeachBaseConfig):
             return None
         return int(value)
 
-
     @property
     def params(self) -> dict:
         """Return the XBeach configuration parameters."""
