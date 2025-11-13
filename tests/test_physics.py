@@ -568,3 +568,34 @@ def test_nonh_without_nhq3d_parameter():
     assert params["wavemodel"] == "nonh"
     assert "nhq3d" not in params
     assert params["swave"] == 0
+
+
+def test_nonh_with_advanced_parameters():
+    """Test Nonh component with advanced non-hydrostatic parameters from Table 42."""
+    physics = Physics(
+        wavemodel=Nonh(
+            Topt=10.0,
+            breakviscfac=1.5,
+            breakvisclen=1.0,
+            maxbrsteep=0.4,
+            secbrsteep=0.2,
+            nhbreaker=2,
+            solver="tridiag",
+            solver_acc=0.005,
+            solver_maxit=30,
+        ),
+        swave=False,
+    )
+    params = physics.params
+
+    assert params["wavemodel"] == "nonh"
+    assert params["Topt"] == 10.0
+    assert params["breakviscfac"] == 1.5
+    assert params["breakvisclen"] == 1.0
+    assert params["maxbrsteep"] == 0.4
+    assert params["secbrsteep"] == 0.2
+    assert params["nhbreaker"] == 2
+    assert params["solver"] == "tridiag"
+    assert params["solver_acc"] == 0.005
+    assert params["solver_maxit"] == 30
+    assert params["swave"] == 0

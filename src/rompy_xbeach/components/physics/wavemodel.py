@@ -311,22 +311,147 @@ class Surfbeat(XBeachBaseModel):
 
 
 class Nonh(XBeachBaseModel):
-    """Non-hydrostatic (wave-resolving) wave model configuration.
+    """Non-hydrostatic (wave-resolving) wave model configuration (XBeach Table 42).
 
     Uses non-linear shallow water equations with a pressure correction term,
     allowing modeling of propagation and decay of individual waves.
 
+    Wave breaking is implemented using the Hydrostatic Front Approximation (HFA),
+    where the non-hydrostatic pressure term is disabled when waves exceed a certain
+    steepness, after which bore-like breaking takes over.
+
+    Note
+    ----
+    These are advanced options and it is recommended not to change them unless
+    you have specific requirements.
+
+    References
+    ----------
+    Smit et al. (2014), McCall et al. (2014), Zijlema et al. (2011)
     """
 
     model_type: Literal["nonh"] = Field(
         default="nonh",
         description="Model type discriminator",
     )
-
-    nhq3d: Optional[bool] = Field(
+    Topt: Optional[float] = Field(
+        default=None,
+        description=(
+            "Absolute period to optimize coefficient (XBeach default: 10.0 s)"
+        ),
+        ge=1.0,
+        le=20.0,
+    )
+    breakviscfac: Optional[float] = Field(
+        default=None,
+        description=(
+            "Factor to increase viscosity during breaking (XBeach default: 1.5)"
+        ),
+        ge=1.0,
+        le=3.0,
+    )
+    breakvisclen: Optional[float] = Field(
+        default=None,
+        description=(
+            "Ratio between local depth and length scale in extra breaking viscosity "
+            "(XBeach default: 1.0)"
+        ),
+        ge=0.75,
+        le=3.0,
+    )
+    dispc: Optional[float] = Field(
+        default=None,
+        description=(
+            "Coefficient in front of the vertical pressure gradient "
+            "(XBeach default: -1.0)"
+        ),
+        ge=0.1,
+        le=2.0,
+    )
+    kdmin: Optional[float] = Field(
+        default=None,
+        description=(
+            "Minimum value of kd (pi/dx > min(kd)) (XBeach default: 0.0)"
+        ),
+        ge=0.0,
+        le=0.05,
+    )
+    maxbrsteep: Optional[float] = Field(
+        default=None,
+        description=(
+            "Maximum wave steepness criterium for breaking (XBeach default: 0.4)"
+        ),
+        ge=0.3,
+        le=0.8,
+    )
+    nhbreaker: Optional[int] = Field(
+        default=None,
+        description=(
+            "Non-hydrostatic breaker model (XBeach default: 2)"
+        ),
+        ge=0,
+        le=2,
+    )
+    nhlay: Optional[float] = Field(
+        default=None,
+        description=(
+            "Layer distribution in the nonhydrostatic model (XBeach default: 0.33)"
+        ),
+        ge=0.0,
+        le=1.0,
+    )
+    nonhq3d: Optional[bool] = Field(
         default=None,
         description=(
             "Turn on reduced two-layer non-hydrostatic model for improved "
             "dispersive behavior (XBeach default: 0)"
         ),
+        alias="nhq3d",
+    )
+    reformsteep: Optional[float] = Field(
+        default=None,
+        description=(
+            "Wave steepness criterium to reform after breaking. "
+            "XBeach default: 0.25 * maxbrsteep"
+        ),
+        ge=0.0,
+    )
+    secbrsteep: Optional[float] = Field(
+        default=None,
+        description=(
+            "Secondary maximum wave steepness criterium. "
+            "XBeach default: 0.5 * maxbrsteep"
+        ),
+        ge=0.0,
+    )
+    solver: Optional[Literal["sip", "tridiag"]] = Field(
+        default=None,
+        description=(
+            "Solver used to solve the linear system (XBeach default: tridiag)"
+        ),
+    )
+    solver_acc: Optional[float] = Field(
+        default=None,
+        description=(
+            "Accuracy with respect to the right-hand side used in termination criterion: "
+            "||b-ax|| < acc*||b|| (XBeach default: 0.005)"
+        ),
+        ge=1e-05,
+        le=0.1,
+    )
+    solver_maxit: Optional[int] = Field(
+        default=None,
+        description=(
+            "Maximum number of iterations in the linear sip solver (XBeach default: 30)"
+        ),
+        ge=1,
+        le=1000,
+    )
+    solver_urelax: Optional[float] = Field(
+        default=None,
+        description=(
+            "Underrelaxation parameter (XBeach default: 0.92)"
+        ),
+        ge=0.5,
+        le=0.99,
     )
