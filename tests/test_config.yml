@@ -107,6 +107,15 @@ physics:
     maxiter: 500
     maxerror: 0.0005
     wavint: 600.0
+  flow_numerics:
+    eps: 0.01
+    epsi: 0.2
+    eps_sd: 0.5
+    hmin: 0.01
+    deltahmin: 0.01
+    umin: 0.1
+    secorder: 1
+    oldhu: 1
 # Wave boundary conditions
 front: abs_2d #1
 back: abs_2d #2
@@ -128,11 +137,7 @@ gammax: 1.0
 morfac: 0.0
 cf: 0.01
 paulrevere: land
-eps: 0.01
-epsi: 0.001
 cfl: 0.8
-umin: 0.1
-oldhu: 1
 output:
   outputformat: netcdf
   ncfilename: xboutput_test.nc

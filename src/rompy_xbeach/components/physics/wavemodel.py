@@ -24,6 +24,7 @@ class Roller(XBeachBaseModel):
 
     When used in Physics.roller field, this enables the roller model (roller=1)
     and allows specification of roller-specific parameters.
+
     """
 
     roller: Literal[True] = Field(

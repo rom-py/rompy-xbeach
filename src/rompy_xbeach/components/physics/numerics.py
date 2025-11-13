@@ -3,11 +3,14 @@
 This module contains models for numerical scheme parameters used in wave
 and non-hydrostatic computations.
 """
-
+import logging
 from typing import Literal, Optional
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from rompy_xbeach.types import XBeachBaseModel
+
+
+logger = logging.getLogger(__name__)
 
 
 class WaveNumerics(XBeachBaseModel):
@@ -32,7 +35,7 @@ class WaveNumerics(XBeachBaseModel):
             description=(
                 "Numerical scheme for wave propagation. Options: "
                 "upwind_1 (first-order upwind), lax_wendroff (Lax-Wendroff), "
-                "upwind_2 (second-order upwind), warmbeam (Warming-Beam, default) "
+                "upwind_2 (second-order upwind), warmbeam (Warming-Beam) "
                 "(XBeach default: warmbeam)"
             ),
         )
@@ -64,6 +67,100 @@ class WaveNumerics(XBeachBaseModel):
         ge=1.0,
         le=3600.0,
     )
+
+
+class FlowNumerics(XBeachBaseModel):
+    """Flow numerical parameters.
+
+    These parameters control numerical aspects of the shallow water equations,
+    particularly handling of very shallow water and wet/dry transitions.
+
+    The threshold parameters (eps, hmin, umin) prevent unrealistic behavior in
+    shallow water by setting minimum values for depth and velocity calculations.
+    """
+
+    eps: Optional[float] = Field(
+        default=None,
+        description=(
+            "Threshold water depth above which cells are considered wet "
+            "(XBeach default: 0.005 m)"
+        ),
+        ge=0.001,
+        le=0.1,
+    )
+    epsi: Optional[float] = Field(
+        default=None,
+        description=(
+            "Ratio of mean current to time varying current through offshore boundary "
+            "(XBeach default: -1.0)"
+        ),
+        ge=-1.0,
+        le=0.2,
+    )
+    eps_sd: Optional[float] = Field(
+        default=None,
+        description=(
+            "Threshold velocity difference to determine conservation of "
+            "energy head versus momentum (XBeach default: 0.5 m/s)"
+        ),
+        ge=0.0,
+        le=1.0,
+    )
+    hmin: Optional[float] = Field(
+        default=None,
+        description=(
+            "Threshold water depth above which Stokes drift is included "
+            "(XBeach default: 0.0 m). See also deltahmin and oldhmin"
+        ),
+        ge=0.001,
+        le=1.0,
+    )
+    oldhu: Optional[bool] = Field(
+        default=None,
+        description=("Switch to enable old hu calculation (XBeach default: 0)"),
+    )
+    secorder: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Use second order corrections to advection/non-linear terms "
+            "based on MacCormack scheme (XBeach default: 0)"
+        ),
+    )
+    umin: Optional[float] = Field(
+        default=None,
+        description=(
+            "Threshold velocity for upwind velocity detection and for vmag2 "
+            "in equilibrium sediment concentration (XBeach default: 0.0 m/s)"
+        ),
+        ge=0.0,
+        le=0.2,
+    )
+    deltahmin: Optional[float] = Field(
+        default=None,
+        description=(
+            "Dimensionless coefficient to determine the threshold water depth "
+            "above which Stokes drift is included (XBeach default: 0.1)"
+        ),
+        ge=0.0,
+        le=1.0,
+    )
+    oldhmin: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Switch to apply the old hmin parameter instead of deltahmin. "
+            "If 1, hmin is used directly as minimum water depth "
+            "(XBeach default: 0)"
+        ),
+    )
+
+    @model_validator(mode="after")
+    def warn_if_oldhmin_and_deltahmin(self):
+        if self.oldhmin and self.deltahmin:
+            logger.warning(
+                "You are setting deltahmin, but oldhmin is also set. "
+                "The old hmin parameter will be used instead of the deltahmin"
+            )
+        return self
 
 
 class NonHydrostaticNumerics(XBeachBaseModel):

@@ -8,7 +8,6 @@ from pydantic import Field, model_validator
 from rompy_xbeach.components.physics.boundary import WaveBoundaryConditions
 from rompy_xbeach.components.physics.constants import Coriolis, PhysicalConstants
 from rompy_xbeach.components.physics.flow import (
-    FlowNumerics,
     WaveCurrentInteraction,
 )
 from rompy_xbeach.components.physics.friction import (
@@ -22,6 +21,7 @@ from rompy_xbeach.components.physics.friction import (
 from rompy_xbeach.components.physics.numerics import (
     NonHydrostaticNumerics,
     WaveNumerics,
+    FlowNumerics,
 )
 from rompy_xbeach.components.physics.vegetation import Vegetation
 from rompy_xbeach.components.physics.wavemodel import (

@@ -232,42 +232,11 @@ class Config(XBeachBaseConfig):
         default=None,
         description="Friction coefficient?",
     )
-    eps: Optional[float] = Field(
-        default=None,
-        description=(
-            "Threshold water depth above which cells are considered wet (m) "
-            "(XBeach default: 0.005)"
-        ),
-        ge=0.001,
-        le=0.1,
-    )
-    epsi: Optional[float] = Field(
-        default=None,
-        description=(
-            "Ratio of mean current to time varying current through offshore boundary "
-            "(XBeach default: -1.0)"
-        ),
-        ge=-1.0,
-        le=0.2,
-    )
     cfl: Optional[float] = Field(
         default=None,
         description="Maximum courant-friedrichs-lewy number (XBeach default: 0.7)",
         ge=0.1,
         le=0.9,
-    )
-    umin: Optional[float] = Field(
-        default=None,
-        description=(
-            "Threshold velocity for upwind velocity detection and for vmag2 in "
-            "equilibrium sediment concentration (m/s) (XB default: 0.0)"
-        ),
-        ge=0.0,
-        le=0.2,
-    )
-    oldhu: Optional[bool] = Field(
-        default=None,
-        description="Switch to enable old hu calculation (XBeach default: 0)",
     )
     # TODO: Make this part of the Tide object
     paulrevere: Optional[Literal["land", "sea"]] = Field(
@@ -291,12 +260,6 @@ class Config(XBeachBaseConfig):
             return None
         return int(value)
 
-    @field_serializer("oldhu")
-    def serialize_oldhu(self, value: Optional[bool]):
-        """Serialise bool to int."""
-        if value is None:
-            return None
-        return int(value)
 
     @property
     def params(self) -> dict:
