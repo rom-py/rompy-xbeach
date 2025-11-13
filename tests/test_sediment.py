@@ -9,50 +9,24 @@ from rompy_xbeach.components.sediment.morphology import (
     PrescribedBathymetry,
 )
 from rompy_xbeach.components.sediment.transport import (
-    BedSlopeEffect,
-    SedimentFormulation,
-    TransportCalibration,
+    SedimentTransport,
     TransportNumerics,
-    TransportProcesses,
 )
 
 
-def test_sediment_formulation():
-    """Test SedimentFormulation model."""
-    formulation = SedimentFormulation(
+def test_sediment_transport():
+    """Test SedimentTransport model with various parameters."""
+    transport = SedimentTransport(
         form="vanthiel_vanrijn",
         waveform="vanthiel",
         facAs=0.2,
         facSk=0.15,
         z0=0.006,
-    )
-    params = formulation.params
-    assert params["form"] == "vanthiel_vanrijn"
-    assert params["waveform"] == "vanthiel"
-    assert params["facAs"] == 0.2
-    assert params["facSk"] == 0.15
-    assert params["z0"] == 0.006
-
-
-def test_bed_slope_effect():
-    """Test BedSlopeEffect model."""
-    bed_slope = BedSlopeEffect(
         bdslpeffmag="roelvink_total",
         bdslpeffdir="talmon",
         bdslpeffdirfac=1.0,
         facsl=1.6,
         reposeangle=30.0,
-    )
-    params = bed_slope.params
-    assert params["bdslpeffmag"] == "roelvink_total"
-    assert params["bdslpeffdir"] == "talmon"
-    assert params["facsl"] == 1.6
-    assert params["reposeangle"] == 30.0
-
-
-def test_transport_processes():
-    """Test TransportProcesses model."""
-    processes = TransportProcesses(
         sws=True,
         lws=True,
         lwt=False,
@@ -60,8 +34,25 @@ def test_transport_processes():
         bed=1.0,
         sus=1.0,
         bulk=False,
+        Tsmin=0.5,
+        tsfac=0.1,
+        facDc=1.0,
+        Tbfac=1.0,
+        smax=2.0,
     )
-    params = processes.params
+    params = transport.params
+    # Formulation params
+    assert params["form"] == "vanthiel_vanrijn"
+    assert params["waveform"] == "vanthiel"
+    assert params["facAs"] == 0.2
+    assert params["facSk"] == 0.15
+    assert params["z0"] == 0.006
+    # Bed slope params
+    assert params["bdslpeffmag"] == "roelvink_total"
+    assert params["bdslpeffdir"] == "talmon"
+    assert params["facsl"] == 1.6
+    assert params["reposeangle"] == 30.0
+    # Process params
     assert params["sws"] == 1
     assert params["lws"] == 1
     assert params["lwt"] == 0
@@ -69,18 +60,7 @@ def test_transport_processes():
     assert params["bed"] == 1.0
     assert params["sus"] == 1.0
     assert params["bulk"] == 0
-
-
-def test_transport_calibration():
-    """Test TransportCalibration model."""
-    calibration = TransportCalibration(
-        Tsmin=0.5,
-        tsfac=0.1,
-        facDc=1.0,
-        Tbfac=1.0,
-        smax=2.0,
-    )
-    params = calibration.params
+    # Calibration params
     assert params["Tsmin"] == 0.5
     assert params["tsfac"] == 0.1
     assert params["facDc"] == 1.0
@@ -186,19 +166,13 @@ def test_sediment_component_empty():
 def test_sediment_component_with_all_subcomponents():
     """Test Sediment component with all subcomponents."""
     sediment = Sediment(
-        formulation=SedimentFormulation(
+        transport=SedimentTransport(
             form="vanthiel_vanrijn",
             facua=0.15,
-        ),
-        bed_slope=BedSlopeEffect(
             bdslpeffmag="roelvink_total",
             facsl=1.6,
-        ),
-        processes=TransportProcesses(
             sws=True,
             lws=True,
-        ),
-        calibration=TransportCalibration(
             Tsmin=0.5,
             tsfac=0.1,
         ),
@@ -224,19 +198,13 @@ def test_sediment_component_with_all_subcomponents():
     # Use get() to flatten nested components
     params = sediment.get(destdir="/tmp")
 
-    # Check formulation params
+    # Check transport params
     assert params["form"] == "vanthiel_vanrijn"
     assert params["facua"] == 0.15
-
-    # Check bed slope params
     assert params["bdslpeffmag"] == "roelvink_total"
     assert params["facsl"] == 1.6
-
-    # Check process params
     assert params["sws"] == 1
     assert params["lws"] == 1
-
-    # Check calibration params
     assert params["Tsmin"] == 0.5
     assert params["tsfac"] == 0.1
 
@@ -261,12 +229,12 @@ def test_sediment_component_with_all_subcomponents():
 def test_validation_ranges():
     """Test that validation ranges work correctly."""
     # Test valid ranges
-    formulation = SedimentFormulation(facAs=0.5, facSk=0.3)
-    assert formulation.facAs == 0.5
+    transport = SedimentTransport(facAs=0.5, facSk=0.3)
+    assert transport.facAs == 0.5
 
     # Test invalid ranges
     with pytest.raises(ValueError):
-        SedimentFormulation(facAs=1.5)  # > 1.0
+        SedimentTransport(facAs=1.5)  # > 1.0
 
     with pytest.raises(ValueError):
         Morphology(morfac=2000.0)  # > 1000.0

@@ -12,11 +12,8 @@ from rompy_xbeach.components.sediment.morphology import (
     PrescribedBathymetry,
 )
 from rompy_xbeach.components.sediment.transport import (
-    BedSlopeEffect,
-    SedimentFormulation,
-    TransportCalibration,
+    SedimentTransport,
     TransportNumerics,
-    TransportProcesses,
 )
 from rompy_xbeach.types import XBeachBaseModel
 
@@ -29,7 +26,6 @@ class Sediment(XBeachBaseModel):
 
     This component groups all sediment-related parameters including:
     - Sediment transport formulations and processes
-    - Bed slope effects
     - Morphological evolution (morfac, time windows)
     - Avalanching
     - Bed composition and layering
@@ -42,13 +38,14 @@ class Sediment(XBeachBaseModel):
     Examples
     --------
     >>> from rompy_xbeach.components.sediment import Sediment
-    >>> from rompy_xbeach.components.sediment.transport import SedimentFormulation
+    >>> from rompy_xbeach.components.sediment.transport import SedimentTransport
     >>> from rompy_xbeach.components.sediment.morphology import Morphology
     >>>
     >>> sediment = Sediment(
-    ...     formulation=SedimentFormulation(
+    ...     transport=SedimentTransport(
     ...         form="vanthiel_vanrijn",
     ...         facua=0.15,
+    ...         bdslpeffmag="roelvink_total",
     ...     ),
     ...     morphology=Morphology(
     ...         morfac=10.0,
@@ -75,32 +72,11 @@ class Sediment(XBeachBaseModel):
     )
 
     # Sediment transport
-    formulation: Optional[SedimentFormulation] = Field(
+    transport: Optional[SedimentTransport] = Field(
         default=None,
         description=(
-            "Sediment transport formulation and wave form parameters "
-            "(form, waveform, facAs, facSk, facua, z0)"
-        ),
-    )
-    bed_slope: Optional[BedSlopeEffect] = Field(
-        default=None,
-        description=(
-            "Bed slope effect parameters "
-            "(bdslpeffmag, bdslpeffdir, bdslpeffdirfac, bdslpeffini, facsl, reposeangle)"
-        ),
-    )
-    processes: Optional[TransportProcesses] = Field(
-        default=None,
-        description=(
-            "Sediment transport process switches "
-            "(sws, lws, lwt, turb, turbadv, bed, sus, bulk, fallvelred, dilatancy)"
-        ),
-    )
-    calibration: Optional[TransportCalibration] = Field(
-        default=None,
-        description=(
-            "Advanced sediment transport calibration parameters "
-            "(Tsmin, tsfac, facDc, Tbfac, BRfac, betad, smax, phit, ci, cm, etc.)"
+            "Sediment transport parameters from XBeach Table 36, including "
+            "formulations, bed slope effects, process switches, and calibration factors"
         ),
     )
     numerics: Optional[TransportNumerics] = Field(
