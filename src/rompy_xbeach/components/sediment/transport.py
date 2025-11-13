@@ -24,21 +24,6 @@ class SedimentFormulation(XBeachBaseModel):
     Van Thiel de Vries, J. S. M. (2009). Dune erosion during storm surges.
     """
 
-    form: Optional[Literal["soulsby_vanrijn", "vanthiel_vanrijn", "vanrijn1993"]] = (
-        Field(
-            default=None,
-            description=(
-                "Equilibrium sediment concentration formulation "
-                "(XBeach default: vanthiel_vanrijn)"
-            ),
-        )
-    )
-    waveform: Optional[Literal["ruessink_vanrijn", "vanthiel"]] = Field(
-        default=None,
-        description=(
-            "Wave shape model for asymmetry and skewness (XBeach default: vanthiel)"
-        ),
-    )
     facAs: Optional[float] = Field(
         default=None,
         description=(
@@ -67,6 +52,21 @@ class SedimentFormulation(XBeachBaseModel):
         ge=0.0,
         le=1.0,
     )
+    form: Optional[Literal["soulsby_vanrijn", "vanthiel_vanrijn", "vanrijn1993"]] = (
+        Field(
+            default=None,
+            description=(
+                "Equilibrium sediment concentration formulation "
+                "(XBeach default: vanthiel_vanrijn)"
+            ),
+        )
+    )
+    waveform: Optional[Literal["ruessink_vanrijn", "vanthiel"]] = Field(
+        default=None,
+        description=(
+            "Wave shape model for asymmetry and skewness (XBeach default: vanthiel)"
+        ),
+    )
     z0: Optional[float] = Field(
         default=None,
         description=(
@@ -94,17 +94,6 @@ class BedSlopeEffect(XBeachBaseModel):
     sediment transport on transverse alluvial-bed slopes.
     """
 
-    bdslpeffmag: Optional[
-        Literal[
-            "none", "roelvink_total", "roelvink_bed", "soulsby_total", "soulsby_bed"
-        ]
-    ] = Field(
-        default=None,
-        description=(
-            "Modify the magnitude of sediment transport based on bed slope "
-            "(XBeach default: roelvink_total)"
-        ),
-    )
     bdslpeffdir: Optional[Literal["none", "talmon"]] = Field(
         default=None,
         description=(
@@ -126,6 +115,17 @@ class BedSlopeEffect(XBeachBaseModel):
         description=(
             "Modify the critical shields parameter based on bed slope "
             "(XBeach default: none)"
+        ),
+    )
+    bdslpeffmag: Optional[
+        Literal[
+            "none", "roelvink_total", "roelvink_bed", "soulsby_total", "soulsby_bed"
+        ]
+    ] = Field(
+        default=None,
+        description=(
+            "Modify the magnitude of sediment transport based on bed slope "
+            "(XBeach default: roelvink_total)"
         ),
     )
     facsl: Optional[float] = Field(
@@ -150,11 +150,30 @@ class TransportProcesses(XBeachBaseModel):
     the split between bed and suspended load.
     """
 
-    sws: Optional[bool] = Field(
+    bed: Optional[float] = Field(
+        default=None,
+        description=("Calibration factor for bed transports (XBeach default: 1.0)"),
+        ge=0.0,
+        le=1.0,
+    )
+    bulk: Optional[bool] = Field(
         default=None,
         description=(
-            "Switch to enable short wave and roller stirring and undertow "
-            "(XBeach default: 1)"
+            "Switch to compute bulk transport rather than bed and suspended "
+            "load separately (XBeach default: 0)"
+        ),
+    )
+    dilatancy: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Switch to reduce critical shields number due to dilatancy "
+            "(XBeach default: 0)"
+        ),
+    )
+    fallvelred: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Switch to reduce fall velocity for high concentrations (XBeach default: 0)"
         ),
     )
     lws: Optional[bool] = Field(
@@ -164,6 +183,20 @@ class TransportProcesses(XBeachBaseModel):
     lwt: Optional[bool] = Field(
         default=None,
         description=("Switch to enable long wave turbulence (XBeach default: 0)"),
+    )
+    sus: Optional[float] = Field(
+        default=None,
+        description=(
+            "Calibration factor for suspension transports (XBeach default: 1.0)"
+        ),
+        ge=0.0,
+    )
+    sws: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Switch to enable short wave and roller stirring and undertow "
+            "(XBeach default: 1)"
+        ),
     )
     turb: Optional[Literal["none", "wave_averaged", "bore_averaged"]] = Field(
         default=None,
@@ -177,39 +210,6 @@ class TransportProcesses(XBeachBaseModel):
             "Switch to activate turbulence advection model (XBeach default: none)"
         ),
     )
-    bed: Optional[float] = Field(
-        default=None,
-        description=("Calibration factor for bed transports (XBeach default: 1.0)"),
-        ge=0.0,
-        le=1.0,
-    )
-    sus: Optional[float] = Field(
-        default=None,
-        description=(
-            "Calibration factor for suspension transports (XBeach default: 1.0)"
-        ),
-        ge=0.0,
-    )
-    bulk: Optional[bool] = Field(
-        default=None,
-        description=(
-            "Switch to compute bulk transport rather than bed and suspended "
-            "load separately (XBeach default: 0)"
-        ),
-    )
-    fallvelred: Optional[bool] = Field(
-        default=None,
-        description=(
-            "Switch to reduce fall velocity for high concentrations (XBeach default: 0)"
-        ),
-    )
-    dilatancy: Optional[bool] = Field(
-        default=None,
-        description=(
-            "Switch to reduce critical shields number due to dilatancy "
-            "(XBeach default: 0)"
-        ),
-    )
 
 
 class TransportCalibration(XBeachBaseModel):
@@ -220,29 +220,9 @@ class TransportCalibration(XBeachBaseModel):
     and various physical process calibration factors.
     """
 
-    Tsmin: Optional[float] = Field(
+    BRfac: Optional[float] = Field(
         default=None,
-        description=(
-            "Minimum adaptation time scale in advection-diffusion equation "
-            "(XBeach default: 0.5 s)"
-        ),
-        ge=0.01,
-        le=10.0,
-    )
-    tsfac: Optional[float] = Field(
-        default=None,
-        description=(
-            "Coefficient determining ts = tsfac * h/ws in sediment source term "
-            "(XBeach default: 0.1)"
-        ),
-        ge=0.01,
-        le=1.0,
-    )
-    facDc: Optional[float] = Field(
-        default=None,
-        description=(
-            "Option to control sediment diffusion coefficient (XBeach default: 1.0)"
-        ),
+        description=("Calibration factor for surface slope (XBeach default: 1.0)"),
         ge=0.0,
         le=1.0,
     )
@@ -255,9 +235,20 @@ class TransportCalibration(XBeachBaseModel):
         ge=0.0,
         le=1.0,
     )
-    BRfac: Optional[float] = Field(
+    Tsmin: Optional[float] = Field(
         default=None,
-        description=("Calibration factor for surface slope (XBeach default: 1.0)"),
+        description=(
+            "Minimum adaptation time scale in advection-diffusion equation "
+            "(XBeach default: 0.5 s)"
+        ),
+        ge=0.01,
+        le=10.0,
+    )
+    bermslope: Optional[float] = Field(
+        default=None,
+        description=(
+            "Swash zone slope for (semi-)reflective beaches (XBeach default: 0.0)"
+        ),
         ge=0.0,
         le=1.0,
     )
@@ -270,24 +261,6 @@ class TransportCalibration(XBeachBaseModel):
         ge=0.0,
         le=10.0,
     )
-    smax: Optional[float] = Field(
-        default=None,
-        description=(
-            "Maximum shields parameter for equilibrium sediment concentration "
-            "according to Diane Foster (XBeach default: -1.0, no limit)"
-        ),
-        ge=-1.0,
-        le=3.0,
-    )
-    phit: Optional[float] = Field(
-        default=None,
-        description=(
-            "Phase lag angle in Nielsen transport equation "
-            "(XBeach default: 25.0 degrees)"
-        ),
-        ge=0.0,
-        le=90.0,
-    )
     ci: Optional[float] = Field(
         default=None,
         description=("Mass coefficient in shields inertia term (XBeach default: 1.0)"),
@@ -299,6 +272,32 @@ class TransportCalibration(XBeachBaseModel):
         description=("Mass coefficient in shields inertia term (XBeach default: 1.5)"),
         ge=0.0,
         le=3.0,
+    )
+    facDc: Optional[float] = Field(
+        default=None,
+        description=(
+            "Option to control sediment diffusion coefficient (XBeach default: 1.0)"
+        ),
+        ge=0.0,
+        le=1.0,
+    )
+    jetfac: Optional[float] = Field(
+        default=None,
+        description=(
+            "Option to mimic turbulence production near revetments "
+            "(XBeach default: 0.0)"
+        ),
+        ge=0.0,
+        le=1.0,
+    )
+    phit: Optional[float] = Field(
+        default=None,
+        description=(
+            "Phase lag angle in Nielsen transport equation "
+            "(XBeach default: 25.0 degrees)"
+        ),
+        ge=0.0,
+        le=90.0,
     )
     pormax: Optional[float] = Field(
         default=None,
@@ -314,21 +313,22 @@ class TransportCalibration(XBeachBaseModel):
         ge=0.75,
         le=2.0,
     )
-    bermslope: Optional[float] = Field(
+    smax: Optional[float] = Field(
         default=None,
         description=(
-            "Swash zone slope for (semi-)reflective beaches (XBeach default: 0.0)"
+            "Maximum shields parameter for equilibrium sediment concentration "
+            "according to Diane Foster (XBeach default: -1.0, no limit)"
         ),
-        ge=0.0,
-        le=1.0,
+        ge=-1.0,
+        le=3.0,
     )
-    jetfac: Optional[float] = Field(
+    tsfac: Optional[float] = Field(
         default=None,
         description=(
-            "Option to mimic turbulence production near revetments "
-            "(XBeach default: 0.0)"
+            "Coefficient determining ts = tsfac * h/ws in sediment source term "
+            "(XBeach default: 0.1)"
         ),
-        ge=0.0,
+        ge=0.01,
         le=1.0,
     )
 
@@ -346,6 +346,21 @@ class TransportNumerics(XBeachBaseModel):
         ge=0.0,
         le=1.0,
     )
+    dtlimts: Optional[float] = Field(
+        default=None,
+        description=(
+            "Factor of the timestep to determine the numerical limiter of the "
+            "adaptation time (XBeach default: 1.0)"
+        ),
+        ge=0.0,
+        le=20.0,
+    )
+    oldTsmin: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Switch to apply the Tsmin parameter instead of dtlimts (XBeach default: 0)"
+        ),
+    )
     sourcesink: Optional[bool] = Field(
         default=None,
         description=(
@@ -361,19 +376,4 @@ class TransportNumerics(XBeachBaseModel):
         ),
         ge=0.5,
         le=1.0,
-    )
-    dtlimts: Optional[float] = Field(
-        default=None,
-        description=(
-            "Factor of the timestep to determine the numerical limiter of the "
-            "adaptation time (XBeach default: 1.0)"
-        ),
-        ge=0.0,
-        le=20.0,
-    )
-    oldTsmin: Optional[bool] = Field(
-        default=None,
-        description=(
-            "Switch to apply the Tsmin parameter instead of dtlimts (XBeach default: 0)"
-        ),
     )
