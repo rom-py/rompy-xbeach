@@ -5,11 +5,8 @@ from typing import Literal, Optional, Union
 
 from pydantic import Field
 
-from rompy_xbeach.components.sediment.bed import BedComposition
-from rompy_xbeach.components.sediment.morphology import (
-    Morphology,
-    PrescribedBathymetry,
-)
+from rompy_xbeach.components.sediment.bed import BedUpdate
+from rompy_xbeach.components.sediment.morphology import Morphology
 from rompy_xbeach.components.sediment.transport import (
     Quasi3D,
     SedimentTransport,
@@ -93,18 +90,11 @@ class Sediment(XBeachBaseModel):
             "dryslp, wetslp, hswitch, dzmax)"
         ),
     )
-    prescribed_bathy: Optional[PrescribedBathymetry] = Field(
+    bed_update: Optional[BedUpdate] = Field(
         default=None,
         description=(
-            "Prescribed bathymetry evolution parameters (nsetbathy, setbathyfile)"
-        ),
-    )
-
-    # Bed composition
-    bed_composition: Optional[BedComposition] = Field(
-        default=None,
-        description=(
-            "Bed composition and layering parameters (frac_dz, split, merge, nd_var)"
+            "Bed update parameters from XBeach Table 40 "
+            "(frac_dz, merge, nd_var, nsetbathy, setbathyfile, split)"
         ),
     )
     q3d: Optional[Union[bool, Quasi3D]] = Field(

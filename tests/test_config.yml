@@ -125,6 +125,11 @@ physics:
 # Sediment
 # =========
 sediment:
+  bed_update:
+    frac_dz: 0.7
+    split: 1.01
+    merge: 0.01
+    nd_var: 2
   morphology:
     morfac: 1.0
   sedtrans:

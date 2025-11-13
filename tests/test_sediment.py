@@ -2,11 +2,8 @@
 
 import pytest
 from rompy_xbeach.components.sediment import Sediment
-from rompy_xbeach.components.sediment.bed import BedComposition
-from rompy_xbeach.components.sediment.morphology import (
-    Morphology,
-    PrescribedBathymetry,
-)
+from rompy_xbeach.components.sediment.bed import BedUpdate
+from rompy_xbeach.components.sediment.morphology import Morphology
 from rompy_xbeach.components.sediment.transport import (
     Quasi3D,
     SedimentTransport,
@@ -117,28 +114,21 @@ def test_morphology_with_avalanching():
     assert params["dzmax"] == 0.05
 
 
-def test_prescribed_bathymetry():
-    """Test PrescribedBathymetry model."""
-    prescribed = PrescribedBathymetry(
-        nsetbathy=10,
-    )
-    params = prescribed.params
-    assert params["nsetbathy"] == 10
-
-
-def test_bed_composition():
-    """Test BedComposition model."""
-    bed_comp = BedComposition(
+def test_bed_update():
+    """Test BedUpdate model with all parameters."""
+    bed_update = BedUpdate(
         frac_dz=0.7,
         split=1.01,
         merge=0.01,
         nd_var=2,
+        nsetbathy=10,
     )
-    params = bed_comp.params
+    params = bed_update.params
     assert params["frac_dz"] == 0.7
     assert params["split"] == 1.01
     assert params["merge"] == 0.01
     assert params["nd_var"] == 2
+    assert params["nsetbathy"] == 10
 
 
 def test_quasi3d():
@@ -187,7 +177,7 @@ def test_sediment_component_with_all_subcomponents():
             dryslp=1.0,
             wetslp=0.3,
         ),
-        bed_composition=BedComposition(
+        bed_update=BedUpdate(
             frac_dz=0.7,
         ),
         q3d=Quasi3D(
