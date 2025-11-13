@@ -206,12 +206,6 @@ class Config(XBeachBaseConfig):
         ge=0.4,
         le=5.0,
     )
-    morfac: Optional[float] = Field(
-        default=None,
-        description="Morphological acceleration factor (XBeach default: 1.0)",
-        ge=0.0,
-        le=1000.0,
-    )
     cf: Optional[float] = Field(
         default=None,
         description="Friction coefficient?",

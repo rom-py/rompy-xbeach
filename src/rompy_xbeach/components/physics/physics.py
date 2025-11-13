@@ -98,10 +98,6 @@ class Physics(XBeachBaseModel):
             "(XBeach default: 1)"
         ),
     )
-    morphology: Optional[bool] = Field(
-        default=None,
-        description="Turn on morphology (XBeach default: 0)",
-    )
     nonh: Optional[bool] = Field(
         default=None,
         description=(
@@ -112,10 +108,6 @@ class Physics(XBeachBaseModel):
     roller: Optional[Union[bool, Roller]] = Field(
         default=None,
         description="Switch to enable roller model (XBeach default: 1)",
-    )
-    sedtrans: Optional[bool] = Field(
-        default=None,
-        description="Turn on sediment transport (XBeach default: 1)",
     )
     setbathy: Optional[bool] = Field(
         default=None,
@@ -254,7 +246,6 @@ class Physics(XBeachBaseModel):
             "avalanching",
             "flow",
             "lwave",
-            "sedtrans",
             "single_dir",
             "swave",
             "viscosity",

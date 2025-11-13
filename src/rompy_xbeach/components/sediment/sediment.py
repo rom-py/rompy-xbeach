@@ -86,8 +86,7 @@ class Sediment(XBeachBaseModel):
             "(cmax, sourcesink, thetanum, dtlimts, oldTsmin)"
         ),
     )
-
-    morphology: Optional[Morphology] = Field(
+    morphology: Optional[Union[bool, Morphology]] = Field(
         default=None,
         description=(
             "Morphological evolution parameters "

@@ -92,8 +92,6 @@ physics:
     cats: 4.0
     hwci: 0.1
     hwcimax: 100.0
-  sedtrans: False
-  morphology: 0
   wave_boundary:
     nmax: 0.8
     wbcevarreduce: 1.0
@@ -122,6 +120,11 @@ physics:
     depthscale: 1.0
 # Sediment
 sediment:
+  morphology:
+    morfac: 1.0
+  sedtrans:
+    BRfac: 1.0
+    Tbfac: 1.0
   q3d:
     deltar: 0.025
     kmax: 100
@@ -144,7 +147,6 @@ thetamin: -80
 thetamax: 80
 dtheta: 10.0
 gammax: 1.0
-morfac: 0.0
 cf: 0.01
 paulrevere: land
 cfl: 0.8
