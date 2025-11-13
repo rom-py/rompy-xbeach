@@ -9,10 +9,10 @@ from rompy_xbeach.components.physics.boundary import WaveBoundaryConditions
 from rompy_xbeach.components.physics.constants import Coriolis, PhysicalConstants
 from rompy_xbeach.components.physics.flow import (
     FlowNumerics,
-    HorizontalViscosity,
     WaveCurrentInteraction,
 )
 from rompy_xbeach.components.physics.friction import (
+    HorizontalViscosity,
     Cf,
     Chezy,
     Manning,

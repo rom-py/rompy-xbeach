@@ -55,7 +55,8 @@ class Roller(XBeachBaseModel):
 
 
 # =============================================================================
-# Short Wave Friction
+# Breaker Formulation Models
+# =============================================================================
 
 
 class ShortWaveFriction(XBeachBaseModel):
@@ -106,7 +107,6 @@ class ShortWaveFriction(XBeachBaseModel):
         """
         params = super().get(destdir)
 
-        # Fetch DataBlob file and add the fetched file path
         if self.wavfricfile:
             params["wavfricfile"] = self.wavfricfile.get(destdir).name
 
@@ -117,11 +117,6 @@ class ShortWaveFriction(XBeachBaseModel):
         if self.wavfriccoef is not None and self.wavfricfile is not None:
             raise ValueError("Only one of wavfriccoef or wavfricfile can be specified.")
         return self
-
-
-# =============================================================================
-# Breaker Formulation Models
-# =============================================================================
 
 
 class Dissipation(XBeachBaseModel):
