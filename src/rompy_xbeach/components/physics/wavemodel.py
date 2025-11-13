@@ -36,15 +36,6 @@ class Roller(XBeachBaseModel):
         ge=0.05,
         le=0.3,
     )
-    nuhfac: Optional[float] = Field(
-        default=None,
-        description=(
-            "Viscosity switch for roller induced turbulent horizontal viscosity "
-            "(XBeach default: 1.0)"
-        ),
-        ge=0.0,
-        le=1.0,
-    )
     rfb: Optional[bool] = Field(
         default=None,
         description=(
@@ -119,7 +110,7 @@ class ShortWaveFriction(XBeachBaseModel):
         return self
 
 
-class Dissipation(XBeachBaseModel):
+class WaveDissipation(XBeachBaseModel):
     """Base class for wave dissipation formulations with common breaking parameters.
 
     These parameters apply to all breaker formulations and control the dissipation
@@ -198,7 +189,7 @@ class Dissipation(XBeachBaseModel):
     )
 
 
-class Janssen(Dissipation):
+class Janssen(WaveDissipation):
     """Janssen & Battjes (2007) breaker model configuration."""
 
     model_type: Literal["janssen"] = Field(
@@ -207,7 +198,7 @@ class Janssen(Dissipation):
     )
 
 
-class Baldock(Dissipation):
+class Baldock(WaveDissipation):
     """Baldock breaker model configuration."""
 
     model_type: Literal["baldock"] = Field(
@@ -222,7 +213,7 @@ class Baldock(Dissipation):
     )
 
 
-class Roelvink1(Dissipation):
+class Roelvink1(WaveDissipation):
     """Roelvink (1993a) breaker model configuration."""
 
     model_type: Literal["roelvink1"] = Field(
@@ -258,7 +249,7 @@ class Roelvink2(Roelvink1):
     )
 
 
-class RoelvinkDaly(Dissipation):
+class RoelvinkDaly(WaveDissipation):
     """Daly et al. (2010) breaker model configuration."""
 
     model_type: Literal["roelvink_daly"] = Field(
