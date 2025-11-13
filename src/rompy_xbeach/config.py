@@ -15,6 +15,7 @@ from rompy_xbeach.data import XBeachBathy
 
 from rompy_xbeach.components.output import Output
 from rompy_xbeach.components.physics import Physics
+from rompy_xbeach.components.sediment import Sediment
 
 
 logger = logging.getLogger(__name__)
@@ -111,6 +112,10 @@ class Config(XBeachBaseConfig):
     physics: Physics = Field(
         default_factory=Physics,
         description="Physical processes configuration",
+    )
+    sediment: Optional[Sediment] = Field(
+        default_factory=Sediment,
+        description="Sediment transport configuration",
     )
     output: Output = Field(
         default_factory=Output,
@@ -262,6 +267,7 @@ class Config(XBeachBaseConfig):
                 "input",
                 "output",
                 "physics",
+                "sediment",
             ],
             exclude_none=True,
             by_alias=True,
@@ -286,6 +292,9 @@ class Config(XBeachBaseConfig):
 
         # Physics configuration
         self._params.update(self.physics.get(staging_dir))
+
+        # Sediment configuration
+        self._params.update(self.sediment.get(staging_dir))
 
         # Output configuration
         self._params.update(self.output.get(staging_dir))

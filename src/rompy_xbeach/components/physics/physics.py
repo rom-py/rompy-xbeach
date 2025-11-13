@@ -109,10 +109,6 @@ class Physics(XBeachBaseModel):
             "pressure compensation Stelling & Zijlema, 2003 (XBeach default: 0)"
         ),
     )
-    q3d: Optional[bool] = Field(
-        default=None,
-        description="Turn on quasi-3D sediment transport (XBeach default: 0)",
-    )
     roller: Optional[Union[bool, Roller]] = Field(
         default=None,
         description="Switch to enable roller model (XBeach default: 1)",

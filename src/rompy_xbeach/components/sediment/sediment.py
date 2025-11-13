@@ -1,7 +1,7 @@
 """XBeach sediment and morphology configuration."""
 
 import logging
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 
 from pydantic import Field
 
@@ -72,7 +72,7 @@ class Sediment(XBeachBaseModel):
         description="Model type discriminator",
     )
 
-    transport: Optional[SedimentTransport] = Field(
+    sedtrans: Optional[Union[bool, SedimentTransport]] = Field(
         default=None,
         description=(
             "Sediment transport parameters from XBeach Table 36, including "
@@ -87,7 +87,6 @@ class Sediment(XBeachBaseModel):
         ),
     )
 
-    # Morphology
     morphology: Optional[Morphology] = Field(
         default=None,
         description=(
@@ -113,10 +112,7 @@ class Sediment(XBeachBaseModel):
             "Bed composition and layering parameters (frac_dz, split, merge, nd_var)"
         ),
     )
-    quasi3d: Optional[Quasi3D] = Field(
+    q3d: Optional[Union[bool, Quasi3D]] = Field(
         default=None,
-        description=(
-            "Quasi-3D sediment transport parameters "
-            "(kmax, sigfac, deltar, rwave, vonkar, vicmol)"
-        ),
+        description="Turn on quasi-3D sediment transport (XBeach default: 0)",
     )

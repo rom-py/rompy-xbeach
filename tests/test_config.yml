@@ -120,6 +120,15 @@ physics:
     rho: 1025
     g: 9.81
     depthscale: 1.0
+# Sediment
+sediment:
+  q3d:
+    deltar: 0.025
+    kmax: 100
+    rwave: 2.0
+    sigfac: 1.3
+    vicmol: 0.00001
+    vonkar: 0.4
 # Wave boundary conditions
 front: abs_2d #1
 back: abs_2d #2

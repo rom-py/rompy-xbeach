@@ -34,6 +34,10 @@ class SedimentTransport(XBeachBaseModel):
     Van Thiel de Vries, J. S. M. (2009). Dune erosion during storm surges.
     """
 
+    sedtrans: Literal["sedtrans"] = Field(
+        default="sedtrans",
+        description="Turn on sediment transport parameters (XBeach default: 1)",
+    )
     BRfac: Optional[float] = Field(
         default=None,
         description=("Calibration factor for surface slope (XBeach default: 1.0)"),
@@ -367,7 +371,10 @@ class Quasi3D(XBeachBaseModel):
     Van Thiel de Vries, J. S. M. (2009). Dune erosion during storm surges.
     PhD thesis, Delft University of Technology.
     """
-
+    q3d: Literal[True] = Field(
+        default=True,
+        description="Turn on quasi-3D sediment transport (XBeach default: 0)",
+    )
     deltar: Optional[float] = Field(
         default=None,
         description=(
