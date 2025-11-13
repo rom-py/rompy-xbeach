@@ -125,6 +125,21 @@ physics:
 # Sediment
 # =========
 sediment:
+  groundwater:
+    aquiferbot: -10.0
+    aquiferbotfile: null
+    dwetlayer: 0.1
+    gw0: 0.0
+    gw0file: null
+    gwReturb: 100.0
+    gwfastsolve: 0
+    gwheadmodel: parabolic
+    gwhorinfil: 0
+    gwnonh: 0
+    gwscheme: laminar
+    kx: 0.0001
+    ky: 0.0001
+    kz: 0.0001
   bed_update:
     frac_dz: 0.7
     split: 1.01

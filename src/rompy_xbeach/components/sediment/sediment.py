@@ -6,6 +6,7 @@ from typing import Literal, Optional, Union
 from pydantic import Field
 
 from rompy_xbeach.components.sediment.bed import BedUpdate
+from rompy_xbeach.components.sediment.groundwater import GroundwaterFlow
 from rompy_xbeach.components.sediment.morphology import Morphology
 from rompy_xbeach.components.sediment.transport import (
     Quasi3D,
@@ -95,6 +96,14 @@ class Sediment(XBeachBaseModel):
         description=(
             "Bed update parameters from XBeach Table 40 "
             "(frac_dz, merge, nd_var, nsetbathy, setbathyfile, split)"
+        ),
+    )
+    groundwater: Optional[GroundwaterFlow] = Field(
+        default=None,
+        description=(
+            "Groundwater flow parameters from XBeach Table 41 "
+            "(aquiferbot, aquiferbotfile, dwetlayer, gw0, gw0file, gwReturb, "
+            "gwfastsolve, gwheadmodel, gwhorinfil, gwnonh, gwscheme, kx, ky, kz)"
         ),
     )
     q3d: Optional[Union[bool, Quasi3D]] = Field(

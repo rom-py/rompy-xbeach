@@ -3,6 +3,7 @@
 import pytest
 from rompy_xbeach.components.sediment import Sediment
 from rompy_xbeach.components.sediment.bed import BedUpdate
+from rompy_xbeach.components.sediment.groundwater import GroundwaterFlow
 from rompy_xbeach.components.sediment.morphology import Morphology
 from rompy_xbeach.components.sediment.transport import (
     Quasi3D,
@@ -146,6 +147,29 @@ def test_quasi3d():
     assert params["deltar"] == 0.025
     assert params["rwave"] == 2.0
     assert params["vonkar"] == 0.4
+
+
+def test_groundwater_flow():
+    """Test GroundwaterFlow model."""
+    groundwater = GroundwaterFlow(
+        aquiferbot=-10.0,
+        dwetlayer=0.1,
+        gw0=0.0,
+        gwscheme="laminar",
+        gwheadmodel="parabolic",
+        kx=0.0001,
+        ky=0.0001,
+        kz=0.0001,
+    )
+    params = groundwater.params
+    assert params["aquiferbot"] == -10.0
+    assert params["dwetlayer"] == 0.1
+    assert params["gw0"] == 0.0
+    assert params["gwscheme"] == "laminar"
+    assert params["gwheadmodel"] == "parabolic"
+    assert params["kx"] == 0.0001
+    assert params["ky"] == 0.0001
+    assert params["kz"] == 0.0001
 
 
 def test_sediment_component_empty():
