@@ -26,6 +26,8 @@ HERE = Path(__file__).parent
 # TODO: Remove the 'cf' parameter (confirm it with CSIRO)
 # TODO: Make 'random' part of the wave boundary conditions objects
 
+# TODO: Split numerics into a separate component?
+
 
 WindType = Annotated[
     Union[load_entry_points("xbeach.data", etype="wind")],
@@ -84,7 +86,6 @@ FrontType = Literal["abs_1d", "abs_2d", "wall", "wlevel", "nonh_1d", "waveflume"
 BackType = Literal["wall", "abs_1d", "abs_2d", "wlevel"]
 LeftRightType = Literal["neumann", "wall", "no_advec", "neumann_v", "abs_1d"]
 LateralWaveType = Literal["neumann", "wavecrest", "cyclic"]
-SchemeType = Literal["upwind_1", "lax_wendroff", "upwind_2", "warmbeam"]
 
 
 class Config(XBeachBaseConfig):
@@ -154,10 +155,6 @@ class Config(XBeachBaseConfig):
             "the simulation start time (XBeach default: s)"
         ),
         examples=["seconds since 1970-01-01 00:00:00.00 +1:00"],
-    )
-    scheme: Optional[SchemeType] = Field(
-        default=None,
-        description="Numerical scheme for wave propagation (XBeach default: warmbeam)",
     )
     order: Optional[Literal[1, 2]] = Field(
         default=None,

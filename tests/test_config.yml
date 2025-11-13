@@ -91,6 +91,19 @@ physics:
   wci: False
   sedtrans: False
   morphology: 0
+  wave_boundary:
+    nmax: 0.8
+    wbcevarreduce: 1.0
+    bclwonly: False
+    swkhmin: -0.01
+    wbcRemoveStokes: 1
+    wbcScaleEnergy: 1
+    cyclicdiradjust: 0
+  wave_numerics:
+    scheme: warmbeam
+    maxiter: 500
+    maxerror: 0.0005
+    wavint: 600.0
 # Wave boundary conditions
 front: abs_2d #1
 back: abs_2d #2
@@ -98,7 +111,6 @@ left: neumann #0
 right: neumann #0
 rugdepth: 0.011
 tunits: seconds since 1970-01-01 00:00:00.00 +00
-scheme: warmbeam
 order: 1
 lateralwave: wavecrest
 random: 1

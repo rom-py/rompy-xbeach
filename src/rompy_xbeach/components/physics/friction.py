@@ -20,15 +20,6 @@ class FrictionModifiers(XBeachBaseModel):
     turbulence effects.
     """
 
-    fwcutoff: Optional[float] = Field(
-        default=None,
-        description=(
-            "Depth greater than which the bed friction factor is not applied "
-            "(XBeach default: 1000.0 m)"
-        ),
-        ge=0.0,
-        le=1000.0,
-    )
     friction_acceleration: Optional[Literal["none", "mccall", "nielsen"]] = Field(
         default=None,
         description=(

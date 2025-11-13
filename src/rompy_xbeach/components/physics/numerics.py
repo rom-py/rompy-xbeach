@@ -32,7 +32,8 @@ class WaveNumerics(XBeachBaseModel):
             description=(
                 "Numerical scheme for wave propagation. Options: "
                 "upwind_1 (first-order upwind), lax_wendroff (Lax-Wendroff), "
-                "upwind_2 (second-order upwind), warmbeam (Warming-Beam, default)"
+                "upwind_2 (second-order upwind), warmbeam (Warming-Beam, default) "
+                "(XBeach default: warmbeam)"
             ),
         )
     )

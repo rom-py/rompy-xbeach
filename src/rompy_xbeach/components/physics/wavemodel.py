@@ -125,10 +125,10 @@ class ShortWaveFriction(XBeachBaseModel):
 # =============================================================================
 
 
-class Breaking(XBeachBaseModel):
-    """Base class for wave breaking formulations with common breaking parameters.
+class Dissipation(XBeachBaseModel):
+    """Base class for wave dissipation formulations with common breaking parameters.
 
-    These parameters apply to all breaker formulations and control the breaking
+    These parameters apply to all breaker formulations and control the dissipation
     process characteristics such as delay, viscosity effects, and wave runup.
 
     """
@@ -154,6 +154,12 @@ class Breaking(XBeachBaseModel):
         ge=0.75,
         le=3.0,
     )
+    delta: Optional[float] = Field(
+        default=None,
+        description="Fraction of wave height to add to water depth (XBeach default: 0.0)",
+        ge=0.0,
+        le=1.0,
+    )
     facrun: Optional[float] = Field(
         default=None,
         description=(
@@ -171,6 +177,15 @@ class Breaking(XBeachBaseModel):
         ge=0.0,
         le=2.0,
     )
+    fwcutoff: Optional[float] = Field(
+        default=None,
+        description=(
+            "Depth greater than which the bed friction factor is not applied "
+            "(XBeach default: 1000.0 m)"
+        ),
+        ge=0.0,
+        le=1000.0,
+    )
     gammax: Optional[float] = Field(
         default=None,
         description=(
@@ -185,7 +200,7 @@ class Breaking(XBeachBaseModel):
     )
 
 
-class Janssen(Breaking):
+class Janssen(Dissipation):
     """Janssen & Battjes (2007) breaker model configuration."""
 
     model_type: Literal["janssen"] = Field(
@@ -194,7 +209,7 @@ class Janssen(Breaking):
     )
 
 
-class Baldock(Breaking):
+class Baldock(Dissipation):
     """Baldock breaker model configuration."""
 
     model_type: Literal["baldock"] = Field(
@@ -209,7 +224,7 @@ class Baldock(Breaking):
     )
 
 
-class Roelvink1(Breaking):
+class Roelvink1(Dissipation):
     """Roelvink (1993a) breaker model configuration."""
 
     model_type: Literal["roelvink1"] = Field(
@@ -221,12 +236,6 @@ class Roelvink1(Breaking):
         description="Wave dissipation coefficient (XBeach default: 1.38)",
         ge=0.5,
         le=2.0,
-    )
-    delta: Optional[float] = Field(
-        default=None,
-        description="Fraction of wave height to add to water depth (XBeach default: 0.0)",
-        ge=0.0,
-        le=1.0,
     )
     gamma: Optional[float] = Field(
         default=None,
@@ -251,7 +260,7 @@ class Roelvink2(Roelvink1):
     )
 
 
-class RoelvinkDaly(Breaking):
+class RoelvinkDaly(Dissipation):
     """Daly et al. (2010) breaker model configuration."""
 
     model_type: Literal["roelvink_daly"] = Field(
