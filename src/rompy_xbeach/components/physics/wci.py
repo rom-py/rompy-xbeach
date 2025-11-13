@@ -1,6 +1,7 @@
-"""XBeach flow parameter configurations.
+"""XBeach wave-current interaction parameter configurations.
 
-This module contains models for flow-related parameters including horizontal viscosity.
+This module contains models for wave-current interaction parameters.
+
 """
 
 import logging
