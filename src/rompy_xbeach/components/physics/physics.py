@@ -5,7 +5,7 @@ from typing import Literal, Optional, Union
 
 from pydantic import Field, model_validator
 
-from rompy_xbeach.components.physics.boundary import WaveBoundaryConditions
+from rompy_xbeach.components.physics.wbc import WaveBoundaryConditions
 from rompy_xbeach.components.physics.constants import Coriolis, PhysicalConstants
 from rompy_xbeach.components.physics.flow import (
     WaveCurrentInteraction,
