@@ -25,7 +25,6 @@ HERE = Path(__file__).parent
 
 
 # TODO: Remove the 'rugdepth' parameter? (confirm it with CSIRO)
-# TODO: Remove the 'cf' parameter (confirm it with CSIRO)
 # TODO: Make 'random' part of the wave boundary conditions objects
 
 # TODO: Split numerics into a separate component?
@@ -174,13 +173,6 @@ class Config(XBeachBaseConfig):
             "to short wave forcing is added) (XBeach default: 2)",
         ),
     )
-    random: Optional[bool] = Field(
-        default=None,
-        description=(
-            "Switch to enable random seed for instat = jons, swan or vardens "
-            "boundary conditions (XBeach default: 1)",
-        ),
-    )
     thetamin: Optional[float] = Field(
         default=None,
         description=(
@@ -205,16 +197,6 @@ class Config(XBeachBaseConfig):
         ge=0.1,
         le=180.0,
     )
-    gammax: Optional[float] = Field(
-        default=None,
-        description="Maximum ratio wave height to water depth (XBeach default: 2.0)",
-        ge=0.4,
-        le=5.0,
-    )
-    cf: Optional[float] = Field(
-        default=None,
-        description="Friction coefficient?",
-    )
     cfl: Optional[float] = Field(
         default=None,
         description="Maximum courant-friedrichs-lewy number (XBeach default: 0.7)",
@@ -235,13 +217,6 @@ class Config(XBeachBaseConfig):
     def set_dtheta_if_surfbeat(self) -> "Config":
         """Placeholder validator for future dtheta logic."""
         return self
-
-    @field_serializer("random")
-    def serialize_random(self, value: Optional[bool]):
-        """Serialise bool to int."""
-        if value is None:
-            return None
-        return int(value)
 
     @property
     def params(self) -> dict:
