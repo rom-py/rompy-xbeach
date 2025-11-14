@@ -193,14 +193,6 @@ def test_white_colebrook_with_mincf():
     assert params["mincf"] == 0.002
 
 
-def test_friction_with_fwcutoff():
-    """Test friction formulation with fwcutoff parameter."""
-    physics = Physics(bedfriction=Chezy(bedfriccoef=55.0, fwcutoff=10.0))
-    params = physics.params
-    assert params["bedfriction"] == "chezy"
-    assert params["fwcutoff"] == 10.0
-
-
 def test_white_colebrook_grainsize_with_xbeachg_params():
     """Test White-Colebrook grain size with XBeach-G specific parameters."""
     physics = Physics(
@@ -208,7 +200,6 @@ def test_white_colebrook_grainsize_with_xbeachg_params():
             friction_acceleration="mccall",
             friction_infiltration=True,
             friction_turbulence=True,
-            fwcutoff=50.0,
         )
     )
     params = physics.params
@@ -216,7 +207,6 @@ def test_white_colebrook_grainsize_with_xbeachg_params():
     assert params["friction_acceleration"] == "mccall"
     assert params["friction_infiltration"] == 1
     assert params["friction_turbulence"] == 1
-    assert params["fwcutoff"] == 50.0
 
 
 def test_xbeachg_params_apply_to_all_formulations():

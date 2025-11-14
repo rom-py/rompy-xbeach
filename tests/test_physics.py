@@ -16,7 +16,6 @@ def test_physics_default():
     assert physics.wavemodel is None
     assert physics.advection is None
     assert physics.flow is None
-    assert physics.morphology is None
 
 
 def test_physics_with_wavemodel():
@@ -34,27 +33,25 @@ def test_physics_with_wavemodel():
 def test_physics_with_boolean_switches():
     """Test Physics with boolean switches."""
     physics = Physics(
-        morphology=True,
-        sedtrans=True,
         flow=True,
         swave=True,
+        wind=True,
     )
-    assert physics.morphology is True
-    assert physics.sedtrans is True
     assert physics.flow is True
     assert physics.swave is True
+    assert physics.wind is True
 
 
 def test_physics_disable_processes():
     """Test Physics with processes disabled."""
     physics = Physics(
-        morphology=False,
-        sedtrans=False,
         wind=False,
+        swave=False,
+        flow=False,
     )
-    assert physics.morphology is False
-    assert physics.sedtrans is False
     assert physics.wind is False
+    assert physics.swave is False
+    assert physics.flow is False
 
 
 # =====================================================================================
@@ -77,14 +74,14 @@ def test_params_with_wavemodel():
 def test_params_with_boolean_switches():
     """Test params property with boolean switches."""
     physics = Physics(
-        morphology=True,
-        sedtrans=True,
+        swave=True,
+        lwave=True,
         flow=False,
         wind=False,
     )
     params = physics.params
-    assert params["morphology"] == 1
-    assert params["sedtrans"] == 1
+    assert params["swave"] == 1
+    assert params["lwave"] == 1
     assert params["flow"] == 0
     assert params["wind"] == 0
 
@@ -92,13 +89,13 @@ def test_params_with_boolean_switches():
 def test_params_excludes_none():
     """Test that params excludes None values."""
     physics = Physics(
-        morphology=True,
-        sedtrans=None,
+        swave=True,
+        lwave=None,
         flow=None,
     )
     params = physics.params
-    assert "morphology" in params
-    assert "sedtrans" not in params
+    assert "swave" in params
+    assert "lwave" not in params
     assert "flow" not in params
 
 
@@ -111,18 +108,15 @@ def test_params_all_boolean_fields():
         flow=True,
         gwflow=False,
         lwave=True,
-        morphology=True,
         nonh=False,
-        q3d=False,
-        sedtrans=True,
         setbathy=False,
         ships=False,
         single_dir=True,
         snells=False,
         swave=True,
         swrunup=False,
-        vegetation=False,
         viscosity=True,
+        wci=False,
         wind=True,
     )
     params = physics.params
@@ -134,18 +128,15 @@ def test_params_all_boolean_fields():
     assert params["flow"] == 1
     assert params["gwflow"] == 0
     assert params["lwave"] == 1
-    assert params["morphology"] == 1
     assert params["nonh"] == 0
-    assert params["q3d"] == 0
-    assert params["sedtrans"] == 1
     assert params["setbathy"] == 0
     assert params["ships"] == 0
     assert params["single_dir"] == 1
     assert params["snells"] == 0
     assert params["swave"] == 1
     assert params["swrunup"] == 0
-    assert params["vegetation"] == 0
     assert params["viscosity"] == 1
+    assert params["wci"] == 0
     assert params["wind"] == 1
 
 
@@ -153,28 +144,28 @@ def test_params_all_boolean_fields():
 # get() method tests
 # =====================================================================================
 def test_get_method_without_destdir():
-    """Test get() method with destdir."""
+    """Test get() method without destdir."""
     from pathlib import Path
 
     physics = Physics(
-        morphology=True,
-        sedtrans=True,
+        flow=True,
+        swave=True,
         wavemodel=Surfbeat(),
     )
     params = physics.get(Path("/tmp"))
-    assert params["morphology"] == 1
-    assert params["sedtrans"] == 1
+    assert params["flow"] == 1
+    assert params["swave"] == 1
     assert params["wavemodel"] == "surfbeat"
 
 
 def test_get_method_with_destdir(tmp_path):
     """Test get() method with destdir (should be ignored)."""
     physics = Physics(
-        morphology=True,
+        wind=True,
         flow=True,
     )
     params = physics.get(tmp_path)
-    assert params["morphology"] == 1
+    assert params["wind"] == 1
     assert params["flow"] == 1
 
     # No files should be created in destdir
@@ -187,21 +178,17 @@ def test_get_method_preserves_all_params():
 
     physics = Physics(
         wavemodel=Nonh(),
-        morphology=True,
-        sedtrans=True,
         flow=True,
         swave=False,  # Must be False when wavemodel=Nonh
         wind=False,
-        nonh=True,
+        roller=False,
     )
     params = physics.get(Path("/tmp"))
     assert params["wavemodel"] == "nonh"
-    assert params["morphology"] == 1
-    assert params["sedtrans"] == 1
     assert params["flow"] == 1
     assert params["swave"] == 0
     assert params["wind"] == 0
-    assert params["nonh"] == 1
+    assert params["roller"] == 0
 
 
 # =====================================================================================
@@ -211,8 +198,6 @@ def test_physics_morphological_simulation():
     """Test Physics configuration for morphological simulation."""
     physics = Physics(
         wavemodel=Surfbeat(),
-        morphology=True,
-        sedtrans=True,
         avalanching=True,
         flow=True,
         swave=True,
@@ -221,8 +206,6 @@ def test_physics_morphological_simulation():
     params = physics.params
 
     assert params["wavemodel"] == "surfbeat"
-    assert params["morphology"] == 1
-    assert params["sedtrans"] == 1
     assert params["avalanching"] == 1
     assert params["flow"] == 1
     assert params["swave"] == 1
@@ -233,16 +216,12 @@ def test_physics_hydrodynamic_only_simulation():
     """Test Physics configuration for hydrodynamic-only simulation."""
     physics = Physics(
         wavemodel=Surfbeat(),
-        morphology=False,
-        sedtrans=False,
         flow=True,
         swave=True,
     )
     params = physics.params
 
     assert params["wavemodel"] == "surfbeat"
-    assert params["morphology"] == 0
-    assert params["sedtrans"] == 0
     assert params["flow"] == 1
     assert params["swave"] == 1
 
@@ -254,8 +233,6 @@ def test_physics_nonhydrostatic_simulation():
         nonh=True,
         swave=False,  # Must be explicitly False when wavemodel=Nonh
         flow=True,
-        morphology=False,
-        sedtrans=False,
     )
     params = physics.params
 
@@ -263,8 +240,6 @@ def test_physics_nonhydrostatic_simulation():
     assert params["nonh"] == 1
     assert params["swave"] == 0
     assert params["flow"] == 1
-    assert params["morphology"] == 0
-    assert params["sedtrans"] == 0
 
 
 def test_physics_stationary_simulation():
@@ -272,15 +247,11 @@ def test_physics_stationary_simulation():
     physics = Physics(
         wavemodel=Stationary(),
         flow=False,
-        morphology=False,
-        sedtrans=False,
     )
     params = physics.params
 
     assert params["wavemodel"] == "stationary"
     assert params["flow"] == 0
-    assert params["morphology"] == 0
-    assert params["sedtrans"] == 0
 
 
 def test_physics_with_vegetation():
@@ -302,13 +273,11 @@ def test_physics_with_groundwater():
     physics = Physics(
         gwflow=True,
         flow=True,
-        morphology=True,
     )
     params = physics.params
 
     assert params["gwflow"] == 1
     assert params["flow"] == 1
-    assert params["morphology"] == 1
 
 
 def test_physics_with_ships():
@@ -339,17 +308,15 @@ def test_physics_minimal_configuration():
 
 def test_physics_single_parameter():
     """Test Physics with single parameter."""
-    physics = Physics(morphology=True)
+    physics = Physics(flow=True)
     params = physics.params
     assert len(params) == 1
-    assert params["morphology"] == 1
+    assert params["flow"] == 1
 
 
 def test_physics_mixed_true_false():
     """Test Physics with mixed True/False values."""
     physics = Physics(
-        morphology=True,
-        sedtrans=False,
         flow=True,
         wind=False,
         swave=True,
@@ -357,8 +324,6 @@ def test_physics_mixed_true_false():
     )
     params = physics.params
 
-    assert params["morphology"] == 1
-    assert params["sedtrans"] == 0
     assert params["flow"] == 1
     assert params["wind"] == 0
     assert params["swave"] == 1
@@ -371,16 +336,16 @@ def test_physics_mixed_true_false():
 def test_bool_serialization_to_int():
     """Test that boolean values are correctly serialized to integers."""
     physics = Physics(
-        morphology=True,
-        sedtrans=False,
+        flow=True,
+        wind=False,
     )
     params = physics.params
 
     # Check that booleans are converted to integers
-    assert params["morphology"] == 1
-    assert params["sedtrans"] == 0
-    assert isinstance(params["morphology"], int)
-    assert isinstance(params["sedtrans"], int)
+    assert params["flow"] == 1
+    assert params["wind"] == 0
+    assert isinstance(params["flow"], int)
+    assert isinstance(params["wind"], int)
 
 
 def test_wavemodel_serialization():
@@ -411,20 +376,20 @@ def test_wavemodel_invalid_value():
 def test_boolean_fields_accept_bool_only():
     """Test that boolean fields accept boolean values."""
     # Valid boolean values
-    physics = Physics(morphology=True)
-    assert physics.morphology is True
+    physics = Physics(flow=True)
+    assert physics.flow is True
 
-    physics = Physics(morphology=False)
-    assert physics.morphology is False
+    physics = Physics(flow=False)
+    assert physics.flow is False
 
     # Pydantic v2 allows type coercion for booleans
     # Integer 1 is coerced to True
-    physics = Physics(morphology=1)
-    assert physics.morphology is True
+    physics = Physics(flow=1)
+    assert physics.flow is True
 
     # Integer 0 is coerced to False
-    physics = Physics(morphology=0)
-    assert physics.morphology is False
+    physics = Physics(flow=0)
+    assert physics.flow is False
 
 
 # =====================================================================================
@@ -441,10 +406,10 @@ def test_log_default_enabled_processes(caplog):
         "avalanching",
         "flow",
         "lwave",
-        "sedtrans",
         "single_dir",
         "swave",
         "viscosity",
+        "wci",
         "wind",
     ]
 
@@ -457,14 +422,10 @@ def test_log_default_enabled_processes(caplog):
 def test_no_log_when_default_enabled_process_is_set(caplog):
     """Test that no DEBUG message is logged when default-enabled process is explicitly set."""
     with caplog.at_level(logging.DEBUG):
-        Physics(sedtrans=True, flow=False, swave=True)
+        Physics(flow=False, swave=True)
 
-    # sedtrans, flow, and swave should not trigger DEBUG logs since they're explicitly set
+    # flow and swave should not trigger DEBUG logs since they're explicitly set
     # But other default-enabled params should still log
-    assert (
-        "sedtrans" not in caplog.text
-        or "sedtrans) not explicitly set" not in caplog.text
-    )
     assert "flow" not in caplog.text or "flow) not explicitly set" not in caplog.text
     assert "swave" not in caplog.text or "swave) not explicitly set" not in caplog.text
 
