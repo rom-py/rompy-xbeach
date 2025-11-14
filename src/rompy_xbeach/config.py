@@ -118,7 +118,7 @@ class Config(XBeachBaseConfig):
         description="Sediment transport configuration",
     )
     mpi: Optional[Mpi] = Field(
-        default=None,
+        default_factory=Mpi,
         description="MPI parallelisation configuration",
     )
     output: Output = Field(
@@ -242,6 +242,7 @@ class Config(XBeachBaseConfig):
                 "output",
                 "physics",
                 "sediment",
+                "mpi",
             ],
             exclude_none=True,
             by_alias=True,
@@ -272,5 +273,8 @@ class Config(XBeachBaseConfig):
 
         # Output configuration
         self._params.update(self.output.get(staging_dir))
+
+        # MPI configuration
+        self._params.update(self.mpi.get(staging_dir))
 
         return self._params

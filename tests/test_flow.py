@@ -1,7 +1,7 @@
 """Tests for flow module."""
 
 import pytest
-from rompy_xbeach.components.physics.flow import HorizontalViscosity
+from rompy_xbeach.components.physics.friction import HorizontalViscosity
 
 
 def test_horizontal_viscosity_smagorinsky_default():

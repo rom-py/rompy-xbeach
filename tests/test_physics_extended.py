@@ -2,14 +2,12 @@
 
 import pytest
 from rompy_xbeach.components.physics import Physics
-from rompy_xbeach.components.physics.boundary import WaveBoundaryConditions
+from rompy_xbeach.components.physics.wbc import WaveBoundaryConditions
 from rompy_xbeach.components.physics.constants import Coriolis, PhysicalConstants
-from rompy_xbeach.components.physics.flow import (
-    FlowNumerics,
-    HorizontalViscosity,
-    WaveCurrentInteraction,
-)
+from rompy_xbeach.components.physics.friction import HorizontalViscosity
+from rompy_xbeach.components.physics.wci import WaveCurrentInteraction
 from rompy_xbeach.components.physics.numerics import (
+    FlowNumerics,
     NonHydrostaticNumerics,
     WaveNumerics,
 )
@@ -166,7 +164,7 @@ def test_physics_with_all_new_components():
             nuhv=1.5,
             gamma_turb=1.0,
         ),
-        wci_params=WaveCurrentInteraction(
+        wci=WaveCurrentInteraction(
             cats=5.0,
             hwci=0.15,
             hwcimax=80.0,
