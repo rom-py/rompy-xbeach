@@ -183,11 +183,25 @@ class Output(XBeachBaseModel):
         default=None,
         description="File source containing timings of point output",
     )
+    projection: Optional[str] = Field(
+        default=None,
+        description=(
+            "Projection string specifying the coordinate reference system. "
+            "Stored in netCDF output file as metadata. Does not influence model results."
+        ),
+    )
     remdryoutput: Optional[bool] = Field(
         default=None,
         description=(
-            "Switch to Remove dry output points from output data of zs etc "
-            "(XBeach default: False)"
+            "Switch to remove dry output points from output data of zs etc "
+            "(XBeach default: 1)"
+        ),
+    )
+    rotate: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Switch to rotate output as postprocessing with angle specified by grid alfa "
+            "(XBeach default: 1)"
         ),
     )
 

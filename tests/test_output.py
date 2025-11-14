@@ -573,3 +573,40 @@ def test_output_enum_value_extraction():
     assert "urms" in params["meanvars"]
     # Should not contain enum representation
     assert "OutputVarsEnum" not in str(params["meanvars"])
+
+
+def test_output_projection_parameters():
+    """Test output projection parameters."""
+    output = Output(
+        projection="EPSG:4326",
+        remdryoutput=True,
+        rotate=False,
+    )
+    params = output.params
+    assert params["projection"] == "EPSG:4326"
+    assert params["remdryoutput"] == 1
+    assert params["rotate"] == 0
+
+
+def test_output_projection_string():
+    """Test projection string with various CRS formats."""
+    # EPSG format
+    output1 = Output(projection="EPSG:32633")
+    assert output1.params["projection"] == "EPSG:32633"
+    
+    # PROJ4 format
+    output2 = Output(projection="+proj=utm +zone=33 +datum=WGS84")
+    assert output2.params["projection"] == "+proj=utm +zone=33 +datum=WGS84"
+    
+    # WKT format (partial example)
+    output3 = Output(projection='GEOGCS["WGS 84",DATUM["WGS_1984"]]')
+    assert 'GEOGCS["WGS 84",DATUM["WGS_1984"]]' in output3.params["projection"]
+
+
+def test_output_projection_defaults():
+    """Test that projection parameters are not included when not specified."""
+    output = Output()
+    params = output.params
+    assert "projection" not in params
+    assert "remdryoutput" not in params
+    assert "rotate" not in params
