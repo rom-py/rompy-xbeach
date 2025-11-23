@@ -13,12 +13,14 @@ from rompy_xbeach.source import (
 from rompy_xbeach.grid import RegularGrid
 
 from rompy_xbeach.components.forcing import Wind, WindFile
-from rompy_xbeach.data.forcing import (
+from rompy_xbeach.data.wind import (
     WindGrid,
     WindStation,
     WindPoint,
     WindVector,
     WindScalar,
+)
+from rompy_xbeach.data.waterlevel import (
     TideConsGrid,
     TideConsPoint,
     WaterLevelGrid,

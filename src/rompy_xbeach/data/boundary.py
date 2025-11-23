@@ -561,7 +561,15 @@ class BoundaryGridParamJonstable(ParamMixin, BoundaryJonstable, BoundaryBaseGrid
 # SWAN bctype
 # =====================================================================================
 class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStation):
-    """Base class for SWAN wave boundary from station type dataset such as SMC."""
+    """Base class for SWAN wave boundary from station type dataset such as SMC.
+
+    XBeach assumes the directional information in the SWAN file is according to the
+    nautical convention. If the file uses the Cartesian convention for directions, the
+    user must specify the angle in degrees to rotate the x-axis in SWAN to the x-axis in
+    XBeach (by the Cartesian convention). This value is specified in params.txt using
+    the keyword dthetaS_XB.
+
+    """
 
     id: Literal["swan"] = Field(default="swan", description="Boundary type identifier")
     model_type: Literal["station_spectra_swan"] = Field(
