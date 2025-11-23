@@ -13,7 +13,7 @@ from rompy_xbeach.source import (
 from rompy_xbeach.grid import RegularGrid
 
 from rompy_xbeach.components.forcing import Wind, WindFile
-from rompy_xbeach.forcing import (
+from rompy_xbeach.data.forcing import (
     WindGrid,
     WindStation,
     WindPoint,

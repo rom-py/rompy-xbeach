@@ -2,7 +2,7 @@ from pathlib import Path
 import pytest
 import numpy as np
 
-from rompy_xbeach.data import XBeachDataGrid, XBeachBathy, SeawardExtensionLinear
+from rompy_xbeach.data.base import XBeachDataGrid, XBeachBathy, SeawardExtensionLinear
 from rompy_xbeach.source import SourceGeotiff
 from rompy_xbeach.grid import GeoPoint, RegularGrid
 

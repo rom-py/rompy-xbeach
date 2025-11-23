@@ -6,7 +6,7 @@ from rompy.core.time import TimeRange
 from rompy.core.source import SourceTimeseriesCSV
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.source import SourceCRSFile, SourceCRSWavespectra
-from rompy_xbeach.boundary import (
+from rompy_xbeach.data.boundary import (
     BoundaryBaseStation,
     BoundaryStationParamJons,
     BoundaryPointParamJons,

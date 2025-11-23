@@ -11,7 +11,7 @@ from pydantic import Field, model_validator, field_validator
 from rompy.utils import load_entry_points
 from rompy.core.types import DatasetCoords
 from rompy.core.time import TimeRange
-from rompy_xbeach.data import BaseDataStation, BaseDataPoint, BaseDataGrid
+from rompy_xbeach.data.base import BaseDataStation, BaseDataPoint, BaseDataGrid
 
 from rompy_xbeach.source import (
     SourceCRSFile,
