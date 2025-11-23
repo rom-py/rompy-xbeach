@@ -49,6 +49,9 @@ class WaveBoundaryBase(RompyBaseModel, ABC):
     #     description="Wave boundary condition parameters"
     # )
 
+    # Class attribute: subclasses can override to specify which fields to serialize
+    _serializable_fields: tuple[str, ...] = ()
+
     @abstractmethod
     def write(self, destdir: str | Path) -> str:
         """Write the boundary data to the bcfile file.
@@ -65,6 +68,33 @@ class WaveBoundaryBase(RompyBaseModel, ABC):
 
         """
         pass
+
+    def get(self, destdir: Path) -> dict:
+        """Write the boundary file and return required model parameters.
+
+        This method writes the boundary file and returns a dictionary containing
+        the bcfile path plus any additional fields specified in _serializable_fields.
+
+        Parameters
+        ----------
+        destdir : Path
+            Destination directory for the boundary file.
+
+        Returns
+        -------
+        params : dict
+            Dictionary of required model parameters, always includes 'bcfile'.
+
+        """
+        result = {"bcfile": self.write(destdir)}
+
+        # Add any fields specified in _serializable_fields
+        for field_name in self._serializable_fields:
+            value = getattr(self, field_name, None)
+            if value is not None:
+                result[field_name] = value
+
+        return result
 
 
 # Spectral: values jons, swan, vardens or jons_table
@@ -238,6 +268,7 @@ class WaveBoundaryJons(WaveBoundarySpectral):
             "range fnyq/1000 - fnyq/20 (XBeach default: fnyq/200)"
         ),
     )
+    _serializable_fields: tuple[str, ...] = ()
 
     @model_validator(mode="after")
     def validate_dfj(self) -> "WaveBoundaryJons":
@@ -316,6 +347,7 @@ class WaveBoundaryJonstable(WaveBoundarySpectral):
     dtbc: list[Annotated[float, Field(ge=0.0)]] = Field(
         description="Boundary condition time step",
     )
+    _serializable_fields: tuple[str, ...] = ("dtbc",)
 
     @model_validator(mode="after")
     def lists_are_the_same_sizes(self) -> "WaveBoundaryJonstable":
@@ -385,7 +417,7 @@ class WaveBoundarySWAN(WaveBoundarySpectral):
     )
     lat: Optional[float] = Field(
         default=0.0,
-        description="Latitude of the spectral data",
+        description="Latitude at model location for computing coriolis",
     )
     dthetas_xb: Optional[float] = Field(
         default=None,
@@ -396,6 +428,7 @@ class WaveBoundarySWAN(WaveBoundarySpectral):
         ge=-360.0,
         le=360.0,
     )
+    _serializable_fields: tuple[str, ...] = ("lat", "dthetas_xb")
 
     @property
     def ds(self) -> xr.DataArray:
