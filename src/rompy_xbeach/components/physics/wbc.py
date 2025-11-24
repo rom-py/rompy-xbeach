@@ -4,7 +4,10 @@ This module contains models for wave boundary condition parameters that control
 how short and long waves are specified at the offshore boundary.
 
 This is the single source of truth for all wave boundary condition parameters,
-including both general parameters and spectral-specific parameters.
+organized into:
+- Base class: General parameters (apply to all boundary types)
+- SpectralWaveBoundaryConditions: Spectral-specific parameters (jons, swan, vardens, jonstable)
+- NonSpectralWaveBoundaryConditions: Non-spectral parameters (stat, ts_1, ts_2, ts_nonh, bichrom)
 """
 
 from typing import Optional, Literal
@@ -14,14 +17,11 @@ from rompy_xbeach.types import XBeachBaseModel
 
 
 class WaveBoundaryConditions(XBeachBaseModel):
-    """Wave boundary condition parameters.
+    """Base wave boundary condition parameters.
 
-    These parameters control how short waves (wave action balance) and long waves
-    (infragravity waves) are specified and handled at the offshore boundary.
-
-    This class contains:
-    - General wave boundary parameters (nmax, wbcevarreduce, etc.)
-    - Spectral boundary parameters (rt, dtbc, random, fcutoff, etc.)
+    These are general parameters that apply to ALL wave boundary condition types,
+    whether spectral (jons, swan, vardens, jonstable) or non-spectral (stat, ts_1,
+    ts_2, ts_nonh, bichrom).
 
     The boundary conditions affect wave generation, energy scaling, and the
     treatment of Stokes drift and wave group variance at the boundary.
@@ -86,6 +86,28 @@ class WaveBoundaryConditions(XBeachBaseModel):
             "boundary conditions (XBeach default: 0)"
         ),
     )
+    taper: Optional[float] = Field(
+        default=None,
+        description=(
+            "Spin-up time of wave boundary conditions, in morphological time "
+            "(XBeach default: 100.0)"
+        ),
+        ge=0.0,
+        le=1000.0,
+        examples=[100.0],
+    )
+
+
+
+class SpectralWaveBoundaryConditions(WaveBoundaryConditions):
+    """Spectral wave boundary condition parameters.
+
+    These parameters are specific to spectral boundary conditions (wbctype = jons,
+    swan, vardens, jonstable). They control how wave spectra are generated and
+    applied at the offshore boundary.
+
+    Inherits all general wave boundary parameters from WaveBoundaryConditions.
+    """
 
     # ==================================================================================
     # Spectral Boundary Parameters
@@ -175,4 +197,68 @@ class WaveBoundaryConditions(XBeachBaseModel):
     wbcversion: Optional[Literal[1, 2, 3]] = Field(
         default=None,
         description="Version of wave boundary conditions (XBeach default: 3)",
+    )
+
+
+class NonSpectralWaveBoundaryConditions(WaveBoundaryConditions):
+    """Non-spectral wave boundary condition parameters.
+
+    These parameters are specific to non-spectral boundary conditions (wbctype = stat,
+    ts_1, ts_2, ts_nonh, stat_table, bichrom). They define wave conditions without
+    full spectral information.
+
+    Inherits all general wave boundary parameters from WaveBoundaryConditions.
+    """
+
+    # ==================================================================================
+    # Non-Spectral Boundary Parameters
+    # ==================================================================================
+    Hrms: Optional[float] = Field(
+        default=None,
+        description=(
+            "Hrms wave height for instat = stat, bichrom, ts_1 or ts_2 "
+            "(XBeach default: 1.0)"
+        ),
+        ge=0.0,
+        le=10.0,
+        examples=[1.0],
+    )
+    Trep: Optional[float] = Field(
+        default=None,
+        description=(
+            "Representative wave period for instat = stat, bichrom, ts_1 or ts_2 "
+            "(XBeach default: 10.0)"
+        ),
+        ge=1.0,
+        le=20.0,
+        examples=[10.0],
+    )
+    Tlong: Optional[float] = Field(
+        default=None,
+        description=(
+            "Wave group period for case instat = bichrom (XBeach default: 80.0)"
+        ),
+        ge=20.0,
+        le=300.0,
+        examples=[80.0],
+    )
+    dir0: Optional[float] = Field(
+        default=None,
+        description=(
+            "Mean wave direction for instat = stat, bichrom, ts_1 or ts_2, "
+            "nautical convention (XBeach default: 270.0)"
+        ),
+        ge=-360.0,
+        le=360.0,
+        examples=[270.0],
+    )
+    m: Optional[int] = Field(
+        default=None,
+        description=(
+            "Power in cos^m directional distribution for instat = stat, bichrom, "
+            "ts_1 or ts_2 (XBeach default: 10)"
+        ),
+        ge=2,
+        le=128,
+        examples=[10],
     )
