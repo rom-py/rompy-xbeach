@@ -180,7 +180,7 @@ def test_physics_with_all_new_components():
             maxiter=500,
             maxerror=0.0005,
         ),
-        wave_boundary=WaveBoundaryConditions(
+        wbc=WaveBoundaryConditions(
             nmax=0.8,
             wbcScaleEnergy=True,
         ),

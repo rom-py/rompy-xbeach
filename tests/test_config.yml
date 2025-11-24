@@ -95,7 +95,7 @@ physics:
     cats: 4.0
     hwci: 0.1
     hwcimax: 100.0
-  wave_boundary:
+  wbc:
     nmax: 0.8
     wbcevarreduce: 1.0
     bclwonly: False

@@ -152,6 +152,12 @@ class Physics(XBeachBaseModel):
         default=None,
         description="Include viscosity in flow solver (XBeach default: 1)",
     )
+    wbc: Optional[WaveBoundaryConditions] = Field(
+        default=None,
+        description=(
+            "Wave boundary condition parameters (nmax, wbcevarreduce, bclwonly, etc.)"
+        ),
+    )
     wci: Optional[Union[bool, WaveCurrentInteraction]] = Field(
         default=None,
         description="Switch to turn on wave-current interaction (XBeach default: 0)",
@@ -173,12 +179,6 @@ class Physics(XBeachBaseModel):
     wave_numerics: Optional[WaveNumerics] = Field(
         default=None,
         description="Wave numerical parameters (scheme, maxiter, maxerror, wavint)",
-    )
-    wave_boundary: Optional[WaveBoundaryConditions] = Field(
-        default=None,
-        description=(
-            "Wave boundary condition parameters (nmax, wbcevarreduce, bclwonly, etc.)"
-        ),
     )
     nonhydrostatic_numerics: Optional[NonHydrostaticNumerics] = Field(
         default=None,
