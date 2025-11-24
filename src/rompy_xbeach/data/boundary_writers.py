@@ -1,4 +1,14 @@
-"""XBeach wave boundary conditions."""
+"""XBeach wave boundary file writers.
+
+These classes are responsible for writing the various boundary condition files
+required by XBeach (JONSWAP, JONSTABLE, SWAN, etc.). They do NOT contain XBeach
+parameter configuration - those are in components.physics.wbc.WaveBoundaryConditions.
+
+These file writers are used by the boundary data classes in this package (data.boundary)
+to generate the actual boundary files from processed data.
+
+Note: These are utility classes for file I/O, not XBeach parameter components.
+"""
 
 from abc import ABC, abstractmethod
 from typing import Literal, Optional, Annotated
@@ -26,30 +36,22 @@ JONS_MAPPING = dict(
 )
 
 
-class WaveBoundaryBase(RompyBaseModel, ABC):
-    """Base class for wave boundary conditions."""
+class BoundaryFileWriterBase(RompyBaseModel, ABC):
+    """Base class for wave boundary file writers.
+    
+    This class defines the interface for writing XBeach boundary condition files.
+    Subclasses implement specific file formats (JONSWAP, SWAN, etc.).
+    
+    Note: XBeach parameter configuration (rt, dtbc, random, etc.) is handled by
+    WaveBoundaryConditions in components.physics.wbc, not here.
+    """
 
     model_type: Literal["base"] = Field(
         default="base", description="Model type discriminator"
     )
-    # wbctype: Literal[
-    #     "params",
-    #     "jonstable",
-    #     "swan",
-    #     "vardens",
-    #     "ts_1",
-    #     "ts_2",
-    #     "ts_nonh",
-    #     "reuse",
-    #     "off"
-    # ] = Field(
-    #     description="Wave boundary condition type"
-    # )
-    # wbctype_params: Optional[Union[float, str]] = Field(
-    #     description="Wave boundary condition parameters"
-    # )
 
     # Class attribute: subclasses can override to specify which fields to serialize
+    # These are typically data-derived fields needed in params.txt (e.g., dtbc for jonstable)
     _serializable_fields: tuple[str, ...] = ()
 
     @abstractmethod
@@ -97,16 +99,11 @@ class WaveBoundaryBase(RompyBaseModel, ABC):
         return result
 
 
-# Spectral: values jons, swan, vardens or jons_table
-class WaveBoundarySpectral(WaveBoundaryBase, ABC):
-    """Base class for spectral wave boundary conditions.
-
-    Note
-    ----
-    XBeach will reuse the generated time series until the simulation is completed. The
-    resolution of the time series should be enough to accurately represent the bound
-    long wave, but need not be as small as the time step used in XBeach.
-
+# Spectral boundary file writers
+class BoundaryFileSpectral(BoundaryFileWriterBase, ABC):
+    """Base class for spectral wave boundary file writers.
+    
+    Handles common file naming for spectral boundary types (JONSWAP, SWAN, etc.).
     """
 
     model_type: Literal["spectral_base"] = Field(
@@ -117,96 +114,20 @@ class WaveBoundarySpectral(WaveBoundaryBase, ABC):
         description="Name of spectrum file",
         examples=["spectrum.txt"],
     )
-    rt: Optional[float] = Field(
-        default=None,
-        description=(
-            "Duration (s) of wave spectrum at offshore boundary, in morphological "
-            "time (XBeach default: min(3600.d0, tstop))"
-        ),
-        ge=1200.0,
-        le=7200.0,
-        examples=[3600.0],
-    )
-    dbtc: Optional[float] = Field(
-        default=None,
-        description=(
-            "Timestep (s) used to describe time series of wave energy and long wave "
-            "flux at offshore boundary (not affected by morfac) (XBeach default: 1.0)"
-        ),
-        ge=0.1,
-        le=2.0,
-        examples=[1.0],
-    )
-    tm01switch: Optional[bool] = Field(
-        default=None,
-        description="Switch to enable tm01 rather than tm-10 (XBeach default: 0)",
-    )
-    correcthm0: Optional[bool] = Field(
-        default=None,
-        description="Switch to enable hm0 correction (XBeach default: 1)",
-    )
-    fcutoff: Optional[float] = Field(
-        default=None,
-        description=(
-            "Low-freq cutoff frequency in Hz for jons, swan or vardens boundary "
-            "conditions (XBeach default: 0.0)"
-        ),
-        ge=0.0,
-        le=40.0,
-    )
-    nonhspectrum: Optional[Literal[0, 1]] = Field(
-        default=None,
-        description=(
-            "Spectrum format for wave action balance of nonhydrostatic waves "
-            "(XBeach default: 0)"
-        ),
-    )
-    nspectrumloc: Optional[int] = Field(
-        default=None,
-        description=("Number of input spectrum locations (XBeach default: 1)"),
-        ge=1,
-    )
-    nspr: Optional[bool] = Field(
-        default=None,
-        description=(
-            "Switch to enable long wave direction forced into centres of short wave "
-            "bins (XBeach default: 0)",
-        ),
-    )
-    random: Optional[bool] = Field(
-        default=None,
-        description=(
-            "Switch to enable random seed for jons, swan or vardens boundary "
-            "conditions (XBeach default: 1)",
-        ),
-    )
-    sprdthr: Optional[float] = Field(
-        default=None,
-        description=(
-            "Threshold ratio to maximum value of s above which spectrum densities "
-            "are read in (XBeach default: 0.08)"
-        ),
-        ge=0.0,
-        le=1.0,
-    )
-    trepfac: Optional[float] = Field(
-        default=None,
-        description=(
-            "Compute mean wave period over energy band: par%trepfac*maxval(sf) for "
-            "jons, swan or vardens; converges to tm01 for trepfac = 0.0 "
-            "(XBeach default: 0.01)",
-        ),
-        ge=0.0,
-        le=1.0,
-    )
-    wbcversion: Optional[Literal[1, 2, 3]] = Field(
-        default=None,
-        description="Version of wave boundary conditions (XBeach default: 3)",
-    )
 
 
-class WaveBoundaryJons(WaveBoundarySpectral):
-    """Wave boundary conditions specified as a single Jonswap spectrum."""
+class BoundaryFileJons(BoundaryFileSpectral):
+    """File writer for single JONSWAP spectrum boundary conditions.
+    
+    Writes a JONSWAP parameter file with format:
+        Hm0 = <value>
+        Tp = <value>
+        mainang = <value>
+        gammajsp = <value>
+        s = <value>
+        fnyq = <value>
+        dfj = <value>
+    """
 
     model_type: Literal["jons"] = Field(
         default="jons",
@@ -271,7 +192,7 @@ class WaveBoundaryJons(WaveBoundarySpectral):
     _serializable_fields: tuple[str, ...] = ()
 
     @model_validator(mode="after")
-    def validate_dfj(self) -> "WaveBoundaryJons":
+    def validate_dfj(self) -> "BoundaryFileJons":
         if self.dfj is not None:
             logger.warning(
                 "It is advised not to specify the keyword dfj and allow XBeach "
@@ -305,17 +226,16 @@ class WaveBoundaryJons(WaveBoundarySpectral):
         return bcfile
 
 
-class WaveBoundaryJonstable(WaveBoundarySpectral):
-    """Wave boundary conditions specified as a time-varying Jonswap spectrum.
+class BoundaryFileJonstable(BoundaryFileSpectral):
+    """File writer for time-varying JONSWAP spectrum boundary conditions.
 
-    .. code-block:: text
-
+    Writes a JONSTABLE file with format:
         <Hm0> <Tp> <mainang> <gammajsp> <s> <duration> <dtbc>
-
-    Each line in the spectrum definition file contains a parametric definition of a
-    spectrum, like in a regular JONSWAP definition file, plus the duration for which
-    that spectrum is used during the simulation and the timestep.
-
+        
+    Each line contains a parametric definition of a spectrum, plus the duration
+    for which that spectrum is used and the timestep.
+    
+    Note: dtbc values are written to the file AND returned in get() for params.txt.
     """
 
     model_type: Literal["jonstable"] = Field(
@@ -350,7 +270,7 @@ class WaveBoundaryJonstable(WaveBoundarySpectral):
     _serializable_fields: tuple[str, ...] = ("dtbc",)
 
     @model_validator(mode="after")
-    def lists_are_the_same_sizes(self) -> "WaveBoundaryJonstable":
+    def lists_are_the_same_sizes(self) -> "BoundaryFileJonstable":
         for param in ["tp", "mainang", "gammajsp", "s", "duration", "dtbc"]:
             param_size = len(getattr(self, param))
             if param_size != len(self):
@@ -395,8 +315,13 @@ class WaveBoundaryJonstable(WaveBoundarySpectral):
         return bcfile
 
 
-class WaveBoundarySWAN(WaveBoundarySpectral):
-    """Wave boundary conditions specified as a SWAN spectrum."""
+class BoundaryFileSWAN(BoundaryFileSpectral):
+    """File writer for SWAN spectrum boundary conditions.
+    
+    Writes a SWAN spectral file using wavespectra library.
+    
+    Note: lat and dthetas_xb are returned in get() for params.txt.
+    """
 
     model_type: Literal["swan"] = Field(
         default="swan",
@@ -461,31 +386,23 @@ class WaveBoundarySWAN(WaveBoundarySpectral):
         return bcfile
 
 
-class WaveBoundaryGeneral(WaveBoundarySpectral):
+class BoundaryFileVardens(BoundaryFileSpectral):
+    """File writer for VARDENS spectrum boundary conditions."""
     pass
 
 
-# Non-spectral
-class WaveBoundaryStationary(WaveBoundaryBase):
+# Non-spectral boundary file writers
+class BoundaryFileStationary(BoundaryFileWriterBase):
+    """File writer for stationary boundary conditions."""
     pass
 
 
-class WaveBoundaryStationaryUniform(WaveBoundaryStationary):
+class BoundaryFileTimeSeries(BoundaryFileWriterBase):
+    """File writer for time series boundary conditions."""
     pass
 
 
-class WaveBoundaryStationaryTimeseries(WaveBoundaryStationary):
-    pass
-
-
-# Special cases
-class WaveBoundaryBichrom(WaveBoundaryBase):
-    pass
-
-
-class WaveBoundaryOff(WaveBoundaryBase):
-    pass
-
-
-class WaveBoundaryReuse(WaveBoundaryBase):
+# Special case boundary file writers
+class BoundaryFileBichrom(BoundaryFileWriterBase):
+    """File writer for bichromatic boundary conditions."""
     pass

@@ -18,10 +18,10 @@ from rompy_xbeach.data.boundary import (
     BoundaryGridParamJonstable,
     BoundaryStationSpectraSwan,
 )
-from rompy_xbeach.components.boundary import (
-    WaveBoundaryBase,
-    WaveBoundaryJons,
-    WaveBoundaryJonstable,
+from rompy_xbeach.data.boundary_writers import (
+    BoundaryFileWriterBase,
+    BoundaryFileJons,
+    BoundaryFileJonstable,
 )
 
 
@@ -77,56 +77,43 @@ def source_wavespectra():
 # =====================================================================================
 # Boundary Components
 # =====================================================================================
-def test_wave_boundary_base_abstract():
+def test_boundary_file_writer_base_abstract():
+    """Test that BoundaryFileWriterBase cannot be instantiated directly."""
     with pytest.raises(TypeError):
-        WaveBoundaryBase()
+        BoundaryFileWriterBase()
 
 
-def test_wave_boundary_spectral_defaults():
-    wb = WaveBoundaryJons()
-    assert wb.bcfile == "spectrum.txt"
-    assert wb.rt is None
-    assert wb.dbtc is None
-    assert wb.tm01switch is None
-    assert wb.correcthm0 is None
-    assert wb.fcutoff is None
-    assert wb.nonhspectrum is None
-    assert wb.nspectrumloc is None
-    assert wb.nspr is None
-    assert wb.random is None
-    assert wb.sprdthr is None
-    assert wb.trepfac is None
-    assert wb.wbcversion is None
+def test_boundary_file_jons_defaults():
+    """Test default values for JONSWAP file writer."""
+    bf = BoundaryFileJons()
+    assert bf.bcfile == "spectrum.txt"
+    assert bf.hm0 is None
+    assert bf.tp is None
+    assert bf.mainang is None
+    assert bf.gammajsp is None
+    assert bf.s is None
+    assert bf.fnyq is None
+    assert bf.dfj is None
 
 
-def test_wave_boundary_spectral_valid_ranges():
+def test_boundary_file_jons_valid_ranges():
+    """Test validation ranges for JONSWAP parameters."""
     with pytest.raises(ValueError):
-        WaveBoundaryJons(rt=1000)
-        WaveBoundaryJons(dbtc=2.1)
-        WaveBoundaryJons(dthetas_xb=-361)
-        WaveBoundaryJons(fcutoff=41.0)
-        WaveBoundaryJons(nspectrumloc=0)
-        WaveBoundaryJons(sprdthr=1.1)
-        WaveBoundaryJons(trepfac=-0.1)
-        WaveBoundaryJons(wbcversion=4)
-        WaveBoundaryJons(fnyq=1.0, dfj=0.01)
+        BoundaryFileJons(fnyq=1.0, dfj=0.00099)
+        BoundaryFileJons(fnyq=1.0, dfj=0.051)
 
 
-def test_wave_boundary_spectral_jons_valid_ranges():
-    with pytest.raises(ValueError):
-        WaveBoundaryJons(fnyq=1.0, dfj=0.00099)
-        WaveBoundaryJons(fnyq=1.0, dfj=0.051)
-
-
-def test_wave_boundary_spectral_jons_write(tmp_path):
-    wb = WaveBoundaryJons(hm0=1.0, tp=12.0, bcfile="jons.txt")
-    bcfile = wb.write(tmp_path)
+def test_boundary_file_jons_write(tmp_path):
+    """Test writing JONSWAP boundary file."""
+    bf = BoundaryFileJons(hm0=1.0, tp=12.0, bcfile="jons.txt")
+    bcfile = bf.write(tmp_path)
     assert bcfile.is_file()
 
 
-def test_wave_boundary_spectral_jonstable_same_sizes():
+def test_boundary_file_jonstable_same_sizes():
+    """Test that JONSTABLE requires all parameter lists to be same size."""
     with pytest.raises(ValueError):
-        WaveBoundaryJonstable(
+        BoundaryFileJonstable(
             hm0=[1.0, 2.0],
             tp=[10.0, 10.0],
             mainang=[180, 180],
@@ -137,9 +124,10 @@ def test_wave_boundary_spectral_jonstable_same_sizes():
         )
 
 
-def test_wave_boundary_spectral_jonstable_valid_ranges():
+def test_boundary_file_jonstable_valid_ranges():
+    """Test validation ranges for JONSTABLE parameters."""
     with pytest.raises(ValueError):
-        WaveBoundaryJonstable(
+        BoundaryFileJonstable(
             hm0=[1.0, 5000.0],
             tp=[10.0, 10.0],
             mainang=[180, 180],
@@ -150,8 +138,9 @@ def test_wave_boundary_spectral_jonstable_valid_ranges():
         )
 
 
-def test_wave_boundary_spectral_jonstable_write(tmp_path):
-    wb = WaveBoundaryJonstable(
+def test_boundary_file_jonstable_write(tmp_path):
+    """Test writing JONSTABLE boundary file."""
+    bf = BoundaryFileJonstable(
         hm0=[1.0, 2.0],
         tp=[10.0, 10.0],
         mainang=[180, 180],
@@ -159,8 +148,9 @@ def test_wave_boundary_spectral_jonstable_write(tmp_path):
         s=[10.0, 10.0],
         duration=[1800, 1800],
         dtbc=[1.0, 1.0],
+        bcfile="jonstable.txt",
     )
-    bcfile = wb.write(tmp_path)
+    bcfile = bf.write(tmp_path)
     assert bcfile.is_file()
 
 

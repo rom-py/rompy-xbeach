@@ -20,10 +20,10 @@ from rompy_xbeach.source import (
     SourceCRSWavespectra,
 )
 from rompy_xbeach.grid import RegularGrid
-from rompy_xbeach.components.boundary import (
-    WaveBoundaryJons,
-    WaveBoundaryJonstable,
-    WaveBoundarySWAN,
+from rompy_xbeach.data.boundary_writers import (
+    BoundaryFileJons,
+    BoundaryFileJonstable,
+    BoundaryFileSWAN,
 )
 
 
@@ -329,7 +329,7 @@ class BoundaryJons(FilelistMixin, ABC):
             elif param in data and np.isnan(data[param]):
                 raise ValueError(f"Parameter {param} is NaN for {data.time}")
         bcfile = f"{self.id}-{t:%Y%m%dT%H%M%S}.txt"
-        return WaveBoundaryJons(bcfile=bcfile, fnyq=self.fnyq, dfj=self.dfj, **kwargs)
+        return BoundaryFileJons(bcfile=bcfile, fnyq=self.fnyq, dfj=self.dfj, **kwargs)
 
     def get(
         self, destdir: str | Path, grid: RegularGrid, time: Optional[TimeRange] = None
@@ -420,7 +420,7 @@ class BoundaryJonstable(ABC):
                 raise ValueError(
                     f"Parameter {key} has NaN for one or more times ({list(zip(times, val))})"
                 )
-        return WaveBoundaryJonstable(bcfile=bcfile, **kwargs)
+        return BoundaryFileJonstable(bcfile=bcfile, **kwargs)
 
     @abstractmethod
     def _calculate_stats(self, ds: xr.Dataset) -> xr.Dataset:
@@ -603,7 +603,7 @@ class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStatio
         bcfile = f"{self.id}-{t:%Y%m%dT%H%M%S}.txt"
         if data.lon.size > 1 or data.lat.size > 1:
             raise ValueError("Data must be a single point")
-        return WaveBoundarySWAN(
+        return BoundaryFileSWAN(
             bcfile=bcfile,
             freq=data.freq.squeeze().values,
             dir=data.dir.squeeze().values,
