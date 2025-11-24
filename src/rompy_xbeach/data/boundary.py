@@ -86,7 +86,7 @@ def s_to_dspr(s: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
 class BoundaryBase:
     """Base class for wave boundary interfaces."""
 
-    dbtc: Optional[float] = Field(
+    dtbc: Optional[float] = Field(
         default=1.0,
         description=(
             "Timestep (s) used to describe time series of wave energy and long wave "
@@ -253,9 +253,11 @@ class FilelistMixin:
         with open(filename, "w") as f:
             f.write("FILELIST\n")
             for bcfile, duration in zip(bcfiles, durations):
-                f.write(f"{duration:g} {self.dbtc:g} {bcfile.name}\n")
+                f.write(f"{duration:g} {self.dtbc:g} {bcfile.name}\n")
         return filename
 
+
+# TODO: Remove dtbc from BoundaryJons and potentially others?
 
 class BoundaryJons(FilelistMixin, ABC):
     """Base class for JONS wave boundary from station type dataset such as SMC."""
@@ -280,7 +282,7 @@ class BoundaryJons(FilelistMixin, ABC):
             "range fnyq/1000 - fnyq/20 (XBeach default: fnyq/200)"
         ),
     )
-    dbtc: Optional[float] = Field(
+    dtbc: Optional[float] = Field(
         default=1.0,
         description=(
             "Timestep (s) used to describe time series of wave energy and long wave "
@@ -411,7 +413,7 @@ class BoundaryJonstable(ABC):
             gammajsp=data.gammajsp.squeeze().values,
             s=data.s.squeeze().values,
             duration=dts + [dts[-1]],
-            dtbc=[self.dbtc] * len(times),
+            dtbc=[self.dtbc] * len(times),
         )
         for key, val in kwargs.items():
             if any(np.isnan(val)):
