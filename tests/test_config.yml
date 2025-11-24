@@ -28,21 +28,40 @@ bathy:
     model_type: linear
     depth: 25
     slope: 0.3
-# Model input data
+# Wave boundary specification (manual/pre-existing files)
+# NOTE: Cannot be used together with input.wave - uncomment to test
+wave_boundary:
+  model_type: spectral
+  wbctype: jons
+  bcfile: jonswap.txt
+  wbc:
+    nmax: 0.8
+    rt: 3600.0
+    dtbc: 1.0
+    wbcevarreduce: 1.0
+    bclwonly: False
 input:
-  wave:
-    model_type: station_param_jonstable
-    source:
-      model_type: file
-      uri: ./data/smc-params-20230101.nc
-      crs: 4326
-    coords:
-      s: seapoint
-    hm0: phs1
-    tp: ptp1
-    mainang: pdir1
-    gammajsp: ppe1
-    dspr: pspr1
+  # wave:
+  #   model_type: station_param_jonstable
+  #   source:
+  #     model_type: file
+  #     uri: ./data/smc-params-20230101.nc
+  #     crs: 4326
+  #   coords:
+  #     s: seapoint
+  #   hm0: phs1
+  #   tp: ptp1
+  #   mainang: pdir1
+  #   gammajsp: ppe1
+  #   dspr: pspr1
+  #   wbc:
+  #     nmax: 0.8
+  #     wbcevarreduce: 1.0
+  #     bclwonly: False
+  #     swkhmin: -0.01
+  #     wbcRemoveStokes: 1
+  #     wbcScaleEnergy: 1
+  #     cyclicdiradjust: 0
   wind:
     model_type: wind_station
     source:
@@ -95,14 +114,6 @@ physics:
     cats: 4.0
     hwci: 0.1
     hwcimax: 100.0
-  wbc:
-    nmax: 0.8
-    wbcevarreduce: 1.0
-    bclwonly: False
-    swkhmin: -0.01
-    wbcRemoveStokes: 1
-    wbcScaleEnergy: 1
-    cyclicdiradjust: 0
   wave_numerics:
     scheme: warmbeam
     maxiter: 500

@@ -156,7 +156,11 @@ def test_coriolis():
 
 
 def test_physics_with_all_new_components():
-    """Test Physics with all new component fields."""
+    """Test Physics with all new component fields.
+    
+    Note: wbc field has been removed from Physics - wave boundary parameters
+    are now handled through Config.wave_boundary or input.wave.wbc
+    """
     physics = Physics(
         viscosity_params=HorizontalViscosity(
             smag=True,
@@ -179,10 +183,6 @@ def test_physics_with_all_new_components():
             scheme="warmbeam",
             maxiter=500,
             maxerror=0.0005,
-        ),
-        wbc=WaveBoundaryConditions(
-            nmax=0.8,
-            wbcScaleEnergy=True,
         ),
         constants=PhysicalConstants(
             g=9.81,
@@ -218,9 +218,8 @@ def test_physics_with_all_new_components():
     assert params["maxiter"] == 500
     assert params["maxerror"] == 0.0005
 
-    # Check wave boundary
-    assert params["nmax"] == 0.8
-    assert params["wbcScaleEnergy"] == 1
+    # Note: Wave boundary params (nmax, wbcScaleEnergy) no longer in Physics
+    # They are now handled through Config.wave_boundary or input.wave.wbc
 
     # Check constants
     assert params["g"] == 9.81

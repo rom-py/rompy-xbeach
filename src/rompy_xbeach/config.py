@@ -17,6 +17,12 @@ from rompy_xbeach.components.mpi import Mpi
 from rompy_xbeach.components.output import Output
 from rompy_xbeach.components.physics import Physics
 from rompy_xbeach.components.sediment import Sediment
+from rompy_xbeach.components.boundary.specification import (
+    SpectralWaveBoundary,
+    NonSpectralWaveBoundary,
+    OffWaveBoundary,
+    ReuseWaveBoundary,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -41,6 +47,16 @@ WaveType = Annotated[
 TideType = Annotated[
     Union[load_entry_points("xbeach.data", etype="tide")],
     Field(description="Tide input data", discriminator="model_type"),
+]
+
+WaveBoundaryType = Annotated[
+    Union[
+        SpectralWaveBoundary,
+        NonSpectralWaveBoundary,
+        OffWaveBoundary,
+        ReuseWaveBoundary,
+    ],
+    Field(description="Wave boundary specification", discriminator="model_type"),
 ]
 
 
@@ -106,8 +122,13 @@ class Config(XBeachBaseConfig):
     bathy: XBeachBathy = Field(
         description="The XBeach bathymetry object",
     )
-    input: DataInterface = Field(
-        description="Input data",
+    input: Optional[DataInterface] = Field(
+        default=None,
+        description="Input data (generate boundary conditions from data sources)",
+    )
+    wave_boundary: Optional[WaveBoundaryType] = Field(
+        default=None,
+        description="Wave boundary specification (manual specification or pre-existing files)",
     )
     physics: Physics = Field(
         default_factory=Physics,
@@ -207,11 +228,24 @@ class Config(XBeachBaseConfig):
     paulrevere: Optional[Literal["land", "sea"]] = Field(
         default=None,
         description=(
-            "Specifies tide on sea and land or two sea points if tideloc = 2"
+            "Specifies the sea or land boundary for tide boundary conditions "
             "(XBeach default: land)"
         ),
     )
-    _params = {}
+
+    @model_validator(mode='after')
+    def validate_wave_boundary(self):
+        """Ensure only one wave boundary source is specified."""
+        has_input_wave = self.input and self.input.wave
+        has_wave_boundary = self.wave_boundary is not None
+        
+        if has_input_wave and has_wave_boundary:
+            raise ValueError(
+                "Cannot specify both input.wave and wave_boundary. "
+                "Use input.wave to generate from data, or wave_boundary for manual specification."
+            )
+        
+        return self
 
     @model_validator(mode="after")
     def set_dtheta_if_surfbeat(self) -> "Config":
@@ -239,6 +273,7 @@ class Config(XBeachBaseConfig):
                 "grid",
                 "bathy",
                 "input",
+                "wave_boundary",
                 "output",
                 "physics",
                 "sediment",
@@ -255,8 +290,25 @@ class Config(XBeachBaseConfig):
         if self.tunits is None:
             self._params["tunits"] = f"seconds since {period.start:%Y-%m-%d %H:%M:%S}"
 
-        # Generate the input data
-        self._params.update(self.input.get(staging_dir, self.grid, period))
+        # Handle wave boundary conditions
+        if self.input and self.input.wave:
+            # Generate from data - returns WaveBoundary object
+            logger.info("Generating wave boundary data from input.wave")
+            wave_boundary = self.input.wave.get(staging_dir, self.grid, period)
+            self._params.update(wave_boundary.get(staging_dir))
+        elif self.wave_boundary:
+            # Use manual specification
+            logger.info("Using manual wave_boundary specification")
+            self._params.update(self.wave_boundary.get(staging_dir))
+        
+        # Generate other input data (wind, tide)
+        if self.input:
+            if self.input.wind:
+                logger.info("Generating wind forcing data")
+                self._params.update(self.input.wind.get(staging_dir, self.grid, period))
+            if self.input.tide:
+                logger.info("Generating tide forcing data")
+                self._params.update(self.input.tide.get(staging_dir, self.grid, period))
 
         # Bathy data interface
         # TODO: Make this consistent with the other input data

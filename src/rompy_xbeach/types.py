@@ -81,8 +81,13 @@ class XBeachBaseModel(RompyBaseModel):
 
                     # Merge the flattened nested values
                     result.update(flattened_nested)
+                elif isinstance(value, dict):
+                    # Dict without model_type - also flatten it recursively
+                    # This handles nested components like wavfric inside break
+                    flattened_nested = flatten_nested_dicts(value)
+                    result.update(flattened_nested)
                 else:
-                    # Not a component dict, keep as-is
+                    # Not a dict, keep as-is
                     result[key] = value
 
             return result

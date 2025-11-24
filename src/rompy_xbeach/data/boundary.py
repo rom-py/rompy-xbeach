@@ -25,6 +25,8 @@ from rompy_xbeach.data.boundary_writers import (
     BoundaryFileJonstable,
     BoundaryFileSWAN,
 )
+from rompy_xbeach.components.boundary.specification import SpectralWaveBoundary
+from rompy_xbeach.components.boundary.parameters import SpectralWaveBoundaryConditions
 
 
 logger = logging.getLogger(__name__)
@@ -249,18 +251,25 @@ class FilelistMixin:
             Path to the filelist file.
 
         """
+        # Get dtbc from wbc if available, otherwise use default
+        dtbc = 1.0  # XBeach default
+        if hasattr(self, 'wbc') and self.wbc and self.wbc.dtbc:
+            dtbc = self.wbc.dtbc
+        
         filename = Path(destdir) / f"{self.id}-filelist.txt"
         with open(filename, "w") as f:
             f.write("FILELIST\n")
             for bcfile, duration in zip(bcfiles, durations):
-                f.write(f"{duration:g} {self.dtbc:g} {bcfile.name}\n")
+                f.write(f"{duration:g} {dtbc:g} {bcfile.name}\n")
         return filename
 
 
-# TODO: Remove dtbc from BoundaryJons and potentially others?
-
 class BoundaryJons(FilelistMixin, ABC):
-    """Base class for JONS wave boundary from station type dataset such as SMC."""
+    """Base class for JONS wave boundary from station type dataset such as SMC.
+    
+    This class generates JONSWAP boundary files from wave data and returns a
+    SpectralWaveBoundary specification.
+    """
 
     id: Literal["jons", "parametric"] = Field(
         default="jons",
@@ -282,15 +291,9 @@ class BoundaryJons(FilelistMixin, ABC):
             "range fnyq/1000 - fnyq/20 (XBeach default: fnyq/200)"
         ),
     )
-    dtbc: Optional[float] = Field(
-        default=1.0,
-        description=(
-            "Timestep (s) used to describe time series of wave energy and long wave "
-            "flux at offshore boundary"
-        ),
-        ge=0.1,
-        le=2.0,
-        examples=[1.0],
+    wbc: Optional[SpectralWaveBoundaryConditions] = Field(
+        default=None,
+        description="Wave boundary condition parameters (nmax, rt, dtbc, etc.)",
     )
 
     @abstractmethod
@@ -333,7 +336,7 @@ class BoundaryJons(FilelistMixin, ABC):
 
     def get(
         self, destdir: str | Path, grid: RegularGrid, time: Optional[TimeRange] = None
-    ) -> dict:
+    ) -> SpectralWaveBoundary:
         """Write the selected boundary data to file.
 
         Parameters
@@ -347,8 +350,8 @@ class BoundaryJons(FilelistMixin, ABC):
 
         Returns
         -------
-        outfile : Path
-            Path to the boundary bcfile data.
+        SpectralWaveBoundary
+            Complete wave boundary specification with wbctype, bcfile, and wbc parameters.
 
         """
         ds = super().get(destdir, grid, time)
@@ -373,14 +376,28 @@ class BoundaryJons(FilelistMixin, ABC):
                 # Boundary duration
                 durations.append((t1 - t0).total_seconds())
             bcfile = self._write_filelist(destdir, bcfiles, durations)
-        return {"wbctype": self.id, "bcfile": bcfile.name}
+        
+        # Return SpectralWaveBoundary specification
+        return SpectralWaveBoundary(
+            wbctype=self.id,
+            bcfile=bcfile.name,
+            wbc=self.wbc,
+        )
 
 
 class BoundaryJonstable(ABC):
-    """Base class for JONSTABLE wave boundary from station type dataset such as SMC."""
+    """Base class for JONSTABLE wave boundary from station type dataset such as SMC.
+    
+    This class generates JONSTABLE boundary files from wave data and returns a
+    SpectralWaveBoundary specification.
+    """
 
     id: Literal["jonstable"] = Field(
         default="jonstable", description="Boundary type identifier"
+    )
+    wbc: Optional[SpectralWaveBoundaryConditions] = Field(
+        default=None,
+        description="Wave boundary condition parameters (nmax, rt, dtbc, etc.)",
     )
 
     @model_validator(mode="after")
@@ -413,7 +430,7 @@ class BoundaryJonstable(ABC):
             gammajsp=data.gammajsp.squeeze().values,
             s=data.s.squeeze().values,
             duration=dts + [dts[-1]],
-            dtbc=[self.dtbc] * len(times),
+            dtbc=[self.wbc.dtbc if self.wbc and self.wbc.dtbc else 1.0] * len(times),
         )
         for key, val in kwargs.items():
             if any(np.isnan(val)):
@@ -436,7 +453,7 @@ class BoundaryJonstable(ABC):
 
     def get(
         self, destdir: str | Path, grid: RegularGrid, time: Optional[TimeRange] = None
-    ) -> dict:
+    ) -> SpectralWaveBoundary:
         """Write the selected boundary data to file.
 
         Parameters
@@ -450,8 +467,8 @@ class BoundaryJonstable(ABC):
 
         Returns
         -------
-        outfile : Path
-            Path to the boundary bcfile data.
+        SpectralWaveBoundary
+            Complete wave boundary specification with wbctype, bcfile, and wbc parameters.
 
         """
         ds = super().get(destdir, grid, time)
@@ -459,7 +476,13 @@ class BoundaryJonstable(ABC):
         data = self._calculate_stats(ds)
         wb = self._instantiate_boundary(data)
         bcfile = wb.write(destdir)
-        return {"wbctype": self.id, "bcfile": bcfile.name}
+        
+        # Return SpectralWaveBoundary specification
+        return SpectralWaveBoundary(
+            wbctype=self.id,
+            bcfile=bcfile.name,
+            wbc=self.wbc,
+        )
 
 
 # =====================================================================================
@@ -570,22 +593,20 @@ class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStatio
     user must specify the angle in degrees to rotate the x-axis in SWAN to the x-axis in
     XBeach (by the Cartesian convention). This value is specified in params.txt using
     the keyword dthetaS_XB.
+    
+    This class generates SWAN boundary files from wave data and returns a
+    SpectralWaveBoundary specification.
 
     """
 
     id: Literal["swan"] = Field(default="swan", description="Boundary type identifier")
+    wbc: Optional[SpectralWaveBoundaryConditions] = Field(
+        default=None,
+        description="Wave boundary condition parameters (nmax, rt, dtbc, etc.)",
+    )
     model_type: Literal["station_spectra_swan"] = Field(
         default="station_spectra_swan",
         description="Model type discriminator",
-    )
-    dthetas_xb: Optional[float] = Field(
-        default=None,
-        description=(
-            "The (counter-clockwise) angle in the degrees needed to rotate from the "
-            "x-axis in swan to the x-axis pointing east (XBeach default: 0.0)",
-        ),
-        ge=-360.0,
-        le=360.0,
     )
 
     def _instantiate_boundary(self, data: xr.Dataset) -> "BoundaryJons":
@@ -614,7 +635,7 @@ class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStatio
 
     def get(
         self, destdir: str | Path, grid: RegularGrid, time: Optional[TimeRange] = None
-    ) -> dict:
+    ) -> SpectralWaveBoundary:
         """Write the selected boundary data to file.
 
         Parameters
@@ -628,8 +649,8 @@ class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStatio
 
         Returns
         -------
-        outfile : Path
-            Path to the boundary bcfile data.
+        SpectralWaveBoundary
+            Complete wave boundary specification with wbctype, bcfile, and wbc parameters.
 
         """
         ds = super().get(destdir, grid, time)
@@ -652,7 +673,9 @@ class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStatio
                 # Boundary duration
                 durations.append((t1 - t0).total_seconds())
             bcfile = self._write_filelist(destdir, bcfiles, durations)
-        namelist = {"wbctype": self.id, "bcfile": bcfile.name}
-        if self.dthetas_xb is not None:
-            namelist["dthetas_xb"] = self.dthetas_xb
-        return namelist
+        
+        return SpectralWaveBoundary(
+            wbctype=self.id,
+            bcfile=bcfile.name,
+            wbc=self.wbc,
+        )

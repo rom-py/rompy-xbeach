@@ -1,12 +1,11 @@
 """Tests for wave boundary condition parameter hierarchy."""
 
 import pytest
-from rompy_xbeach.components.physics.wbc import (
+from rompy_xbeach.components.boundary.parameters import (
     WaveBoundaryConditions,
     SpectralWaveBoundaryConditions,
     NonSpectralWaveBoundaryConditions,
 )
-from rompy_xbeach.components.physics import Physics
 
 
 def test_base_wave_boundary_conditions():
@@ -108,46 +107,8 @@ def test_non_spectral_inherits_from_base():
     assert isinstance(wbc, NonSpectralWaveBoundaryConditions)
 
 
-def test_physics_accepts_base_wbc():
-    """Test that Physics accepts base WaveBoundaryConditions."""
-    physics = Physics(
-        wbc=WaveBoundaryConditions(
-            nmax=0.8,
-            wbcScaleEnergy=True,
-        )
-    )
-    assert physics.wbc.nmax == 0.8
-    assert physics.wbc.wbcScaleEnergy is True
-
-
-def test_physics_accepts_spectral_wbc():
-    """Test that Physics accepts SpectralWaveBoundaryConditions."""
-    physics = Physics(
-        wbc=SpectralWaveBoundaryConditions(
-            nmax=0.8,
-            rt=3600.0,
-            dtbc=1.0,
-            random=True,
-        )
-    )
-    assert physics.wbc.nmax == 0.8
-    assert physics.wbc.rt == 3600.0
-    assert physics.wbc.dtbc == 1.0
-
-
-def test_physics_accepts_non_spectral_wbc():
-    """Test that Physics accepts NonSpectralWaveBoundaryConditions."""
-    physics = Physics(
-        wbc=NonSpectralWaveBoundaryConditions(
-            nmax=0.8,
-            Hrms=2.0,
-            Trep=12.0,
-            dir0=285.0,
-        )
-    )
-    assert physics.wbc.nmax == 0.8
-    assert physics.wbc.Hrms == 2.0
-    assert physics.wbc.Trep == 12.0
+# Note: Physics.wbc field has been removed - wave boundary parameters
+# are now handled through Config.wave_boundary or input.wave.wbc
 
 
 def test_spectral_validation_ranges():

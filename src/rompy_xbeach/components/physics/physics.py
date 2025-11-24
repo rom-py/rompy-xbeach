@@ -5,11 +5,6 @@ from typing import Literal, Optional, Union
 
 from pydantic import Field, model_validator
 
-from rompy_xbeach.components.physics.wbc import (
-    WaveBoundaryConditions,
-    SpectralWaveBoundaryConditions,
-    NonSpectralWaveBoundaryConditions,
-)
 from rompy_xbeach.components.physics.constants import Coriolis, PhysicalConstants
 from rompy_xbeach.components.physics.wci import (
     WaveCurrentInteraction,
@@ -155,21 +150,6 @@ class Physics(XBeachBaseModel):
     viscosity: Optional[bool] = Field(
         default=None,
         description="Include viscosity in flow solver (XBeach default: 1)",
-    )
-    wbc: Optional[
-        Union[
-            WaveBoundaryConditions,
-            SpectralWaveBoundaryConditions,
-            NonSpectralWaveBoundaryConditions,
-        ]
-    ] = Field(
-        default=None,
-        description=(
-            "Wave boundary condition parameters. Can be:\n"
-            "- WaveBoundaryConditions: General parameters only\n"
-            "- SpectralWaveBoundaryConditions: For spectral boundaries (jons, swan, vardens, jonstable)\n"
-            "- NonSpectralWaveBoundaryConditions: For non-spectral boundaries (stat, ts_1, ts_2, bichrom)"
-        ),
     )
     wci: Optional[Union[bool, WaveCurrentInteraction]] = Field(
         default=None,
