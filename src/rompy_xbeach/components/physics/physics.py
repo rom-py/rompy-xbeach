@@ -135,12 +135,6 @@ class Physics(XBeachBaseModel):
         default=None,
         description="Turn on short wave runup (XBeach default: 0)",
     )
-    turb: Optional[Literal["wave_averaged", "bore_averaged", "none"]] = Field(
-        default=None,
-        description=(
-            "Switch to include short wave turbulence (XBeach default: wave_averaged)"
-        ),
-    )
     vegetation: Optional[Union[bool, Vegetation]] = Field(
         default=None,
         description=(
@@ -188,24 +182,6 @@ class Physics(XBeachBaseModel):
         default=None,
         description="Coriolis force parameters (lat, wearth)",
     )
-
-    @model_validator(mode="after")
-    def no_bore_averaged_with_ruessink_vanrijn(self) -> "Physics":
-        """Bore-averaged turbulence cannot be used with ruessink_vanrijn waveform.
-
-        The Ruessink et al. (2012) formulation does not determine an exact wave shape,
-        so the bore interval cannot be calculated. Bore-averaged short-wave turbulence
-        requires the bore interval to be computed from the wave shape.
-        """
-        if self.turb == "bore_averaged" and self.waveform == "ruessink_vanrijn":
-            logger.warning(
-                "Bore-averaged turbulence (turb='bore_averaged') cannot be combined with "
-                "the Ruessink et al. (2012) wave form (waveform='ruessink_vanrijn'). "
-                "The Ruessink formulation does not determine an exact wave shape, which is "
-                "required to calculate the bore interval for bore-averaged turbulence. "
-                "Consider using waveform='vanthiel' or turb='wave_averaged' instead."
-            )
-        return self
 
     @model_validator(mode="after")
     def swave_must_be_false_if_nonh(self) -> "Physics":

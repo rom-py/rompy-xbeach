@@ -5,7 +5,11 @@ This module contains models for sediment transport formulations and related para
 
 from typing import Literal, Optional
 
-from pydantic import Field
+import logging
+
+from pydantic import Field, model_validator
+
+logger = logging.getLogger(__name__)
 
 from rompy_xbeach.types import XBeachBaseModel
 
@@ -307,6 +311,26 @@ class SedimentTransport(XBeachBaseModel):
         ge=0.0001,
         le=0.05,
     )
+
+    @model_validator(mode="after")
+    def no_bore_averaged_with_ruessink_vanrijn(self) -> "SedimentTransport":
+        """Bore-averaged turbulence cannot be used with ruessink_vanrijn waveform.
+
+        The Ruessink et al. (2012) formulation does not determine an exact wave shape,
+        so the bore interval cannot be calculated. Bore-averaged short-wave turbulence
+        requires the bore interval to be computed from the wave shape.
+
+        See: https://xbeach.readthedocs.io/en/latest/xbeach_manual.html#wave-shape
+        """
+        if self.turb == "bore_averaged" and self.waveform == "ruessink_vanrijn":
+            logger.warning(
+                "Bore-averaged turbulence (turb='bore_averaged') cannot be combined with "
+                "the Ruessink et al. (2012) wave form (waveform='ruessink_vanrijn'). "
+                "The Ruessink formulation does not determine an exact wave shape, which is "
+                "required to calculate the bore interval for bore-averaged turbulence. "
+                "Consider using waveform='vanthiel' or turb='wave_averaged' instead."
+            )
+        return self
 
 
 class TransportNumerics(XBeachBaseModel):
