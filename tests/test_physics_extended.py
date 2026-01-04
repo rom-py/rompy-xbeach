@@ -8,9 +8,9 @@ from rompy_xbeach.components.physics.friction import HorizontalViscosity
 from rompy_xbeach.components.physics.wci import WaveCurrentInteraction
 from rompy_xbeach.components.physics.numerics import (
     FlowNumerics,
-    NonHydrostaticNumerics,
     WaveNumerics,
 )
+from rompy_xbeach.components.physics.wavemodel import Nonh
 
 
 def test_horizontal_viscosity():
@@ -100,9 +100,9 @@ def test_wave_boundary_conditions():
     assert params["cyclicdiradjust"] == 0
 
 
-def test_nonhydrostatic_numerics():
-    """Test NonHydrostaticNumerics model."""
-    nh_num = NonHydrostaticNumerics(
+def test_nonh_wavemodel():
+    """Test Nonh wave model (non-hydrostatic parameters)."""
+    nonh = Nonh(
         solver="tridiag",
         solver_acc=0.01,
         solver_maxit=50,
@@ -116,7 +116,7 @@ def test_nonhydrostatic_numerics():
         reformsteep=0.15,
         nhbreaker=2,
     )
-    params = nh_num.params
+    params = nonh.params
     assert params["solver"] == "tridiag"
     assert params["solver_acc"] == 0.01
     assert params["solver_maxit"] == 50
@@ -229,12 +229,11 @@ def test_physics_with_all_new_components():
     assert params["lat"] == -33.5
 
 
-def test_physics_nonhydrostatic_numerics():
-    """Test Physics with non-hydrostatic numerics."""
+def test_physics_with_nonh_wavemodel():
+    """Test Physics with Nonh wave model."""
     physics = Physics(
-        nonh=True,
-        swave=False,  # Required when nonh=True
-        nonhydrostatic_numerics=NonHydrostaticNumerics(
+        swave=False,  # Required when using Nonh
+        wavemodel=Nonh(
             solver="tridiag",
             maxbrsteep=0.4,
             nhbreaker=2,
@@ -243,7 +242,7 @@ def test_physics_nonhydrostatic_numerics():
 
     # Use get() method which flattens nested components
     params = physics.get(destdir="/tmp")
-    assert params["nonh"] == 1
+    assert params["wavemodel"] == "nonh"
     assert params["swave"] == 0
     assert params["solver"] == "tridiag"
     assert params["maxbrsteep"] == 0.4

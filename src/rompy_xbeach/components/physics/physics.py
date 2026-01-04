@@ -18,9 +18,8 @@ from rompy_xbeach.components.physics.friction import (
     WhiteColebrookGrainsize,
 )
 from rompy_xbeach.components.physics.numerics import (
-    NonHydrostaticNumerics,
-    WaveNumerics,
     FlowNumerics,
+    WaveNumerics,
 )
 from rompy_xbeach.components.physics.vegetation import Vegetation
 from rompy_xbeach.components.physics.wavemodel import (
@@ -167,13 +166,7 @@ class Physics(XBeachBaseModel):
         default=None,
         description="Wave numerical parameters (scheme, maxiter, maxerror, wavint)",
     )
-    nonhydrostatic_numerics: Optional[NonHydrostaticNumerics] = Field(
-        default=None,
-        description=(
-            "Non-hydrostatic solver parameters (solver, solver_acc, maxbrsteep, etc.). "
-            "Only applies when wavemodel=nonh or nonh=1"
-        ),
-    )
+    # Note: Non-hydrostatic parameters are configured via wavemodel=Nonh(...)
     constants: Optional[PhysicalConstants] = Field(
         default=None,
         description="Physical constants (g, rho, depthscale)",
