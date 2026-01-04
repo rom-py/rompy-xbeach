@@ -2,7 +2,7 @@
 
 import pytest
 from rompy_xbeach.components.physics import Physics
-from rompy_xbeach.components.physics.wbc import WaveBoundaryConditions
+from rompy_xbeach.components.boundary.parameters import WaveBoundaryConditions
 from rompy_xbeach.components.physics.constants import Coriolis, PhysicalConstants
 from rompy_xbeach.components.physics.friction import HorizontalViscosity
 from rompy_xbeach.components.physics.wci import WaveCurrentInteraction
