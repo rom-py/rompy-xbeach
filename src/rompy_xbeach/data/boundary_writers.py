@@ -2,7 +2,7 @@
 
 These classes are responsible for writing the various boundary condition files
 required by XBeach (JONSWAP, JONSTABLE, SWAN, etc.). They do NOT contain XBeach
-parameter configuration - those are in components.physics.wbc.WaveBoundaryConditions.
+parameter configuration - those are in components.boundary.parameters.
 
 These file writers are used by the boundary data classes in this package (data.boundary)
 to generate the actual boundary files from processed data.
@@ -43,7 +43,7 @@ class BoundaryFileWriterBase(RompyBaseModel, ABC):
     Subclasses implement specific file formats (JONSWAP, SWAN, etc.).
     
     Note: XBeach parameter configuration (rt, dtbc, random, etc.) is handled by
-    WaveBoundaryConditions in components.physics.wbc, not here.
+    WaveBoundaryConditions in components.boundary.parameters, not here.
     """
 
     model_type: Literal["base"] = Field(
