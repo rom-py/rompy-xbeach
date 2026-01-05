@@ -96,13 +96,6 @@ class Physics(XBeachBaseModel):
             "(XBeach default: 1)"
         ),
     )
-    nonh: Optional[bool] = Field(
-        default=None,
-        description=(
-            "Turn on non-hydrostatic pressure: 0 = NSWE, 1 = NSW + non-hydrostatic "
-            "pressure compensation Stelling & Zijlema, 2003 (XBeach default: 0)"
-        ),
-    )
     roller: Optional[Union[bool, Roller]] = Field(
         default=None,
         description="Switch to enable roller model (XBeach default: 1)",
@@ -177,25 +170,22 @@ class Physics(XBeachBaseModel):
 
     @model_validator(mode="after")
     def swave_must_be_false_if_nonh(self) -> "Physics":
-        """Swave must be False if nonh is True or wavemodel is Nonh."""
-        # Check if nonh parameter is True
-        nonh_enabled = self.nonh is True
+        """Warn if swave is not False when wavemodel is Nonh.
 
-        # Also check if wavemodel is set to Nonh
-        if self.wavemodel is not None and isinstance(self.wavemodel, Nonh):
-            nonh_enabled = True
-
-        if nonh_enabled:
+        Note: The legacy ``nonh`` parameter is deprecated in XBeach. Use
+        ``wavemodel=Nonh(...)`` instead, which outputs ``wavemodel = nonh``.
+        """
+        if isinstance(self.wavemodel, Nonh):
             if self.swave is True:
-                raise ValueError(
-                    "Parameter 'swave' cannot be True when non-hydrostatic mode is enabled. "
-                    "Set swave=False explicitly."
+                logger.warning(
+                    "Parameter 'swave' should not be True when using Nonh wavemodel. "
+                    "XBeach requires swave=0 for non-hydrostatic mode."
                 )
             elif self.swave is None:
-                raise ValueError(
-                    "Parameter 'swave' must be explicitly set to False when non-hydrostatic "
-                    "mode is enabled. XBeach would enable swave by default (swave=1), which "
-                    "conflicts with nonh mode. Please set swave=False explicitly."
+                logger.warning(
+                    "Parameter 'swave' should be explicitly set to False when using Nonh "
+                    "wavemodel. XBeach enables swave by default (swave=1), which conflicts "
+                    "with non-hydrostatic mode. Consider setting swave=False explicitly."
                 )
         return self
 

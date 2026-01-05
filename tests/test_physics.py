@@ -108,7 +108,6 @@ def test_params_all_boolean_fields():
         flow=True,
         gwflow=False,
         lwave=True,
-        nonh=False,
         setbathy=False,
         ships=False,
         single_dir=True,
@@ -128,7 +127,6 @@ def test_params_all_boolean_fields():
     assert params["flow"] == 1
     assert params["gwflow"] == 0
     assert params["lwave"] == 1
-    assert params["nonh"] == 0
     assert params["setbathy"] == 0
     assert params["ships"] == 0
     assert params["single_dir"] == 1
@@ -227,17 +225,19 @@ def test_physics_hydrodynamic_only_simulation():
 
 
 def test_physics_nonhydrostatic_simulation():
-    """Test Physics configuration for non-hydrostatic simulation."""
+    """Test Physics configuration for non-hydrostatic simulation.
+    
+    Note: The legacy 'nonh' parameter is deprecated in XBeach. Use wavemodel=Nonh()
+    which outputs 'wavemodel = nonh' in params.txt.
+    """
     physics = Physics(
         wavemodel=Nonh(),
-        nonh=True,
         swave=False,  # Must be explicitly False when wavemodel=Nonh
         flow=True,
     )
     params = physics.params
 
     assert params["wavemodel"] == "nonh"
-    assert params["nonh"] == 1
     assert params["swave"] == 0
     assert params["flow"] == 1
 
@@ -461,51 +461,61 @@ def test_no_log_for_default_disabled_processes(caplog):
 # =====================================================================================
 # Cross-parameter validation tests
 # =====================================================================================
-def test_nonh_with_swave_true_raises_error():
-    """Test that setting nonh=True with swave=True raises a validation error."""
-    with pytest.raises(ValueError) as exc_info:
-        Physics(nonh=True, swave=True)
-
-    assert "swave' cannot be True when non-hydrostatic mode is enabled" in str(
-        exc_info.value
-    )
-    assert "Set swave=False explicitly" in str(exc_info.value)
-
-
-def test_nonh_with_swave_none_raises_error():
-    """Test that setting nonh=True without setting swave raises a validation error."""
-    with pytest.raises(ValueError) as exc_info:
-        Physics(nonh=True)
-
-    assert "swave' must be explicitly set to False when non-hydrostatic" in str(
-        exc_info.value
-    )
-    assert "XBeach would enable swave by default" in str(exc_info.value)
-    assert "Please set swave=False explicitly" in str(exc_info.value)
+def test_nonh_wavemodel_with_swave_true_logs_warning(caplog):
+    """Test that using Nonh wavemodel with swave=True logs a warning."""
+    import logging
+    with caplog.at_level(logging.WARNING):
+        physics = Physics(wavemodel=Nonh(), swave=True)
+    
+    assert "swave' should not be True when using Nonh wavemodel" in caplog.text
+    assert "XBeach requires swave=0" in caplog.text
+    # Model is still created
+    assert isinstance(physics.wavemodel, Nonh)
+    assert physics.swave is True
 
 
-def test_nonh_with_swave_false_is_valid():
-    """Test that setting nonh=True with swave=False is valid."""
-    physics = Physics(nonh=True, swave=False)
-    assert physics.nonh is True
+def test_nonh_wavemodel_with_swave_none_logs_warning(caplog):
+    """Test that using Nonh wavemodel without setting swave logs a warning."""
+    import logging
+    with caplog.at_level(logging.WARNING):
+        physics = Physics(wavemodel=Nonh())
+
+    assert "swave' should be explicitly set to False when using Nonh" in caplog.text
+    assert "XBeach enables swave by default" in caplog.text
+    # Model is still created
+    assert isinstance(physics.wavemodel, Nonh)
+    assert physics.swave is None
+
+
+def test_nonh_wavemodel_with_swave_false_no_warning(caplog):
+    """Test that using Nonh wavemodel with swave=False does not log a warning."""
+    import logging
+    with caplog.at_level(logging.WARNING):
+        physics = Physics(wavemodel=Nonh(), swave=False)
+    
+    assert "swave" not in caplog.text
+    assert isinstance(physics.wavemodel, Nonh)
     assert physics.swave is False
 
     params = physics.params
-    assert params["nonh"] == 1
+    assert params["wavemodel"] == "nonh"
     assert params["swave"] == 0
 
 
-def test_swave_true_without_nonh_is_valid():
-    """Test that swave=True is valid when nonh is not True."""
-    # nonh=False
-    physics1 = Physics(swave=True, nonh=False)
+def test_swave_true_without_nonh_wavemodel_no_warning(caplog):
+    """Test that swave=True without Nonh wavemodel does not log a warning."""
+    import logging
+    with caplog.at_level(logging.WARNING):
+        # Surfbeat wavemodel
+        physics1 = Physics(wavemodel=Surfbeat(), swave=True)
+        # No wavemodel specified (default)
+        physics2 = Physics(swave=True)
+    
+    assert "swave" not in caplog.text
     assert physics1.swave is True
-    assert physics1.nonh is False
-
-    # nonh=None (default)
-    physics2 = Physics(swave=True)
+    assert isinstance(physics1.wavemodel, Surfbeat)
     assert physics2.swave is True
-    assert physics2.nonh is None
+    assert physics2.wavemodel is None
 
 
 # =====================================================================================

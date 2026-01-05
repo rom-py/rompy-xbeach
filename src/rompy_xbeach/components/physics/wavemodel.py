@@ -322,6 +322,14 @@ class Nonh(XBeachBaseModel):
 
     Note
     ----
+    XBeach has a legacy ``nonh`` parameter (0/1 switch) that is deprecated.
+    The XBeach source code shows that if ``nonh=1`` is specified, XBeach logs
+    a warning and internally sets ``wavemodel=nonh``. Setting both ``nonh=1``
+    and a different ``wavemodel`` causes XBeach to halt with an error.
+    
+    Use this ``Nonh`` class via ``Physics(wavemodel=Nonh(...))`` instead of
+    the legacy ``nonh`` parameter. This outputs ``wavemodel = nonh`` in params.txt.
+
     These are advanced options and it is recommended not to change them unless
     you have specific requirements.
 
