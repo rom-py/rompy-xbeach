@@ -38,9 +38,9 @@ class SedimentTransport(XBeachBaseModel):
     Van Thiel de Vries, J. S. M. (2009). Dune erosion during storm surges.
     """
 
-    sedtrans: Literal["sedtrans"] = Field(
-        default="sedtrans",
-        description="Turn on sediment transport parameters (XBeach default: 1)",
+    sedtrans: Literal[True] = Field(
+        default=True,
+        description="Enable sediment transport (always True when using SedimentTransport class)",
     )
     BRfac: Optional[float] = Field(
         default=None,
