@@ -10,7 +10,7 @@ from rompy_xbeach.components.physics.wci import (
     WaveCurrentInteraction,
 )
 from rompy_xbeach.components.physics.friction import (
-    HorizontalViscosity,
+    Viscosity,
     Cf,
     Chezy,
     Manning,
@@ -140,9 +140,12 @@ class Physics(XBeachBaseModel):
             "Turn on interaction of waves and flow with vegetation (XBeach default: 0)"
         ),
     )
-    viscosity: Optional[bool] = Field(
+    viscosity: Optional[Union[bool, Viscosity]] = Field(
         default=None,
-        description="Include viscosity in flow solver (XBeach default: 1)",
+        description=(
+            "Include viscosity in flow solver. Can be True/False to enable/disable, "
+            "or a Viscosity object to enable with custom parameters (XBeach default: 1)"
+        ),
     )
     wci: Optional[Union[bool, WaveCurrentInteraction]] = Field(
         default=None,
@@ -151,10 +154,6 @@ class Physics(XBeachBaseModel):
     wind: Optional[bool] = Field(
         default=None,
         description="Include wind in flow solver (XBeach default: 1)",
-    )
-    viscosity_params: Optional[HorizontalViscosity] = Field(
-        default=None,
-        description="Horizontal viscosity parameters (nuh, smag, nuhv, gamma_turb)",
     )
     flow_numerics: Optional[FlowNumerics] = Field(
         default=None,

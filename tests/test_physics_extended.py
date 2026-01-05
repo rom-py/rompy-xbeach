@@ -4,7 +4,7 @@ import pytest
 from rompy_xbeach.components.physics import Physics
 from rompy_xbeach.components.boundary.parameters import WaveBoundaryConditions
 from rompy_xbeach.components.physics.constants import Coriolis, PhysicalConstants
-from rompy_xbeach.components.physics.friction import HorizontalViscosity
+from rompy_xbeach.components.physics.friction import Viscosity, HorizontalViscosity, Manning
 from rompy_xbeach.components.physics.wci import WaveCurrentInteraction
 from rompy_xbeach.components.physics.numerics import (
     FlowNumerics,
@@ -13,18 +13,31 @@ from rompy_xbeach.components.physics.numerics import (
 from rompy_xbeach.components.physics.wavemodel import Nonh
 
 
-def test_horizontal_viscosity():
-    """Test HorizontalViscosity model."""
-    visc = HorizontalViscosity(
+def test_viscosity():
+    """Test Viscosity model (formerly HorizontalViscosity)."""
+    visc = Viscosity(
         smag=True,
         nuh=0.1,
         nuhv=2.0,
-        gamma_turb=1.5,
     )
     params = visc.params
+    assert params["viscosity"] == 1  # Automatically enabled
     assert params["smag"] == 1
     assert params["nuh"] == 0.1
     assert params["nuhv"] == 2.0
+
+
+def test_viscosity_backwards_compat():
+    """Test HorizontalViscosity alias still works."""
+    visc = HorizontalViscosity(smag=False, nuh=0.5)
+    assert visc.viscosity is True
+    assert visc.smag is False
+
+
+def test_gamma_turb_in_friction():
+    """Test gamma_turb is now in friction classes."""
+    friction = Manning(bedfriccoef=0.02, gamma_turb=1.5)
+    params = friction.params
     assert params["gamma_turb"] == 1.5
 
 
@@ -162,10 +175,13 @@ def test_physics_with_all_new_components():
     are now handled through Config.wave_boundary or input.wave.wbc
     """
     physics = Physics(
-        viscosity_params=HorizontalViscosity(
+        viscosity=Viscosity(
             smag=True,
             nuh=0.1,
             nuhv=1.5,
+        ),
+        bedfriction=Manning(
+            bedfriccoef=0.02,
             gamma_turb=1.0,
         ),
         wci=WaveCurrentInteraction(
@@ -196,10 +212,13 @@ def test_physics_with_all_new_components():
     # Use get() method which flattens nested components
     params = physics.get(destdir="/tmp")
 
-    # Check viscosity params
+    # Check viscosity params (now includes viscosity=1 automatically)
+    assert params["viscosity"] == 1
     assert params["smag"] == 1
     assert params["nuh"] == 0.1
     assert params["nuhv"] == 1.5
+
+    # Check gamma_turb is now in bedfriction
     assert params["gamma_turb"] == 1.0
 
     # Check WCI params
@@ -252,12 +271,12 @@ def test_physics_with_nonh_wavemodel():
 def test_validation_ranges():
     """Test that validation ranges work correctly."""
     # Test valid ranges
-    visc = HorizontalViscosity(nuh=0.5, nuhv=10.0, gamma_turb=1.5)
+    visc = Viscosity(nuh=0.5, nuhv=10.0)
     assert visc.nuh == 0.5
 
     # Test invalid ranges
     with pytest.raises(ValueError):
-        HorizontalViscosity(nuh=2.0)  # > 1.0
+        Viscosity(nuh=2.0)  # > 1.0
 
     with pytest.raises(ValueError):
         WaveCurrentInteraction(cats=100.0)  # > 50.0

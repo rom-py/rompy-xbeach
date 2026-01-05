@@ -15,7 +15,7 @@ from rompy_xbeach.types import XBeachBaseModel, XBeachDataBlob
 logger = logging.getLogger(__name__)
 
 
-class HorizontalViscosity(XBeachBaseModel):
+class Viscosity(XBeachBaseModel):
     """Horizontal viscosity configuration.
 
     XBeach uses the Smagorinsky (1963) model by default to compute horizontal
@@ -27,12 +27,19 @@ class HorizontalViscosity(XBeachBaseModel):
     - If `smag=1` (default): `nuh` is the Smagorinsky constant (default: 0.1)
     - If `smag=0`: `nuh` is the horizontal background viscosity in m²/s
 
+    When this class is used in Physics.viscosity, it automatically enables
+    viscosity in the flow solver (viscosity=1).
+
     References
     ----------
     Smagorinsky, J. (1963). General circulation experiments with the primitive
     equations: I. The basic experiment. Monthly weather review, 91(3), 99-164.
     """
 
+    viscosity: Literal[True] = Field(
+        default=True,
+        description="Enable viscosity in flow solver",
+    )
     smag: Optional[bool] = Field(
         default=None,
         description=(
@@ -69,18 +76,9 @@ class HorizontalViscosity(XBeachBaseModel):
         ge=1.0,
         le=20.0,
     )
-    gamma_turb: Optional[float] = Field(
-        default=None,
-        description=(
-            "Calibration factor for turbulence contribution to bed roughness "
-            "(XBeach default: 1.0)"
-        ),
-        ge=0.0,
-        le=2.0,
-    )
 
     @model_validator(mode="after")
-    def validate_viscosity_consistency(self) -> "HorizontalViscosity":
+    def validate_viscosity_consistency(self) -> "Viscosity":
         """Validate that viscosity parameters are used consistently."""
         if self.smag is False and self.nuh is None:
             logger.warning(
@@ -89,6 +87,10 @@ class HorizontalViscosity(XBeachBaseModel):
             )
 
         return self
+
+
+# Backwards compatibility alias
+HorizontalViscosity = Viscosity
 
 
 class FrictionModifiers(XBeachBaseModel):
@@ -123,6 +125,15 @@ class FrictionModifiers(XBeachBaseModel):
             "following Reniers and van Thiel. Applies to all friction formulations "
             "(XBeach default: 0)"
         ),
+    )
+    gamma_turb: Optional[float] = Field(
+        default=None,
+        description=(
+            "Calibration factor for turbulence contribution to bed roughness "
+            "(XBeach default: 1.0)"
+        ),
+        ge=0.0,
+        le=2.0,
     )
 
 
