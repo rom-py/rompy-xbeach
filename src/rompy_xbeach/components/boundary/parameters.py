@@ -96,7 +96,21 @@ class WaveBoundaryConditions(XBeachBaseModel):
         le=1000.0,
         examples=[100.0],
     )
-
+    ARC: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Switch for active reflection compensation at seaward boundary. "
+            "Compensates for spurious long wave reflection (XBeach default: 1)"
+        ),
+    )
+    freewave: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Switch for free wave propagation at the boundary. When enabled, assumes "
+            "incoming long waves propagate at sqrt(gh) instead of group velocity cg. "
+            "Affects absorbing/radiating boundary calculations (XBeach default: 0)"
+        ),
+    )
 
 
 class SpectralWaveBoundaryConditions(WaveBoundaryConditions):
