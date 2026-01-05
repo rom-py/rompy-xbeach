@@ -153,6 +153,32 @@ class FlowNumerics(XBeachBaseModel):
             "(XBeach default: 0)"
         ),
     )
+    defuse: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Switch to enable diffusion in the flow solver to prevent "
+            "numerical instabilities (XBeach default: 1)"
+        ),
+    )
+    dtset: Optional[float] = Field(
+        default=None,
+        description=(
+            "Fixed timestep (s). If > 0, overrides automatic timestep calculation. "
+            "Use with caution - may cause instabilities (XBeach default: 0.0, automatic)"
+        ),
+        ge=0.0,
+        le=100.0,
+    )
+    maxdtfac: Optional[float] = Field(
+        default=None,
+        description=(
+            "Maximum factor for timestep increase in explosion prevention mechanism. "
+            "For surfbeat/stationary: 10-200 (default 50). "
+            "For nonh: 100-1000 (default 500)"
+        ),
+        ge=10.0,
+        le=1000.0,
+    )
 
     @model_validator(mode="after")
     def warn_if_oldhmin_and_deltahmin(self):
