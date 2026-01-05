@@ -35,9 +35,15 @@ class PhysicalConstants(XBeachBaseModel):
     )
     rho: Optional[float] = Field(
         default=None,
-        description="Density of water (kgm-3) (XBeach default: 1025.0)",
+        description="Density of water (kg/m³) (XBeach default: 1025.0)",
         ge=1000.0,
         le=1040.0,
+    )
+    rhoa: Optional[float] = Field(
+        default=None,
+        description="Density of air (kg/m³) (XBeach default: 1.25)",
+        ge=1.0,
+        le=2.0,
     )
 
 
