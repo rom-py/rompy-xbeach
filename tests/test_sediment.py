@@ -3,6 +3,7 @@
 import pytest
 from rompy_xbeach.components.sediment import Sediment
 from rompy_xbeach.components.sediment.bed import BedUpdate
+from rompy_xbeach.components.sediment.composition import BedComposition
 from rompy_xbeach.components.sediment.groundwater import GroundwaterFlow
 from rompy_xbeach.components.sediment.morphology import Morphology
 from rompy_xbeach.components.sediment.transport import (
@@ -172,6 +173,76 @@ def test_groundwater_flow():
     assert params["kz"] == 0.0001
 
 
+def test_bed_composition():
+    """Test BedComposition model with grain size parameters."""
+    composition = BedComposition(
+        ngd=1,
+        D50=[0.0002],
+        D90=[0.0003],
+        rhos=2650.0,
+        por=0.4,
+        dzg1=0.1,
+        dzg2=0.1,
+        dzg3=0.1,
+    )
+    params = composition.params
+    assert params["ngd"] == 1
+    assert params["D50"] == [0.0002]
+    assert params["D90"] == [0.0003]
+    assert params["rhos"] == 2650.0
+    assert params["por"] == 0.4
+    assert params["dzg1"] == 0.1
+    assert params["dzg2"] == 0.1
+    assert params["dzg3"] == 0.1
+
+
+def test_bed_composition_multiple_classes():
+    """Test BedComposition with multiple sediment classes."""
+    composition = BedComposition(
+        ngd=2,
+        D50=[0.0001, 0.0003],
+        D90=[0.0002, 0.0005],
+        rhos=2650.0,
+    )
+    params = composition.params
+    assert params["ngd"] == 2
+    assert params["D50"] == [0.0001, 0.0003]
+    assert params["D90"] == [0.0002, 0.0005]
+
+
+def test_bed_composition_validation_ngd_mismatch():
+    """Test that D50/D90 list length must match ngd."""
+    with pytest.raises(ValueError) as exc_info:
+        BedComposition(
+            ngd=2,
+            D50=[0.0002],  # Only 1 value but ngd=2
+        )
+    assert "must have 2 values" in str(exc_info.value)
+
+
+def test_bed_composition_validation_d90_greater_than_d50():
+    """Test that D90 must be greater than D50."""
+    with pytest.raises(ValueError) as exc_info:
+        BedComposition(
+            D50=[0.0003],
+            D90=[0.0002],  # D90 < D50
+        )
+    assert "must be greater than" in str(exc_info.value)
+
+
+def test_bed_composition_gravel():
+    """Test BedComposition for gravel beach (XBeach-G)."""
+    composition = BedComposition(
+        D50=[0.01],   # 10mm - gravel
+        D90=[0.015],  # 15mm
+        rhos=2650.0,
+        por=0.4,
+    )
+    params = composition.params
+    assert params["D50"] == [0.01]
+    assert params["D90"] == [0.015]
+
+
 def test_sediment_component_empty():
     """Test Sediment component with no parameters."""
     sediment = Sediment()
@@ -291,3 +362,31 @@ def test_sediment_morphology_only():
     assert params["morstop"] == 7200.0
     assert params["dryslp"] == 1.0
     assert params["wetslp"] == 0.3
+
+
+def test_sediment_with_bed_composition():
+    """Test Sediment component with bed composition parameters."""
+    sediment = Sediment(
+        bed_composition=BedComposition(
+            ngd=1,
+            D50=[0.0002],
+            D90=[0.0003],
+            rhos=2650.0,
+            por=0.4,
+            dzg1=0.1,
+        ),
+        morphology=Morphology(morfac=10.0),
+    )
+    params = sediment.get(destdir="/tmp")
+    
+    # Check bed composition params
+    assert params["ngd"] == 1
+    assert params["D50"] == [0.0002]
+    assert params["D90"] == [0.0003]
+    assert params["rhos"] == 2650.0
+    assert params["por"] == 0.4
+    assert params["dzg1"] == 0.1
+    
+    # Check morphology params
+    assert params["morfac"] == 10.0
+    assert params["morphology"] == 1
