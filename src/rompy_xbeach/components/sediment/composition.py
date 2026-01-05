@@ -138,6 +138,16 @@ class BedComposition(XBeachBaseModel):
             "(XBeach default: 1.0 for each class)"
         ),
     )
+    ws_nonh: Optional[float] = Field(
+        default=None,
+        description=(
+            "Sediment fall velocity (m/s). Only used in non-hydrostatic mode "
+            "(wavemodel=nonh). If not specified, XBeach computes this internally "
+            "from D50 using Ahrens (2000) (XBeach default: 0.0, computed)"
+        ),
+        ge=0.0,
+        le=1.0,
+    )
 
     @model_validator(mode="after")
     def validate_grain_size_lists(self) -> "BedComposition":
