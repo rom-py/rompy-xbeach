@@ -6,6 +6,7 @@ from typing import Literal, Optional, Union
 from pydantic import Field
 
 from rompy_xbeach.components.sediment.bed import BedUpdate
+from rompy_xbeach.components.sediment.composition import BedComposition
 from rompy_xbeach.components.sediment.groundwater import GroundwaterFlow
 from rompy_xbeach.components.sediment.morphology import Morphology
 from rompy_xbeach.components.sediment.transport import (
@@ -89,6 +90,13 @@ class Sediment(XBeachBaseModel):
             "Morphological evolution parameters from XBeach Table 39 "
             "(morfac, morfacopt, morstart, morstop, lsgrad, struct, ne_layer, "
             "dryslp, wetslp, hswitch, dzmax)"
+        ),
+    )
+    bed_composition: Optional[BedComposition] = Field(
+        default=None,
+        description=(
+            "Bed composition parameters including grain size (D50, D90), "
+            "sediment density (rhos), porosity (por), and layer thickness (dzg1/2/3)"
         ),
     )
     bed_update: Optional[BedUpdate] = Field(
