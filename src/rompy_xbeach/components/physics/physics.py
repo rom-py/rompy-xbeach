@@ -22,6 +22,7 @@ from rompy_xbeach.components.physics.numerics import (
     WaveNumerics,
 )
 from rompy_xbeach.components.physics.vegetation import Vegetation
+from rompy_xbeach.components.physics.wind import Wind
 from rompy_xbeach.components.physics.wavemodel import (
     Nonh,
     Roller,
@@ -144,9 +145,12 @@ class Physics(XBeachBaseModel):
         default=None,
         description="Switch to turn on wave-current interaction (XBeach default: 0)",
     )
-    wind: Optional[bool] = Field(
+    wind: Optional[Union[bool, Wind]] = Field(
         default=None,
-        description="Include wind in flow solver (XBeach default: 1)",
+        description=(
+            "Include wind in flow solver. Can be True/False to enable/disable, "
+            "or a Wind object to enable with custom parameters like Cd (XBeach default: 1)"
+        ),
     )
     flow_numerics: Optional[FlowNumerics] = Field(
         default=None,
@@ -158,7 +162,6 @@ class Physics(XBeachBaseModel):
         default=None,
         description="Wave numerical parameters (scheme, maxiter, maxerror, wavint)",
     )
-    # Note: Non-hydrostatic parameters are configured via wavemodel=Nonh(...)
     constants: Optional[PhysicalConstants] = Field(
         default=None,
         description="Physical constants (g, rho, depthscale)",
