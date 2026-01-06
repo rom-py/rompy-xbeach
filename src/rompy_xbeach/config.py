@@ -152,12 +152,6 @@ class Config(XBeachBaseConfig):
         default=None,
         description="Tide and surge boundary conditions",
     )
-    rugdepth: Optional[float] = Field(
-        default=None,
-        description="Depth to compute initial bed roughness (XBeach default: 0.011)",
-        ge=0,
-        le=1,
-    )
     tunits: Optional[str] = Field(
         default=None,
         description=(
@@ -234,6 +228,8 @@ class Config(XBeachBaseConfig):
                 "bathy",
                 "input",
                 "wave_boundary",
+                "flow_boundary",
+                "tide_boundary",
                 "output",
                 "physics",
                 "sediment",
@@ -260,7 +256,7 @@ class Config(XBeachBaseConfig):
             # Use manual specification
             logger.info("Using manual wave_boundary specification")
             self._params.update(self.wave_boundary.get(staging_dir))
-        
+
         # Generate other input data (wind, tide)
         if self.input:
             if self.input.wind:
@@ -269,6 +265,9 @@ class Config(XBeachBaseConfig):
             if self.input.tide:
                 logger.info("Generating tide forcing data")
                 self._params.update(self.input.tide.get(staging_dir, self.grid, period))
+        # Update flow and tide boundary parameters
+        self._params.update(self.flow_boundary.get(staging_dir))
+        self._params.update(self.tide_boundary.get(staging_dir))
 
         # Bathy data interface
         # TODO: Make this consistent with the other input data

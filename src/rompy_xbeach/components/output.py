@@ -132,6 +132,15 @@ class Output(XBeachBaseModel):
         ge=1,
         le=10,
     )
+    rugdepth: Optional[float] = Field(
+        default=None,
+        description=(
+            "Minimum depth for determination of last wet point in runup gauge "
+            "(XBeach default: 0)"
+        ),
+        ge=0,
+        le=0.1,
+    )
     timings: Optional[bool] = Field(
         default=None,
         description="Switch enable progress output to screen (XBeach default: True)",
