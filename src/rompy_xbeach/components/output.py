@@ -180,6 +180,21 @@ class Output(XBeachBaseModel):
         ),
         gt=0.0,
     )
+    tinth: Optional[float] = Field(
+        default=None,
+        description=(
+            "Output interval (s) for writing hotstart files (XBeach default: 0). "
+            "If not specified or 0, hotstart is written only at the end of simulation."
+        ),
+        ge=0.0,
+    )
+    writehotstart: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Write hotstart files during simulation (XBeach default: 0). "
+            "Hotstart files can be used to initialize a subsequent simulation."
+        ),
+    )
     tsglobal: Optional[XBeachDataBlob] = Field(
         default=None,
         description="File source containing timings of global output",

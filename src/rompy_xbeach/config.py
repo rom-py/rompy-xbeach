@@ -17,6 +17,7 @@ from rompy_xbeach.components.mpi import Mpi
 from rompy_xbeach.components.output import Output
 from rompy_xbeach.components.physics import Physics
 from rompy_xbeach.components.sediment import Sediment
+from rompy_xbeach.components.hotstart import Hotstart
 from rompy_xbeach.components.boundary.specification import (
     SpectralWaveBoundary,
     NonSpectralWaveBoundary,
@@ -152,6 +153,14 @@ class Config(XBeachBaseConfig):
         default=None,
         description="Tide and surge boundary conditions",
     )
+    hotstart: Optional[Union[bool, Hotstart]] = Field(
+        default=None,
+        description=(
+            "Hotstart configuration. Set to True to enable hotstart with files "
+            "already in run directory, or provide a Hotstart object to specify "
+            "source directory and file number."
+        ),
+    )
     tunits: Optional[str] = Field(
         default=None,
         description=(
@@ -230,6 +239,7 @@ class Config(XBeachBaseConfig):
                 "wave_boundary",
                 "flow_boundary",
                 "tide_boundary",
+                "hotstart",
                 "output",
                 "physics",
                 "sediment",
@@ -266,8 +276,16 @@ class Config(XBeachBaseConfig):
                 logger.info("Generating tide forcing data")
                 self._params.update(self.input.tide.get(staging_dir, self.grid, period))
         # Update flow and tide boundary parameters
-        self._params.update(self.flow_boundary.get(staging_dir))
-        self._params.update(self.tide_boundary.get(staging_dir))
+        if self.flow_boundary:
+            self._params.update(self.flow_boundary.get(staging_dir))
+        if self.tide_boundary:
+            self._params.update(self.tide_boundary.get(staging_dir))
+
+        # Hotstart configuration
+        if self.hotstart is True:
+            self._params["hotstart"] = 1
+        elif isinstance(self.hotstart, Hotstart):
+            self._params.update(self.hotstart.get(staging_dir))
 
         # Bathy data interface
         # TODO: Make this consistent with the other input data
