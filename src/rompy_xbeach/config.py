@@ -186,14 +186,6 @@ class Config(XBeachBaseConfig):
         ),
         examples=["seconds since 1970-01-01 00:00:00.00 +1:00"],
     )
-    order: Optional[Literal[1, 2]] = Field(
-        default=None,
-        description=(
-            "Switch for order of wave steering, first order wave steering (short wave "
-            "energy only), second oder wave steering (bound long wave corresponding "
-            "to short wave forcing is added) (XBeach default: 2)",
-        ),
-    )
     # TODO: Make this part of the Tide object
     paulrevere: Optional[Literal["land", "sea"]] = Field(
         default=None,
@@ -208,7 +200,7 @@ class Config(XBeachBaseConfig):
         """Ensure only one wave boundary source is specified."""
         has_input_wave = self.input and self.input.wave
         has_wave_boundary = self.wave_boundary is not None
-        
+
         if has_input_wave and has_wave_boundary:
             raise ValueError(
                 "Cannot specify both input.wave and wave_boundary. "

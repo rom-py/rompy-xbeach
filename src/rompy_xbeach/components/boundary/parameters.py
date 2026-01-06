@@ -150,6 +150,14 @@ class WaveBoundaryConditions(XBeachBaseModel):
             "and alfa is ignored. Only used when swave=1 (XBeach default: 0)"
         ),
     )
+    order: Optional[Literal[1, 2]] = Field(
+        default=None,
+        description=(
+            "Order of wave steering at the boundary. 1 = first-order (short wave energy "
+            "only), 2 = second-order (bound long wave corresponding to short wave forcing "
+            "is added) (XBeach default: 2)"
+        ),
+    )
 
 
 class SpectralWaveBoundaryConditions(WaveBoundaryConditions):
