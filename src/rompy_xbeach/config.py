@@ -23,7 +23,10 @@ from rompy_xbeach.components.boundary.specification import (
     OffWaveBoundary,
     ReuseWaveBoundary,
 )
-from rompy_xbeach.components.boundary.parameters import FlowBoundaryConditions
+from rompy_xbeach.components.boundary.parameters import (
+    FlowBoundaryConditions,
+    TideBoundaryConditions,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -145,20 +148,9 @@ class Config(XBeachBaseConfig):
         default=None,
         description="Flow boundary conditions for shallow water equations",
     )
-    # TODO: Move to TideBoundaryConditions component
-    zs0: Optional[float] = Field(
+    tide_boundary: Optional[TideBoundaryConditions] = Field(
         default=None,
-        description="Initial water level (m) (XB default: 0.0)",
-        ge=-5.0,
-        le=5.0,
-    )
-    # TODO: Move to TideBoundaryConditions component
-    paulrevere: Optional[Literal["land", "sea"]] = Field(
-        default=None,
-        description=(
-            "Specifies the sea or land boundary for tide boundary conditions "
-            "(XBeach default: land)"
-        ),
+        description="Tide and surge boundary conditions",
     )
     rugdepth: Optional[float] = Field(
         default=None,

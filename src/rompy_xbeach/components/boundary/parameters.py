@@ -1,18 +1,21 @@
 """XBeach boundary condition parameter configurations.
 
 This module contains models for boundary condition parameters that control
-how waves and flow are specified at domain boundaries.
+how waves, flow, and tides are specified at domain boundaries.
 
 This is the single source of truth for all boundary condition parameters,
 organized into:
+
+Flow Boundary Conditions:
+- FlowBoundaryConditions: Flow boundary types and parameters for shallow water equations
+
+Tide Boundary Conditions:
+- TideBoundaryConditions: Tide/surge boundary parameters (tideloc, tidetype, zs0, paulrevere)
 
 Wave Boundary Conditions:
 - WaveBoundaryConditions: General wave parameters (apply to all boundary types)
 - SpectralWaveBoundaryConditions: Spectral-specific parameters (jons, swan, vardens, jonstable)
 - NonSpectralWaveBoundaryConditions: Non-spectral parameters (stat, ts_1, ts_2, ts_nonh, bichrom)
-
-Flow Boundary Conditions:
-- FlowBoundaryConditions: Flow boundary types and parameters for shallow water equations
 """
 
 from typing import Optional, Literal
@@ -92,6 +95,61 @@ class FlowBoundaryConditions(XBeachBaseModel):
         description=(
             "Switch for high-order compensation at the boundary. Enables additional "
             "correction terms for improved accuracy (XBeach default: 0)"
+        ),
+    )
+
+
+# Type definitions for tide boundary options
+TideLocType = Literal[0, 1, 2, 4]
+TideTypeType = Literal["instant", "velocity", "hybrid"]
+PaulRevereType = Literal["land", "sea"]
+
+
+class TideBoundaryConditions(XBeachBaseModel):
+    """Tide and surge boundary condition parameters.
+
+    Controls how tidal and surge water levels are applied at the domain boundaries.
+    XBeach supports up to four time-varying tidal signals applied to the four corners
+    (offshore-right, offshore-left, backshore-left, backshore-right).
+
+    The tideloc parameter determines how many tide signals are used:
+    - 0: Uniform water level (zs0 value applied everywhere)
+    - 1: One time-varying signal (applied to offshore boundary)
+    - 2: Two time-varying signals (requires paulrevere to specify application)
+    - 4: Four time-varying signals (one per corner)
+    """
+
+    tideloc: Optional[TideLocType] = Field(
+        default=None,
+        description=(
+            "Number of tide/surge boundary locations. 0 = uniform water level (zs0), "
+            "1 = one signal at offshore, 2 = two signals (sea/land corners), "
+            "4 = four signals (all corners) (XBeach default: 0 if zs0 set, else 2)"
+        ),
+    )
+    tidetype: Optional[TideTypeType] = Field(
+        default=None,
+        description=(
+            "Type of tide boundary condition. instant = instantaneous water level, "
+            "velocity = velocity boundary, hybrid = combination "
+            "(XBeach default: velocity)"
+        ),
+    )
+    zs0: Optional[float] = Field(
+        default=None,
+        description=(
+            "Initial/constant water level (m). Used when tideloc=0 for uniform water "
+            "level, or as backshore boundary value when tideloc=1 (XBeach default: 0.0)"
+        ),
+        ge=-5.0,
+        le=5.0,
+    )
+    paulrevere: Optional[PaulRevereType] = Field(
+        default=None,
+        description=(
+            "Specifies which boundary receives tide signals when tideloc=2. "
+            "land = one signal to land corners, one to sea corners; "
+            "sea = opposite assignment (XBeach default: land)"
         ),
     )
 

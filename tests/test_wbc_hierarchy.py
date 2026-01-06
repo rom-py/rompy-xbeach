@@ -6,6 +6,7 @@ from rompy_xbeach.components.boundary.parameters import (
     SpectralWaveBoundaryConditions,
     NonSpectralWaveBoundaryConditions,
     FlowBoundaryConditions,
+    TideBoundaryConditions,
 )
 
 
@@ -255,3 +256,73 @@ def test_flow_boundary_conditions_validation():
 
     with pytest.raises(ValueError):
         FlowBoundaryConditions(left="invalid")
+
+
+# ======================================================================================
+# Tide Boundary Conditions Tests
+# ======================================================================================
+
+
+def test_tide_boundary_conditions():
+    """Test TideBoundaryConditions with basic parameters."""
+    tbc = TideBoundaryConditions(
+        tideloc=0,
+        zs0=0.5,
+    )
+    assert tbc.tideloc == 0
+    assert tbc.zs0 == 0.5
+
+
+def test_tide_boundary_conditions_with_tideloc_2():
+    """Test TideBoundaryConditions with tideloc=2 and paulrevere."""
+    tbc = TideBoundaryConditions(
+        tideloc=2,
+        tidetype="velocity",
+        paulrevere="land",
+    )
+    assert tbc.tideloc == 2
+    assert tbc.tidetype == "velocity"
+    assert tbc.paulrevere == "land"
+
+
+def test_tide_boundary_conditions_all_tidetypes():
+    """Test all tidetype options."""
+    for tidetype in ["instant", "velocity", "hybrid"]:
+        tbc = TideBoundaryConditions(tidetype=tidetype)
+        assert tbc.tidetype == tidetype
+
+
+def test_tide_boundary_conditions_serialization():
+    """Test TideBoundaryConditions serialization excludes None values."""
+    tbc = TideBoundaryConditions(
+        tideloc=1,
+        zs0=0.0,
+    )
+    params = tbc.model_dump(exclude_none=True)
+    assert params == {
+        "tideloc": 1,
+        "zs0": 0.0,
+    }
+    # Verify None values are excluded
+    assert "tidetype" not in params
+    assert "paulrevere" not in params
+
+
+def test_tide_boundary_conditions_validation():
+    """Test TideBoundaryConditions validates options."""
+    # Valid tideloc values
+    for loc in [0, 1, 2, 4]:
+        tbc = TideBoundaryConditions(tideloc=loc)
+        assert tbc.tideloc == loc
+
+    # Invalid tideloc should fail
+    with pytest.raises(ValueError):
+        TideBoundaryConditions(tideloc=3)
+
+    # Invalid tidetype should fail
+    with pytest.raises(ValueError):
+        TideBoundaryConditions(tidetype="invalid")
+
+    # Invalid paulrevere should fail
+    with pytest.raises(ValueError):
+        TideBoundaryConditions(paulrevere="invalid")

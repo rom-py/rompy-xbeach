@@ -180,10 +180,13 @@ flow_boundary:
   left: neumann
   right: neumann
   lateralwave: wavecrest
+# Tide boundary conditions
+tide_boundary:
+  tideloc: 0
+  zs0: 0.0
+  paulrevere: land
 rugdepth: 0.011
 tunits: seconds since 1970-01-01 00:00:00.00 +00
-zs0: null
-paulrevere: land
 mpi:
   mpiboundary: auto
 output:
