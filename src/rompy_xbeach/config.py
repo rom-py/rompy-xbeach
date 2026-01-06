@@ -23,6 +23,7 @@ from rompy_xbeach.components.boundary.specification import (
     OffWaveBoundary,
     ReuseWaveBoundary,
 )
+from rompy_xbeach.components.boundary.parameters import FlowBoundaryConditions
 
 
 logger = logging.getLogger(__name__)
@@ -99,12 +100,6 @@ class DataInterface(RompyBaseModel):
         return params
 
 
-FrontType = Literal["abs_1d", "abs_2d", "wall", "wlevel", "nonh_1d", "waveflume"]
-BackType = Literal["wall", "abs_1d", "abs_2d", "wlevel"]
-LeftRightType = Literal["neumann", "wall", "no_advec", "neumann_v", "abs_1d"]
-LateralWaveType = Literal["neumann", "wavecrest", "cyclic"]
-
-
 class Config(XBeachBaseConfig):
     """Xbeach config class."""
 
@@ -146,35 +141,28 @@ class Config(XBeachBaseConfig):
         default_factory=Output,
         description="Output configuration",
     )
+    flow_boundary: Optional[FlowBoundaryConditions] = Field(
+        default=None,
+        description="Flow boundary conditions for shallow water equations",
+    )
+    # TODO: Move to TideBoundaryConditions component
     zs0: Optional[float] = Field(
         default=None,
         description="Initial water level (m) (XB default: 0.0)",
         ge=-5.0,
         le=5.0,
     )
-    front: Optional[FrontType] = Field(
+    # TODO: Move to TideBoundaryConditions component
+    paulrevere: Optional[Literal["land", "sea"]] = Field(
         default=None,
-        description="Switch for seaward flow boundary (XBeach default: abs_2d)",
-    )
-    back: Optional[BackType] = Field(
-        default=None,
-        description="Switch for boundary at bay side (XBeach default: abs_2d)",
-    )
-    left: Optional[LeftRightType] = Field(
-        default=None,
-        description="Switch for lateral boundary at ny+1 (XBeach default: neumann)",
-    )
-    right: Optional[LeftRightType] = Field(
-        default=None,
-        description="Switch for lateral boundary at 0 (XBeach default: neumann)",
-    )
-    lateralwave: Optional[LateralWaveType] = Field(
-        default=None,
-        description="Switch for lateral boundary at left (XBeach default: neumann)",
+        description=(
+            "Specifies the sea or land boundary for tide boundary conditions "
+            "(XBeach default: land)"
+        ),
     )
     rugdepth: Optional[float] = Field(
         default=None,
-        description="To be defined",
+        description="Depth to compute initial bed roughness (XBeach default: 0.011)",
         ge=0,
         le=1,
     )
@@ -185,14 +173,6 @@ class Config(XBeachBaseConfig):
             "the simulation start time (XBeach default: s)"
         ),
         examples=["seconds since 1970-01-01 00:00:00.00 +1:00"],
-    )
-    # TODO: Make this part of the Tide object
-    paulrevere: Optional[Literal["land", "sea"]] = Field(
-        default=None,
-        description=(
-            "Specifies the sea or land boundary for tide boundary conditions "
-            "(XBeach default: land)"
-        ),
     )
 
     @model_validator(mode='after')

@@ -1,10 +1,11 @@
-"""Tests for wave boundary condition parameter hierarchy."""
+"""Tests for boundary condition parameter hierarchy."""
 
 import pytest
 from rompy_xbeach.components.boundary.parameters import (
     WaveBoundaryConditions,
     SpectralWaveBoundaryConditions,
     NonSpectralWaveBoundaryConditions,
+    FlowBoundaryConditions,
 )
 
 
@@ -185,3 +186,72 @@ def test_serialization_non_spectral():
         "Trep": 12.0,
         "dir0": 285.0,
     }
+
+
+# ======================================================================================
+# Flow Boundary Conditions Tests
+# ======================================================================================
+
+
+def test_flow_boundary_conditions():
+    """Test FlowBoundaryConditions with all boundary types."""
+    fbc = FlowBoundaryConditions(
+        front="abs_2d",
+        back="wall",
+        left="neumann",
+        right="neumann_v",
+        lateralwave="wavecrest",
+    )
+    assert fbc.front == "abs_2d"
+    assert fbc.back == "wall"
+    assert fbc.left == "neumann"
+    assert fbc.right == "neumann_v"
+    assert fbc.lateralwave == "wavecrest"
+
+
+def test_flow_boundary_conditions_with_numerics():
+    """Test FlowBoundaryConditions with numerical parameters."""
+    fbc = FlowBoundaryConditions(
+        front="abs_1d",
+        nc=50,
+        highcomp=True,
+    )
+    assert fbc.front == "abs_1d"
+    assert fbc.nc == 50
+    assert fbc.highcomp is True
+
+
+def test_flow_boundary_conditions_serialization():
+    """Test FlowBoundaryConditions serialization excludes None values."""
+    fbc = FlowBoundaryConditions(
+        front="abs_2d",
+        left="neumann",
+    )
+    params = fbc.model_dump(exclude_none=True)
+    assert params == {
+        "front": "abs_2d",
+        "left": "neumann",
+    }
+    # Verify None values are excluded
+    assert "back" not in params
+    assert "right" not in params
+    assert "lateralwave" not in params
+    assert "nc" not in params
+    assert "highcomp" not in params
+
+
+def test_flow_boundary_conditions_validation():
+    """Test FlowBoundaryConditions validates boundary type options."""
+    # Valid options should work
+    fbc = FlowBoundaryConditions(front="nonh_1d")
+    assert fbc.front == "nonh_1d"
+
+    fbc = FlowBoundaryConditions(front="waveflume")
+    assert fbc.front == "waveflume"
+
+    # Invalid options should fail
+    with pytest.raises(ValueError):
+        FlowBoundaryConditions(front="invalid")
+
+    with pytest.raises(ValueError):
+        FlowBoundaryConditions(left="invalid")

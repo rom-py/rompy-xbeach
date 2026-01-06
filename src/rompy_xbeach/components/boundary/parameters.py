@@ -1,19 +1,99 @@
-"""XBeach wave boundary condition parameter configurations.
+"""XBeach boundary condition parameter configurations.
 
-This module contains models for wave boundary condition parameters that control
-how short and long waves are specified at the offshore boundary.
+This module contains models for boundary condition parameters that control
+how waves and flow are specified at domain boundaries.
 
-This is the single source of truth for all wave boundary condition parameters,
+This is the single source of truth for all boundary condition parameters,
 organized into:
-- Base class: General parameters (apply to all boundary types)
+
+Wave Boundary Conditions:
+- WaveBoundaryConditions: General wave parameters (apply to all boundary types)
 - SpectralWaveBoundaryConditions: Spectral-specific parameters (jons, swan, vardens, jonstable)
 - NonSpectralWaveBoundaryConditions: Non-spectral parameters (stat, ts_1, ts_2, ts_nonh, bichrom)
+
+Flow Boundary Conditions:
+- FlowBoundaryConditions: Flow boundary types and parameters for shallow water equations
 """
 
 from typing import Optional, Literal
 from pydantic import Field
 
 from rompy_xbeach.types import XBeachBaseModel
+
+
+FrontType = Literal["abs_1d", "abs_2d", "wall", "wlevel", "nonh_1d", "waveflume"]
+BackType = Literal["wall", "abs_1d", "abs_2d", "wlevel"]
+LeftRightType = Literal["neumann", "wall", "no_advec", "neumann_v", "abs_1d"]
+LateralWaveType = Literal["neumann", "wavecrest", "cyclic"]
+
+
+class FlowBoundaryConditions(XBeachBaseModel):
+    """Flow boundary condition parameters for shallow water equations.
+
+    Controls boundary conditions at all domain boundaries: offshore (front),
+    bay side (back), and lateral (left/right). These parameters determine how
+    flow, water levels, and waves interact with the domain boundaries.
+
+    The default absorbing-generating (abs_2d) boundary condition is recommended
+    for most applications as it allows waves to pass through with minimal reflection.
+    """
+
+    front: Optional[FrontType] = Field(
+        default=None,
+        description=(
+            "Seaward boundary condition type. abs_1d/abs_2d = absorbing-generating "
+            "(weakly-reflective), wall = no flux, wlevel = water level specification, "
+            "nonh_1d = non-hydrostatic, waveflume = flume experiments "
+            "(XBeach default: abs_2d)"
+        ),
+    )
+    back: Optional[BackType] = Field(
+        default=None,
+        description=(
+            "Bay side boundary condition type. wall = no flux, abs_1d/abs_2d = "
+            "absorbing-generating, wlevel = water level specification "
+            "(XBeach default: abs_2d)"
+        ),
+    )
+    left: Optional[LeftRightType] = Field(
+        default=None,
+        description=(
+            "Lateral boundary at ny+1. neumann = no gradient, wall = no flux, "
+            "no_advec = advective terms only, neumann_v = copy velocity from adjacent "
+            "cell, abs_1d = absorbing (XBeach default: neumann)"
+        ),
+    )
+    right: Optional[LeftRightType] = Field(
+        default=None,
+        description=(
+            "Lateral boundary at 0. neumann = no gradient, wall = no flux, "
+            "no_advec = advective terms only, neumann_v = copy velocity from adjacent "
+            "cell, abs_1d = absorbing (XBeach default: neumann)"
+        ),
+    )
+    lateralwave: Optional[LateralWaveType] = Field(
+        default=None,
+        description=(
+            "Lateral wave boundary type. neumann = zero longshore gradient (may cause "
+            "shadow zones), wavecrest = zero gradient along wave crest (better for "
+            "surfbeat), cyclic = periodic boundary (XBeach default: neumann)"
+        ),
+    )
+    nc: Optional[int] = Field(
+        default=None,
+        description=(
+            "Smoothing distance for estimating mean current (umean) at the offshore "
+            "boundary, defined as number of grid cells (XBeach default: ny+1)"
+        ),
+        ge=1,
+    )
+    highcomp: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Switch for high-order compensation at the boundary. Enables additional "
+            "correction terms for improved accuracy (XBeach default: 0)"
+        ),
+    )
 
 
 class WaveBoundaryConditions(XBeachBaseModel):
@@ -58,9 +138,8 @@ class WaveBoundaryConditions(XBeachBaseModel):
     swkhmin: Optional[float] = Field(
         default=None,
         description=(
-            "Minimum kh value to include in wave action balance. "
-            "Waves with lower kh are included in NLSWE instead "
-            "(XBeach default: -0.01)"
+            "Minimum kh value to include in wave action balance. Waves with lower kh "
+            "are included in NLSWE instead (XBeach default: -0.01)"
         ),
         ge=-0.01,
         le=0.35,
@@ -68,8 +147,8 @@ class WaveBoundaryConditions(XBeachBaseModel):
     wbcRemoveStokes: Optional[bool] = Field(
         default=None,
         description=(
-            "Switch to remove long wave Stokes drift component at the "
-            "offshore boundary (XBeach default: 1)"
+            "Switch to remove long wave Stokes drift component at the offshore "
+            "boundary (XBeach default: 1)"
         ),
     )
     wbcScaleEnergy: Optional[bool] = Field(
@@ -153,9 +232,9 @@ class WaveBoundaryConditions(XBeachBaseModel):
     order: Optional[Literal[1, 2]] = Field(
         default=None,
         description=(
-            "Order of wave steering at the boundary. 1 = first-order (short wave energy "
-            "only), 2 = second-order (bound long wave corresponding to short wave forcing "
-            "is added) (XBeach default: 2)"
+            "Order of wave steering at the boundary. 1 = first-order (short wave "
+            "energy only), 2 = second-order (bound long wave corresponding to short "
+            "wave forcing is added) (XBeach default: 2)"
         ),
     )
 
