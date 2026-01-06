@@ -2,16 +2,14 @@
 
 This module contains models for sediment transport formulations and related parameters.
 """
-
-from typing import Literal, Optional
-
 import logging
-
+from typing import Literal, Optional
 from pydantic import Field, model_validator
 
-logger = logging.getLogger(__name__)
-
 from rompy_xbeach.types import XBeachBaseModel
+
+
+logger = logging.getLogger(__name__)
 
 
 class SedimentTransport(XBeachBaseModel):
