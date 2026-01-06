@@ -30,9 +30,7 @@ class GroundwaterFlow(XBeachBaseModel):
 
     aquiferbot: Optional[float] = Field(
         default=None,
-        description=(
-            "Level of uniform aquifer bottom (XBeach default: -10.0 m)"
-        ),
+        description=("Level of uniform aquifer bottom (XBeach default: -10.0 m)"),
         ge=-100.0,
         le=100.0,
     )
@@ -53,9 +51,7 @@ class GroundwaterFlow(XBeachBaseModel):
     )
     gw0: Optional[float] = Field(
         default=None,
-        description=(
-            "Level of initial groundwater level (XBeach default: 0.0 m)"
-        ),
+        description=("Level of initial groundwater level (XBeach default: 0.0 m)"),
         ge=-5.0,
         le=5.0,
     )
@@ -103,9 +99,7 @@ class GroundwaterFlow(XBeachBaseModel):
     )
     gwscheme: Optional[Literal["laminar", "turbulent"]] = Field(
         default=None,
-        description=(
-            "Scheme for momentum equation (XBeach default: laminar)"
-        ),
+        description=("Scheme for momentum equation (XBeach default: laminar)"),
     )
     kx: Optional[float] = Field(
         default=None,

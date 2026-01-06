@@ -4,6 +4,7 @@ This module contains models for bed friction formulations used to calculate
 bed shear stress in the shallow water equations.
 
 """
+
 import logging
 from pathlib import Path
 from typing import Literal, Optional

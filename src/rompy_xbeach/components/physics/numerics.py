@@ -198,7 +198,3 @@ class FlowNumerics(XBeachBaseModel):
                 "The old hmin parameter will be used instead of the deltahmin"
             )
         return self
-
-
-# Note: Non-hydrostatic parameters are consolidated in the Nonh wave model class
-# (see wavemodel.py). This avoids duplication between NonHydrostaticNumerics and Nonh.

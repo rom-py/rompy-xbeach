@@ -326,7 +326,7 @@ class Nonh(XBeachBaseModel):
     The XBeach source code shows that if ``nonh=1`` is specified, XBeach logs
     a warning and internally sets ``wavemodel=nonh``. Setting both ``nonh=1``
     and a different ``wavemodel`` causes XBeach to halt with an error.
-    
+
     Use this ``Nonh`` class via ``Physics(wavemodel=Nonh(...))`` instead of
     the legacy ``nonh`` parameter. This outputs ``wavemodel = nonh`` in params.txt.
 
@@ -378,9 +378,7 @@ class Nonh(XBeachBaseModel):
     )
     kdmin: Optional[float] = Field(
         default=None,
-        description=(
-            "Minimum value of kd (pi/dx > min(kd)) (XBeach default: 0.0)"
-        ),
+        description=("Minimum value of kd (pi/dx > min(kd)) (XBeach default: 0.0)"),
         ge=0.0,
         le=0.05,
     )
@@ -394,9 +392,7 @@ class Nonh(XBeachBaseModel):
     )
     nhbreaker: Optional[int] = Field(
         default=None,
-        description=(
-            "Non-hydrostatic breaker model (XBeach default: 2)"
-        ),
+        description=("Non-hydrostatic breaker model (XBeach default: 2)"),
         ge=0,
         le=2,
     )
@@ -457,9 +453,7 @@ class Nonh(XBeachBaseModel):
     )
     solver_urelax: Optional[float] = Field(
         default=None,
-        description=(
-            "Underrelaxation parameter (XBeach default: 0.92)"
-        ),
+        description=("Underrelaxation parameter (XBeach default: 0.92)"),
         ge=0.5,
         le=0.99,
     )

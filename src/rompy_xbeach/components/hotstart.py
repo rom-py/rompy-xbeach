@@ -5,9 +5,9 @@ from a previous simulation state.
 """
 
 from pathlib import Path
-from typing import Literal, Optional, Union
+from typing import Literal, Optional
 
-from pydantic import Field, model_validator
+from pydantic import Field
 
 from rompy_xbeach.types import XBeachBaseModel, XBeachHotstartBlob
 

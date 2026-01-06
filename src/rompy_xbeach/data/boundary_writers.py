@@ -38,10 +38,10 @@ JONS_MAPPING = dict(
 
 class BoundaryFileWriterBase(RompyBaseModel, ABC):
     """Base class for wave boundary file writers.
-    
+
     This class defines the interface for writing XBeach boundary condition files.
     Subclasses implement specific file formats (JONSWAP, SWAN, etc.).
-    
+
     Note: XBeach parameter configuration (rt, dtbc, random, etc.) is handled by
     WaveBoundaryConditions in components.boundary.parameters, not here.
     """
@@ -102,7 +102,7 @@ class BoundaryFileWriterBase(RompyBaseModel, ABC):
 # Spectral boundary file writers
 class BoundaryFileSpectral(BoundaryFileWriterBase, ABC):
     """Base class for spectral wave boundary file writers.
-    
+
     Handles common file naming for spectral boundary types (JONSWAP, SWAN, etc.).
     """
 
@@ -118,7 +118,7 @@ class BoundaryFileSpectral(BoundaryFileWriterBase, ABC):
 
 class BoundaryFileJons(BoundaryFileSpectral):
     """File writer for single JONSWAP spectrum boundary conditions.
-    
+
     Writes a JONSWAP parameter file with format:
         Hm0 = <value>
         Tp = <value>
@@ -231,10 +231,10 @@ class BoundaryFileJonstable(BoundaryFileSpectral):
 
     Writes a JONSTABLE file with format:
         <Hm0> <Tp> <mainang> <gammajsp> <s> <duration> <dtbc>
-        
+
     Each line contains a parametric definition of a spectrum, plus the duration
     for which that spectrum is used and the timestep.
-    
+
     Note: dtbc values are written to the file AND returned in get() for params.txt.
     """
 
@@ -317,9 +317,9 @@ class BoundaryFileJonstable(BoundaryFileSpectral):
 
 class BoundaryFileSWAN(BoundaryFileSpectral):
     """File writer for SWAN spectrum boundary conditions.
-    
+
     Writes a SWAN spectral file using wavespectra library.
-    
+
     Note: lat and dthetas_xb are returned in get() for params.txt.
     """
 
@@ -388,21 +388,25 @@ class BoundaryFileSWAN(BoundaryFileSpectral):
 
 class BoundaryFileVardens(BoundaryFileSpectral):
     """File writer for VARDENS spectrum boundary conditions."""
+
     pass
 
 
 # Non-spectral boundary file writers
 class BoundaryFileStationary(BoundaryFileWriterBase):
     """File writer for stationary boundary conditions."""
+
     pass
 
 
 class BoundaryFileTimeSeries(BoundaryFileWriterBase):
     """File writer for time series boundary conditions."""
+
     pass
 
 
 # Special case boundary file writers
 class BoundaryFileBichrom(BoundaryFileWriterBase):
     """File writer for bichromatic boundary conditions."""
+
     pass

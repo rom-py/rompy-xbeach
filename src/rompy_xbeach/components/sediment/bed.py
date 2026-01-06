@@ -51,9 +51,7 @@ class BedUpdate(XBeachBaseModel):
     )
     nd_var: Optional[int] = Field(
         default=None,
-        description=(
-            "Index of layer with variable thickness (XBeach default: 2)"
-        ),
+        description=("Index of layer with variable thickness (XBeach default: 2)"),
         ge=1,
     )
     nsetbathy: Optional[int] = Field(

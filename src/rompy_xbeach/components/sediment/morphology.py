@@ -6,7 +6,7 @@ morphological acceleration, avalanching, and non-erodible structures.
 
 from pathlib import Path
 from typing import Optional, Literal
-from pydantic import Field, model_validator
+from pydantic import Field
 
 from rompy_xbeach.types import XBeachBaseModel, XBeachDataBlob
 
@@ -29,6 +29,7 @@ class Morphology(XBeachBaseModel):
     Roelvink, D. (2006). Coastal morphodynamic evolution techniques.
     Coastal Engineering, 53(2-3), 277-287.
     """
+
     morphology: Literal[True] = Field(
         default=True,
         description="Turn on morphology (XBeach default: 0)",

@@ -23,36 +23,32 @@ from rompy_xbeach.components.boundary.parameters import (
 
 class WaveBoundary(XBeachBaseModel):
     """Base class for wave boundary specification.
-    
+
     A wave boundary specification contains everything XBeach needs to know
     about wave boundary conditions:
     - wbctype: The type of boundary condition
     - bcfile: Path to boundary file (if needed)
     - wbc: Additional parameters (nmax, rt, dtbc, Hrms, etc.)
     """
-    
+
     model_type: str = Field(
         description="Model type discriminator for wave boundary specification"
     )
-    wbctype: str = Field(
-        description="XBeach wave boundary condition type"
-    )
+    wbctype: str = Field(description="XBeach wave boundary condition type")
     bcfile: Optional[str] = Field(
-        default=None,
-        description="Path to boundary condition file"
+        default=None, description="Path to boundary condition file"
     )
     wbc: Optional[WaveBoundaryConditions] = Field(
-        default=None,
-        description="Wave boundary condition parameters"
+        default=None, description="Wave boundary condition parameters"
     )
 
 
 class SpectralWaveBoundary(WaveBoundary):
     """Spectral wave boundary specification.
-    
+
     For spectral boundary types: jons, parametric, swan, vardens, jonstable.
     These always require a boundary file containing spectral information.
-    
+
     Examples
     --------
     >>> # JONSWAP boundary with pre-existing file
@@ -66,10 +62,10 @@ class SpectralWaveBoundary(WaveBoundary):
     ...     )
     ... )
     """
-    
+
     model_type: Literal["spectral"] = Field(
         default="spectral",
-        description="Model type discriminator for spectral wave boundaries"
+        description="Model type discriminator for spectral wave boundaries",
     )
     wbctype: Literal["jons", "parametric", "swan", "vardens", "jonstable"] = Field(
         description="Spectral wave boundary type (jons, parametric, swan, vardens, jonstable)"
@@ -78,23 +74,22 @@ class SpectralWaveBoundary(WaveBoundary):
         description="Path to spectral boundary file (required for spectral boundaries)"
     )
     wbc: Optional[SpectralWaveBoundaryConditions] = Field(
-        default=None,
-        description="Spectral wave boundary parameters"
+        default=None, description="Spectral wave boundary parameters"
     )
 
 
 class NonSpectralWaveBoundary(WaveBoundary):
     """Non-spectral wave boundary specification.
-    
+
     For non-spectral boundary types: stat, stat_table, ts_1, ts_2, ts_nonh, bichrom.
-    
+
     File requirements:
     - stat: No file needed (parameters only)
     - bichrom: No file needed (parameters only)
     - stat_table: Requires JONSWAP table format file
     - ts_1, ts_2: Requires bc/gen.ezs file (time, zs, E)
     - ts_nonh: Requires Boun_u.bcf file (t, U, Zs, W)
-    
+
     Examples
     --------
     >>> # Stationary waves (no file needed)
@@ -107,7 +102,7 @@ class NonSpectralWaveBoundary(WaveBoundary):
     ...         m=10,
     ...     )
     ... )
-    
+
     >>> # Time series (file required)
     >>> boundary = NonSpectralWaveBoundary(
     ...     wbctype="ts_1",
@@ -118,24 +113,25 @@ class NonSpectralWaveBoundary(WaveBoundary):
     ...     )
     ... )
     """
-    
+
     model_type: Literal["nonspectral"] = Field(
         default="nonspectral",
-        description="Model type discriminator for non-spectral wave boundaries"
+        description="Model type discriminator for non-spectral wave boundaries",
     )
-    wbctype: Literal["stat", "stat_table", "ts_1", "ts_2", "ts_nonh", "bichrom"] = Field(
-        description="Non-spectral wave boundary type (stat, stat_table, ts_1, ts_2, ts_nonh, bichrom)"
+    wbctype: Literal["stat", "stat_table", "ts_1", "ts_2", "ts_nonh", "bichrom"] = (
+        Field(
+            description="Non-spectral wave boundary type (stat, stat_table, ts_1, ts_2, ts_nonh, bichrom)"
+        )
     )
     bcfile: Optional[str] = Field(
         default=None,
-        description="Path to boundary file (required for stat_table, ts_1, ts_2, ts_nonh)"
+        description="Path to boundary file (required for stat_table, ts_1, ts_2, ts_nonh)",
     )
     wbc: Optional[NonSpectralWaveBoundaryConditions] = Field(
-        default=None,
-        description="Non-spectral wave boundary parameters"
+        default=None, description="Non-spectral wave boundary parameters"
     )
-    
-    @model_validator(mode='after')
+
+    @model_validator(mode="after")
     def validate_bcfile(self):
         """Validate that bcfile is provided when required."""
         needs_file = self.wbctype in ["stat_table", "ts_1", "ts_2", "ts_nonh"]
@@ -155,47 +151,44 @@ class NonSpectralWaveBoundary(WaveBoundary):
 
 class OffWaveBoundary(WaveBoundary):
     """No wave forcing.
-    
+
     Use this when you don't want any wave forcing in the model.
-    
+
     Examples
     --------
     >>> boundary = OffWaveBoundary()
     """
-    
+
     model_type: Literal["off"] = Field(
-        default="off",
-        description="Model type discriminator for no wave forcing"
+        default="off", description="Model type discriminator for no wave forcing"
     )
     wbctype: Literal["off"] = Field(
-        default="off",
-        description="Wave boundary type set to 'off' (no wave forcing)"
+        default="off", description="Wave boundary type set to 'off' (no wave forcing)"
     )
 
 
 class ReuseWaveBoundary(WaveBoundary):
     """Reuse previous boundary conditions.
-    
+
     Makes XBeach reuse wave time series from a previous simulation.
     Requires copying ebcflist.bcf and qbcflist.bcf files (and referenced files)
     to the current working directory.
-    
+
     Examples
     --------
     >>> boundary = ReuseWaveBoundary()
     >>> # Or with explicit file path
     >>> boundary = ReuseWaveBoundary(bcfile="path/to/ebcflist.bcf")
     """
-    
+
     model_type: Literal["reuse"] = Field(
         default="reuse",
-        description="Model type discriminator for reusing previous boundary conditions"
+        description="Model type discriminator for reusing previous boundary conditions",
     )
     wbctype: Literal["reuse"] = Field(
         default="reuse",
-        description="Wave boundary type set to 'reuse' (reuse previous simulation)"
+        description="Wave boundary type set to 'reuse' (reuse previous simulation)",
     )
     bcfile: Optional[str] = Field(
-        default=None,
-        description="Path to previous boundary files (optional)"
+        default=None, description="Path to previous boundary files (optional)"
     )

@@ -253,9 +253,9 @@ class FilelistMixin:
         """
         # Get dtbc from wbc if available, otherwise use default
         dtbc = 1.0  # XBeach default
-        if hasattr(self, 'wbc') and self.wbc and self.wbc.dtbc:
+        if hasattr(self, "wbc") and self.wbc and self.wbc.dtbc:
             dtbc = self.wbc.dtbc
-        
+
         filename = Path(destdir) / f"{self.id}-filelist.txt"
         with open(filename, "w") as f:
             f.write("FILELIST\n")
@@ -266,7 +266,7 @@ class FilelistMixin:
 
 class BoundaryJons(FilelistMixin, ABC):
     """Base class for JONS wave boundary from station type dataset such as SMC.
-    
+
     This class generates JONSWAP boundary files from wave data and returns a
     SpectralWaveBoundary specification.
     """
@@ -376,7 +376,7 @@ class BoundaryJons(FilelistMixin, ABC):
                 # Boundary duration
                 durations.append((t1 - t0).total_seconds())
             bcfile = self._write_filelist(destdir, bcfiles, durations)
-        
+
         # Return SpectralWaveBoundary specification
         return SpectralWaveBoundary(
             wbctype=self.id,
@@ -387,7 +387,7 @@ class BoundaryJons(FilelistMixin, ABC):
 
 class BoundaryJonstable(ABC):
     """Base class for JONSTABLE wave boundary from station type dataset such as SMC.
-    
+
     This class generates JONSTABLE boundary files from wave data and returns a
     SpectralWaveBoundary specification.
     """
@@ -476,7 +476,7 @@ class BoundaryJonstable(ABC):
         data = self._calculate_stats(ds)
         wb = self._instantiate_boundary(data)
         bcfile = wb.write(destdir)
-        
+
         # Return SpectralWaveBoundary specification
         return SpectralWaveBoundary(
             wbctype=self.id,
@@ -593,7 +593,7 @@ class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStatio
     user must specify the angle in degrees to rotate the x-axis in SWAN to the x-axis in
     XBeach (by the Cartesian convention). This value is specified in params.txt using
     the keyword dthetaS_XB.
-    
+
     This class generates SWAN boundary files from wave data and returns a
     SpectralWaveBoundary specification.
 
@@ -673,7 +673,7 @@ class BoundaryStationSpectraSwan(FilelistMixin, SpectraMixin, BoundaryBaseStatio
                 # Boundary duration
                 durations.append((t1 - t0).total_seconds())
             bcfile = self._write_filelist(destdir, bcfiles, durations)
-        
+
         return SpectralWaveBoundary(
             wbctype=self.id,
             bcfile=bcfile.name,

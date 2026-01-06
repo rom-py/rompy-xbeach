@@ -51,9 +51,7 @@ class BedComposition(XBeachBaseModel):
     )
     nd: Optional[int] = Field(
         default=None,
-        description=(
-            "Number of computational layers in the bed (XBeach default: 3)"
-        ),
+        description=("Number of computational layers in the bed (XBeach default: 3)"),
         ge=3,
         le=1000,
     )
@@ -84,17 +82,13 @@ class BedComposition(XBeachBaseModel):
     )
     rhos: Optional[float] = Field(
         default=None,
-        description=(
-            "Sediment density (kg/m³) (XBeach default: 2650.0)"
-        ),
+        description=("Sediment density (kg/m³) (XBeach default: 2650.0)"),
         ge=2400.0,
         le=2800.0,
     )
     por: Optional[float] = Field(
         default=None,
-        description=(
-            "Bed porosity (volume fraction of voids) (XBeach default: 0.4)"
-        ),
+        description=("Bed porosity (volume fraction of voids) (XBeach default: 0.4)"),
         ge=0.3,
         le=0.5,
     )
@@ -118,9 +112,7 @@ class BedComposition(XBeachBaseModel):
     )
     dzg3: Optional[float] = Field(
         default=None,
-        description=(
-            "Thickness of bottom sediment layer (m) (XBeach default: dzg1)"
-        ),
+        description=("Thickness of bottom sediment layer (m) (XBeach default: dzg1)"),
         ge=0.01,
         le=1.0,
     )

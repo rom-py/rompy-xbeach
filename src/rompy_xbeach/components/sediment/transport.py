@@ -395,6 +395,7 @@ class Quasi3D(XBeachBaseModel):
     Van Thiel de Vries, J. S. M. (2009). Dune erosion during storm surges.
     PhD thesis, Delft University of Technology.
     """
+
     q3d: Literal[True] = Field(
         default=True,
         description="Turn on quasi-3D sediment transport (XBeach default: 0)",

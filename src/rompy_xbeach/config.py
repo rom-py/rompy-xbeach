@@ -3,7 +3,7 @@
 import logging
 from pathlib import Path
 from typing import Literal, Optional, Union, Annotated
-from pydantic import Field, field_serializer, model_validator
+from pydantic import Field, model_validator
 
 from rompy.core.types import RompyBaseModel
 from rompy.core.time import TimeRange
@@ -170,7 +170,7 @@ class Config(XBeachBaseConfig):
         examples=["seconds since 1970-01-01 00:00:00.00 +1:00"],
     )
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validate_wave_boundary(self):
         """Ensure only one wave boundary source is specified."""
         has_input_wave = self.input and self.input.wave
@@ -181,7 +181,7 @@ class Config(XBeachBaseConfig):
                 "Cannot specify both input.wave and wave_boundary. "
                 "Use input.wave to generate from data, or wave_boundary for manual specification."
             )
-        
+
         return self
 
     @model_validator(mode="after")
