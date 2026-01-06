@@ -131,6 +131,7 @@ physics:
     umin: 0.1
     secorder: 1
     oldhu: 1
+    cfl: 0.8
   constants:
     rho: 1025
     g: 9.81
@@ -182,7 +183,6 @@ order: 1
 lateralwave: wavecrest
 zs0: null
 paulrevere: land
-cfl: 0.8
 mpi:
   mpiboundary: auto
 output:

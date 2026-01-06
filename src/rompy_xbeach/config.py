@@ -194,12 +194,6 @@ class Config(XBeachBaseConfig):
             "to short wave forcing is added) (XBeach default: 2)",
         ),
     )
-    cfl: Optional[float] = Field(
-        default=None,
-        description="Maximum courant-friedrichs-lewy number (XBeach default: 0.7)",
-        ge=0.1,
-        le=0.9,
-    )
     # TODO: Make this part of the Tide object
     paulrevere: Optional[Literal["land", "sea"]] = Field(
         default=None,

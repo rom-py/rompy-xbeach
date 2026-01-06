@@ -179,6 +179,16 @@ class FlowNumerics(XBeachBaseModel):
         ge=10.0,
         le=1000.0,
     )
+    cfl: Optional[float] = Field(
+        default=None,
+        description=(
+            "Maximum Courant-Friedrichs-Lewy number for timestep control. "
+            "Lower values give more stability but slower computation "
+            "(XBeach default: 0.7)"
+        ),
+        ge=0.1,
+        le=0.9,
+    )
 
     @model_validator(mode="after")
     def warn_if_oldhmin_and_deltahmin(self):
