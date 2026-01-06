@@ -40,6 +40,9 @@ wave_boundary:
     dtbc: 1.0
     wbcevarreduce: 1.0
     bclwonly: False
+    thetamin: -80
+    thetamax: 80
+    dtheta: 10.0
 input:
   # wave:
   #   model_type: station_param_jonstable
@@ -178,9 +181,6 @@ tunits: seconds since 1970-01-01 00:00:00.00 +00
 order: 1
 lateralwave: wavecrest
 zs0: null
-thetamin: -80
-thetamax: 80
-dtheta: 10.0
 paulrevere: land
 cfl: 0.8
 mpi:

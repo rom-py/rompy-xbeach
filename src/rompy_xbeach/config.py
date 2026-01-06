@@ -194,30 +194,6 @@ class Config(XBeachBaseConfig):
             "to short wave forcing is added) (XBeach default: 2)",
         ),
     )
-    thetamin: Optional[float] = Field(
-        default=None,
-        description=(
-            "Lower directional limit (angle w.r.t computational x-axis) (deg) "
-            "(XBeach default: -90.0)"
-        ),
-        ge=-360.0,
-        le=360.0,
-    )
-    thetamax: Optional[float] = Field(
-        default=None,
-        description=(
-            "Higher directional limit (angle w.r.t computational x-axis) (deg) "
-            "(XBeach default: 90.0)"
-        ),
-        ge=-360.0,
-        le=360.0,
-    )
-    dtheta: Optional[float] = Field(
-        default=None,
-        description="Directional resolution (deg) (XBeach default: 10.0)",
-        ge=0.1,
-        le=180.0,
-    )
     cfl: Optional[float] = Field(
         default=None,
         description="Maximum courant-friedrichs-lewy number (XBeach default: 0.7)",
@@ -250,6 +226,32 @@ class Config(XBeachBaseConfig):
     @model_validator(mode="after")
     def set_dtheta_if_surfbeat(self) -> "Config":
         """Placeholder validator for future dtheta logic."""
+        return self
+
+    @model_validator(mode="after")
+    def warn_wave_direction_params_without_swave(self) -> "Config":
+        """Warn if wave directional parameters are set but swave is disabled.
+
+        The wave directional grid parameters (thetamin, thetamax, dtheta, thetanaut)
+        are only used when short waves are enabled (swave=1). Setting these when
+        swave=0 has no effect.
+        """
+        # Collect directional params from wave_boundary.wbc
+        dir_params = {}
+        if self.wave_boundary and self.wave_boundary.wbc:
+            wbc = self.wave_boundary.wbc
+            for k in ["thetamin", "thetamax", "dtheta", "thetanaut"]:
+                v = getattr(wbc, k, None)
+                if v is not None:
+                    dir_params[k] = v
+
+        if self.physics.swave is False and dir_params:
+            logger.warning(
+                f"Wave directional parameters ({', '.join(dir_params.keys())}) are set "
+                "but swave=0. These parameters only apply when short waves are enabled "
+                "(swave=1) and will be ignored."
+            )
+
         return self
 
     @property

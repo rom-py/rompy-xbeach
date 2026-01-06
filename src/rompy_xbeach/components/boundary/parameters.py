@@ -111,6 +111,45 @@ class WaveBoundaryConditions(XBeachBaseModel):
             "Affects absorbing/radiating boundary calculations (XBeach default: 0)"
         ),
     )
+    thetamin: Optional[float] = Field(
+        default=None,
+        description=(
+            "Minimum wave angle (degrees). When thetanaut=0, this is relative to the "
+            "grid x-axis (shore-normal); when thetanaut=1, this is in nautical convention "
+            "(N=0°, E=90°). Only used when swave=1 (XBeach default: -90.0)"
+        ),
+        ge=-360.0,
+        le=360.0,
+    )
+    thetamax: Optional[float] = Field(
+        default=None,
+        description=(
+            "Maximum wave angle (degrees). When thetanaut=0, this is relative to the "
+            "grid x-axis (shore-normal); when thetanaut=1, this is in nautical convention "
+            "(N=0°, E=90°). Only used when swave=1 (XBeach default: 90.0)"
+        ),
+        ge=-360.0,
+        le=360.0,
+    )
+    dtheta: Optional[float] = Field(
+        default=None,
+        description=(
+            "Wave directional resolution (degrees). Automatically computed from "
+            "thetamax-thetamin when single_dir=1. Only used when swave=1 "
+            "(XBeach default: 10.0)"
+        ),
+        ge=0.1,
+        le=180.0,
+    )
+    thetanaut: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Switch for wave direction convention. When 0 (default), wave angles are "
+            "relative to the grid x-axis and rotated by alfa internally. When 1, wave "
+            "angles are in nautical convention (N=0°, E=90°) using real-world coordinates "
+            "and alfa is ignored. Only used when swave=1 (XBeach default: 0)"
+        ),
+    )
 
 
 class SpectralWaveBoundaryConditions(WaveBoundaryConditions):

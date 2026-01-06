@@ -3,6 +3,9 @@
 import pytest
 from pathlib import Path
 from rompy_xbeach.config import Config
+from rompy_xbeach.grid import RegularGrid, GeoPoint
+from rompy_xbeach.data.base import XBeachBathy
+from rompy_xbeach.source import SourceGeotiff
 from rompy_xbeach.components.boundary.specification import (
     SpectralWaveBoundary,
     NonSpectralWaveBoundary,
@@ -13,6 +16,31 @@ from rompy_xbeach.components.boundary.parameters import (
     SpectralWaveBoundaryConditions,
     NonSpectralWaveBoundaryConditions,
 )
+from rompy_xbeach.components.physics import Physics
+
+
+HERE = Path(__file__).parent
+
+
+@pytest.fixture
+def grid():
+    return RegularGrid(
+        ori=GeoPoint(x=115.594239, y=-32.641104, crs="epsg:4326"),
+        alfa=347.0,
+        dx=10,
+        dy=10,
+        nx=100,
+        ny=50,
+    )
+
+
+@pytest.fixture
+def bathy():
+    return XBeachBathy(
+        source=SourceGeotiff(
+            filename=str(HERE / "data" / "bathy.tif"),
+        ),
+    )
 
 
 def test_config_accepts_spectral_wave_boundary():
@@ -111,3 +139,58 @@ def test_config_input_optional():
         # Should fail on grid, bathy (required), but NOT on input (optional)
         assert "input" not in error_fields
         assert "grid" in error_fields or "bathy" in error_fields
+
+
+def test_warn_wave_direction_params_without_swave(grid, bathy, caplog):
+    """Test that a warning is logged when wave direction params are set but swave=False."""
+    import logging
+    
+    caplog.set_level(logging.WARNING)
+    
+    config = Config(
+        grid=grid,
+        bathy=bathy,
+        physics=Physics(swave=False),
+        wave_boundary=SpectralWaveBoundary(
+            wbctype="jons",
+            bcfile="jonswap.txt",
+            wbc=SpectralWaveBoundaryConditions(
+                thetamin=-60,
+                thetamax=60,
+                dtheta=10,
+            ),
+        )
+    )
+    
+    # Check that warning was logged
+    assert any(
+        "Wave directional parameters" in record.message and "swave=0" in record.message
+        for record in caplog.records
+    )
+
+
+def test_no_warn_wave_direction_params_with_swave(grid, bathy, caplog):
+    """Test that no warning is logged when swave is enabled (default)."""
+    import logging
+    
+    caplog.set_level(logging.WARNING)
+    
+    config = Config(
+        grid=grid,
+        bathy=bathy,
+        wave_boundary=SpectralWaveBoundary(
+            wbctype="jons",
+            bcfile="jonswap.txt",
+            wbc=SpectralWaveBoundaryConditions(
+                thetamin=-60,
+                thetamax=60,
+                dtheta=10,
+            ),
+        )
+    )
+    
+    # Check that no wave direction warning was logged
+    assert not any(
+        "Wave directional parameters" in record.message
+        for record in caplog.records
+    )
