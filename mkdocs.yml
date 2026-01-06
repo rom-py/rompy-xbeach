@@ -21,6 +21,17 @@ nav:
       - Sediment: components/sediment.md
       - Output: components/output.md
       - Boundaries: components/boundaries.md
+  - Examples:
+      - examples/index.md
+      - Grid: examples/grid-demo.ipynb
+      - Bathymetry: examples/bathy-demo.ipynb
+      - Wave Boundary: examples/wave-boundary-demo.ipynb
+      - Physics: examples/physics-demo.ipynb
+      - Sediment: examples/sediment-demo.ipynb
+      - Output: examples/output-demo.ipynb
+      - Forcing: examples/forcing-demo.ipynb
+      - Full Example (Procedural): examples/example_procedural.ipynb
+      - Full Example (Declarative): examples/example_declarative.ipynb
   - API Reference:
       - Config: api-reference/config.md
       - Components: api-reference/components.md
@@ -63,6 +74,12 @@ theme:
 
 plugins:
   - search
+  - mkdocs-jupyter:
+      include_source: true
+      ignore_h1_titles: true
+      execute: false
+      allow_errors: true
+      include_requirejs: true
   - mkdocstrings:
       handlers:
         python:
