@@ -1,0 +1,114 @@
+site_name: rompy-xbeach
+site_description: Python interface for the XBeach coastal morphodynamic model
+site_url: https://rom-py.github.io/rompy-xbeach/
+repo_url: https://github.com/rom-py/rompy-xbeach
+repo_name: rom-py/rompy-xbeach
+edit_uri: edit/main/docs/
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quickstart: getting-started/quickstart.md
+  - User Guide:
+      - Architecture: user-guide/architecture.md
+      - Configuration: user-guide/configuration.md
+      - Data Interfaces: user-guide/data-interfaces.md
+      - Parameter Reference: user-guide/parameter-reference.md
+  - Components:
+      - Overview: components/index.md
+      - Physics: components/physics.md
+      - Sediment: components/sediment.md
+      - Output: components/output.md
+      - Boundaries: components/boundaries.md
+  - API Reference:
+      - Config: api-reference/config.md
+      - Components: api-reference/components.md
+      - Data: api-reference/data.md
+      - Types: api-reference/types.md
+  - Developer:
+      - Contributing: developer/contributing.md
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/lightbulb
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/lightbulb-outline
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.annotate
+    - content.code.copy
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_root_heading: true
+            show_root_full_path: false
+            show_object_full_path: false
+            show_category_heading: true
+            show_if_no_docstring: false
+            show_signature_annotations: true
+            signature_crossrefs: true
+            separate_signature: true
+            docstring_section_style: spacy
+            members_order: source
+            group_by_category: true
+            show_submodules: false
+            merge_init_into_class: true
+            show_docstring_attributes: true
+            filters:
+              - "!^_"  # Hide private members
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - attr_list
+  - md_in_html
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/rom-py/rompy-xbeach
