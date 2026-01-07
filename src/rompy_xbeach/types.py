@@ -137,6 +137,8 @@ class XBeachBaseModel(RompyBaseModel):
 
     """
 
+    model_config = ConfigDict(populate_by_name=True)
+
     @model_serializer(mode="wrap")
     def _serialize_with_component_flattening(self, serializer: Any) -> dict:
         """Serialize model with recursive component flattening and bool to int conversion.
