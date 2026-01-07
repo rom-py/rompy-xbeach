@@ -1,10 +1,21 @@
 # Parameter Reference
 
-This document provides a lookup table mapping XBeach parameters to their location in rompy-xbeach.
+This document maps XBeach parameters to their location in rompy-xbeach components.
 
-## Quick Reference
+The structure follows the **rompy-xbeach component hierarchy**, with references to the corresponding XBeach manual tables. This ensures consistency between the documentation and the actual code structure.
 
-### Physics Parameters
+!!! tip "Finding Parameters"
+    - **By rompy-xbeach component**: Use the sections below (Physics, Sediment, Output, etc.)
+    - **By XBeach table**: Look for the table reference in each section header (e.g., "Table 36")
+    - **By XBeach parameter name**: Use your browser's search (Ctrl+F / Cmd+F)
+
+---
+
+## Physics Component
+
+The [`Physics`](../api-reference/components.md#rompy_xbeach.components.physics.Physics) component controls wave models, flow computation, friction, viscosity, and related numerical settings.
+
+### Process Switches
 
 | XBeach Parameter | Rompy Location | Description |
 |-----------------|----------------|-------------|
@@ -12,13 +23,13 @@ This document provides a lookup table mapping XBeach parameters to their locatio
 | `swave` | [`physics.swave`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.swave) | Enable short wave action balance |
 | `lwave` | [`physics.lwave`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.lwave) | Enable long wave propagation |
 | `flow` | [`physics.flow`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.flow) | Enable flow computation |
-| `sedtrans` | [`physics.sedtrans`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.sedtrans) | Enable sediment transport |
-| `morphology` | [`physics.morphology`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.morphology) | Enable morphological updating |
 | `avalanching` | [`physics.avalanching`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.avalanching) | Enable avalanching |
+| `gwflow` | [`physics.gwflow`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.gwflow) | Enable groundwater flow |
 | `wind` | [`physics.wind`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.wind) | Enable wind forcing |
 | `vegetation` | [`physics.vegetation`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.vegetation) | Enable vegetation effects |
 | `ships` | [`physics.ships`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.ships) | Enable ship-induced waves |
-| `wci` | [`physics.wavemodel.wci`](../api-reference/components.md#rompy_xbeach.components.physics.wavemodel.Surfbeat.wci) | Wave-current interaction (Surfbeat only) |
+| `roller` | [`physics.roller`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.roller) | Enable roller model |
+| `wci` | [`physics.wci`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.wci) | Wave-current interaction |
 
 ### Wave Model Parameters
 
@@ -94,22 +105,29 @@ This document provides a lookup table mapping XBeach parameters to their locatio
 
 ---
 
-### Sediment Transport Parameters
+## Sediment Component
+
+The [`Sediment`](../api-reference/components.md#rompy_xbeach.components.sediment.Sediment) component controls sediment transport, morphology, bed composition, and groundwater flow. This corresponds to XBeach Tables 36-41.
+
+!!! note "Process Switches"
+    The main switches `sedtrans` and `morphology` are fields on the `Sediment` component, not `Physics`. Set `sediment.sedtrans=True` or provide a `SedimentTransport` object to enable sediment transport.
+
+### Sediment Transport (XBeach Table 36)
 
 | XBeach Parameter | Rompy Location | Description |
 |-----------------|----------------|-------------|
-| `form` | [`sediment.transport.form`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.Transport.form) | Transport formulation |
-| `waveform` | [`sediment.transport.waveform`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.Transport.waveform) | Wave shape formulation |
-| `turb` | [`sediment.transport.turb`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.Transport.turb) | Turbulence formulation |
-| `sws` | [`sediment.transport.sws`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.Transport.sws) | Short wave stirring |
-| `lws` | [`sediment.transport.lws`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.Transport.lws) | Long wave stirring |
-| `lwt` | [`sediment.transport.lwt`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.Transport.lwt) | Long wave turbulence |
-| `BRfac` | [`sediment.transport.BRfac`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.Transport.BRfac) | Bore runup factor |
-| `facua` | [`sediment.transport.facua`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.Transport.facua) | Onshore transport factor |
-| `facAs` | [`sediment.transport.facAs`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.Transport.facAs) | Skewness factor |
-| `facSk` | [`sediment.transport.facSk`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.Transport.facSk) | Asymmetry factor |
+| `form` | [`sediment.sedtrans.form`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.form) | Transport formulation |
+| `waveform` | [`sediment.sedtrans.waveform`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.waveform) | Wave shape formulation |
+| `turb` | [`sediment.sedtrans.turb`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.turb) | Turbulence formulation |
+| `sws` | [`sediment.sedtrans.sws`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.sws) | Short wave stirring |
+| `lws` | [`sediment.sedtrans.lws`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.lws) | Long wave stirring |
+| `lwt` | [`sediment.sedtrans.lwt`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.lwt) | Long wave turbulence |
+| `BRfac` | [`sediment.sedtrans.BRfac`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.BRfac) | Bore runup factor |
+| `facua` | [`sediment.sedtrans.facua`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.facua) | Onshore transport factor |
+| `facAs` | [`sediment.sedtrans.facAs`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.facAs) | Skewness factor |
+| `facSk` | [`sediment.sedtrans.facSk`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.facSk) | Asymmetry factor |
 
-### Morphology Parameters
+### Morphology (XBeach Table 39)
 
 | XBeach Parameter | Rompy Location | Description |
 |-----------------|----------------|-------------|
@@ -121,14 +139,14 @@ This document provides a lookup table mapping XBeach parameters to their locatio
 | `struct` | [`sediment.morphology.struct`](../api-reference/components.md#rompy_xbeach.components.sediment.morphology.Morphology.struct) | Enable structures |
 | `ne_layer` | [`sediment.morphology.ne_layer`](../api-reference/components.md#rompy_xbeach.components.sediment.morphology.Morphology.ne_layer) | Non-erodible layer file |
 
-### Bed Update Parameters
+### Bed Update (XBeach Table 40)
 
 | XBeach Parameter | Rompy Location | Description |
-|-----------------|----------------|-------------|
-| `fwfile` | [`sediment.bed_update.fwfile`](../api-reference/components.md#rompy_xbeach.components.sediment.bed_update.BedUpdate.fwfile) | Wave friction file |
-| `fwcutoff` | [`sediment.bed_update.fwcutoff`](../api-reference/components.md#rompy_xbeach.components.sediment.bed_update.BedUpdate.fwcutoff) | Wave friction cutoff |
+|-----------------|----------------|--------------|
+| `fwfile` | `sediment.bed_update.fwfile` | Wave friction file |
+| `fwcutoff` | `sediment.bed_update.fwcutoff` | Wave friction cutoff |
 
-### Bed Composition Parameters
+### Bed Composition
 
 | XBeach Parameter | Rompy Location | Description |
 |-----------------|----------------|-------------|
@@ -145,63 +163,78 @@ This document provides a lookup table mapping XBeach parameters to their locatio
 | `sedcal` | [`sediment.bed_composition.sedcal`](../api-reference/components.md#rompy_xbeach.components.sediment.bed_composition.BedComposition.sedcal) | Sediment calibration factor |
 | `ucrcal` | [`sediment.bed_composition.ucrcal`](../api-reference/components.md#rompy_xbeach.components.sediment.bed_composition.BedComposition.ucrcal) | Critical velocity calibration |
 
-### Groundwater Parameters
+### Groundwater Flow (XBeach Table 41)
+
+!!! note "Groundwater Switch"
+    The main switch `gwflow` is on the `Physics` component (`physics.gwflow`), but the detailed groundwater parameters are on `Sediment.groundwater`.
 
 | XBeach Parameter | Rompy Location | Description |
-|-----------------|----------------|-------------|
-| `gwflow` | [`sediment.groundwater.gwflow`](../api-reference/components.md#rompy_xbeach.components.sediment.groundwater.Groundwater.gwflow) | Enable groundwater flow |
-| `gwnonh` | [`sediment.groundwater.gwnonh`](../api-reference/components.md#rompy_xbeach.components.sediment.groundwater.Groundwater.gwnonh) | Non-hydrostatic groundwater |
-| `kx` | [`sediment.groundwater.kx`](../api-reference/components.md#rompy_xbeach.components.sediment.groundwater.Groundwater.kx) | Horizontal permeability |
-| `ky` | [`sediment.groundwater.ky`](../api-reference/components.md#rompy_xbeach.components.sediment.groundwater.Groundwater.ky) | Vertical permeability |
-| `gwheadmodel` | [`sediment.groundwater.gwheadmodel`](../api-reference/components.md#rompy_xbeach.components.sediment.groundwater.Groundwater.gwheadmodel) | Head boundary model |
+|-----------------|----------------|--------------|
+| `gwflow` | [`physics.gwflow`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.gwflow) | Enable groundwater flow (on Physics) |
+| `gwnonh` | [`sediment.groundwater.gwnonh`](../api-reference/components.md#rompy_xbeach.components.sediment.groundwater.GroundwaterFlow.gwnonh) | Non-hydrostatic groundwater |
+| `kx` | [`sediment.groundwater.kx`](../api-reference/components.md#rompy_xbeach.components.sediment.groundwater.GroundwaterFlow.kx) | Horizontal permeability |
+| `ky` | [`sediment.groundwater.ky`](../api-reference/components.md#rompy_xbeach.components.sediment.groundwater.GroundwaterFlow.ky) | Vertical permeability |
+| `gwheadmodel` | [`sediment.groundwater.gwheadmodel`](../api-reference/components.md#rompy_xbeach.components.sediment.groundwater.GroundwaterFlow.gwheadmodel) | Head boundary model |
 
 ---
+
+## Boundary Conditions
+
+Boundary conditions are configured at the `Config` level, not within Physics or Sediment components.
 
 ### Flow Boundary Parameters
 
 | XBeach Parameter | Rompy Location | Description |
 |-----------------|----------------|-------------|
-| `front` | [`flow_boundary.front`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.FlowBoundary.front) | Front boundary type |
-| `back` | [`flow_boundary.back`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.FlowBoundary.back) | Back boundary type |
-| `left` | [`flow_boundary.left`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.FlowBoundary.left) | Left boundary type |
-| `right` | [`flow_boundary.right`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.FlowBoundary.right) | Right boundary type |
-| `lateralwave` | [`flow_boundary.lateralwave`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.FlowBoundary.lateralwave) | Lateral wave boundary |
+| `front` | [`flow_boundary.front`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.FlowBoundaryConditions.front) | Front boundary type |
+| `back` | [`flow_boundary.back`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.FlowBoundaryConditions.back) | Back boundary type |
+| `left` | [`flow_boundary.left`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.FlowBoundaryConditions.left) | Left boundary type |
+| `right` | [`flow_boundary.right`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.FlowBoundaryConditions.right) | Right boundary type |
+| `lateralwave` | [`flow_boundary.lateralwave`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.FlowBoundaryConditions.lateralwave) | Lateral wave boundary |
 
 ### Tide Boundary Parameters
 
 | XBeach Parameter | Rompy Location | Description |
 |-----------------|----------------|-------------|
-| `tideloc` | [`tide_boundary.tideloc`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.TideBoundary.tideloc) | Number of tide locations |
-| `tidetype` | [`tide_boundary.tidetype`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.TideBoundary.tidetype) | Tide boundary type |
-| `zs0` | [`tide_boundary.zs0`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.TideBoundary.zs0) | Initial water level |
-| `paulrevere` | [`tide_boundary.paulrevere`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.TideBoundary.paulrevere) | Sea/land boundary |
+| `tideloc` | [`tide_boundary.tideloc`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.TideBoundaryConditions.tideloc) | Number of tide locations |
+| `tidetype` | [`tide_boundary.tidetype`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.TideBoundaryConditions.tidetype) | Tide boundary type |
+| `zs0` | [`tide_boundary.zs0`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.TideBoundaryConditions.zs0) | Initial water level |
+| `paulrevere` | [`tide_boundary.paulrevere`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.TideBoundaryConditions.paulrevere) | Sea/land boundary |
 
 ### Wave Boundary Parameters
 
 | XBeach Parameter | Rompy Location | Description |
-|-----------------|----------------|-------------|
-| `wbctype` | [`wave_boundary.wbctype`](../api-reference/components.md#rompy_xbeach.components.wbc.WaveBoundarySpectral.wbctype) | Wave boundary type |
-| `bcfile` | [`wave_boundary.bcfile`](../api-reference/components.md#rompy_xbeach.components.wbc.WaveBoundarySpectral.bcfile) | Boundary condition file |
-| `dtbc` | [`wave_boundary.dtbc`](../api-reference/components.md#rompy_xbeach.components.wbc.WaveBoundarySpectral.dtbc) | Boundary update interval |
-| `thetamin` | [`wave_boundary.thetamin`](../api-reference/components.md#rompy_xbeach.components.wbc.WaveBoundarySpectral.thetamin) | Minimum wave direction |
-| `thetamax` | [`wave_boundary.thetamax`](../api-reference/components.md#rompy_xbeach.components.wbc.WaveBoundarySpectral.thetamax) | Maximum wave direction |
-| `dtheta` | [`wave_boundary.dtheta`](../api-reference/components.md#rompy_xbeach.components.wbc.WaveBoundarySpectral.dtheta) | Directional resolution |
-| `thetanaut` | [`wave_boundary.thetanaut`](../api-reference/components.md#rompy_xbeach.components.wbc.WaveBoundarySpectral.thetanaut) | Nautical convention |
-| `ARC` | [`wave_boundary.ARC`](../api-reference/components.md#rompy_xbeach.components.wbc.WaveBoundarySpectral.ARC) | Active reflection compensation |
-| `freewave` | [`wave_boundary.freewave`](../api-reference/components.md#rompy_xbeach.components.wbc.WaveBoundarySpectral.freewave) | Free wave boundary |
+|-----------------|----------------|--------------|
+| `wbctype` | [`wave_boundary.wbc.wbctype`](../api-reference/components.md#rompy_xbeach.components.boundary.specification.SpectralWaveBoundary) | Wave boundary type |
+| `bcfile` | [`wave_boundary.wbc.bcfile`](../api-reference/components.md#rompy_xbeach.components.boundary.specification.SpectralWaveBoundary) | Boundary condition file |
+| `dtbc` | [`wave_boundary.wbc.dtbc`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.SpectralWaveBoundaryConditions) | Boundary update interval |
+| `thetamin` | [`wave_boundary.wbc.thetamin`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.WaveBoundaryConditions) | Minimum wave direction |
+| `thetamax` | [`wave_boundary.wbc.thetamax`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.WaveBoundaryConditions) | Maximum wave direction |
+| `dtheta` | [`wave_boundary.wbc.dtheta`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.WaveBoundaryConditions) | Directional resolution |
+| `thetanaut` | [`wave_boundary.wbc.thetanaut`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.WaveBoundaryConditions) | Nautical convention |
+| `ARC` | [`wave_boundary.wbc.ARC`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.WaveBoundaryConditions) | Active reflection compensation |
+| `freewave` | [`wave_boundary.wbc.freewave`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.WaveBoundaryConditions) | Free wave boundary |
 
 ---
+
+## Hotstart Component
+
+The [`Hotstart`](../api-reference/components.md#rompy_xbeach.components.hotstart.Hotstart) component enables initialization from a previous simulation state.
 
 ### Hotstart Parameters
 
 | XBeach Parameter | Rompy Location | Description |
 |-----------------|----------------|-------------|
 | `hotstart` | [`hotstart`](../api-reference/config.md#rompy_xbeach.config.Config.hotstart) | Enable hotstart |
-| `hotstartfileno` | [`hotstart.hotstartfileno`](../api-reference/config.md#rompy_xbeach.components.hotstart.Hotstart.hotstartfileno) | Hotstart file number |
+| `hotstartfileno` | [`hotstart.hotstartfileno`](../api-reference/components.md#rompy_xbeach.components.hotstart.Hotstart.hotstartfileno) | Hotstart file number |
 | `writehotstart` | [`output.writehotstart`](../api-reference/components.md#rompy_xbeach.components.output.Output.writehotstart) | Write hotstart files |
 | `tinth` | [`output.tinth`](../api-reference/components.md#rompy_xbeach.components.output.Output.tinth) | Hotstart output interval |
 
 ---
+
+## Output Component
+
+The [`Output`](../api-reference/components.md#rompy_xbeach.components.output.Output) component controls what variables are written and at what intervals.
 
 ### Output Parameters
 
@@ -212,22 +245,26 @@ This document provides a lookup table mapping XBeach parameters to their locatio
 | `tintm` | [`output.tintm`](../api-reference/components.md#rompy_xbeach.components.output.Output.tintm) | Mean output interval |
 | `tintp` | [`output.tintp`](../api-reference/components.md#rompy_xbeach.components.output.Output.tintp) | Point output interval |
 | `tstart` | [`output.tstart`](../api-reference/components.md#rompy_xbeach.components.output.Output.tstart) | Output start time |
-| `nglobalvar` | [`output.nglobalvar`](../api-reference/components.md#rompy_xbeach.components.output.Output.nglobalvar) | Number of global variables |
-| `nmeanvar` | [`output.nmeanvar`](../api-reference/components.md#rompy_xbeach.components.output.Output.nmeanvar) | Number of mean variables |
-| `npointvar` | [`output.npointvar`](../api-reference/components.md#rompy_xbeach.components.output.Output.npointvar) | Number of point variables |
-| `nrugauge` | [`output.nrugauge`](../api-reference/components.md#rompy_xbeach.components.output.Output.nrugauge) | Number of runup gauges |
+| `nglobalvar` | [`output.globalvars`](../api-reference/components.md#rompy_xbeach.components.output.Output.globalvars) | Computed from globalvars list length |
+| `nmeanvar` | [`output.meanvars`](../api-reference/components.md#rompy_xbeach.components.output.Output.meanvars) | Computed from meanvars list length |
+| `npointvar` | [`output.pointvars`](../api-reference/components.md#rompy_xbeach.components.output.Output.pointvars) | Computed from pointvars list length |
+| `nrugauge` | [`output.rugauges`](../api-reference/components.md#rompy_xbeach.components.output.Output.rugauges) | Computed from rugauges list length |
 | `nrugdepth` | [`output.nrugdepth`](../api-reference/components.md#rompy_xbeach.components.output.Output.nrugdepth) | Number of runup depths |
 | `rugdepth` | [`output.rugdepth`](../api-reference/components.md#rompy_xbeach.components.output.Output.rugdepth) | Runup depth thresholds |
 
 ---
 
+## MPI Component
+
+The [`Mpi`](../api-reference/components.md#rompy_xbeach.components.mpi.Mpi) component controls domain decomposition for parallel execution.
+
 ### MPI Parameters
 
 | XBeach Parameter | Rompy Location | Description |
 |-----------------|----------------|-------------|
-| `mpiboundary` | [`mpi.mpiboundary`](../api-reference/config.md#rompy_xbeach.components.mpi.MPI.mpiboundary) | MPI boundary type |
-| `mmpi` | [`mpi.mmpi`](../api-reference/config.md#rompy_xbeach.components.mpi.MPI.mmpi) | MPI partitions in m |
-| `nmpi` | [`mpi.nmpi`](../api-reference/config.md#rompy_xbeach.components.mpi.MPI.nmpi) | MPI partitions in n |
+| `mpiboundary` | [`mpi.mpiboundary`](../api-reference/components.md#rompy_xbeach.components.mpi.Mpi.mpiboundary) | MPI boundary type |
+| `mmpi` | [`mpi.mmpi`](../api-reference/components.md#rompy_xbeach.components.mpi.Mpi.mmpi) | MPI partitions in m |
+| `nmpi` | [`mpi.nmpi`](../api-reference/components.md#rompy_xbeach.components.mpi.Mpi.nmpi) | MPI partitions in n |
 
 ---
 
