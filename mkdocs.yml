@@ -84,6 +84,8 @@ plugins:
       handlers:
         python:
           paths: [src]
+          import:
+            - https://docs.pydantic.dev/latest/objects.inv
           options:
             show_root_heading: true
             show_root_full_path: false
