@@ -7,7 +7,7 @@ This guide covers how to configure XBeach simulations using rompy-xbeach.
 The `Config` class is the central configuration object. It accepts components for different aspects of the model:
 
 ```python
-from rompy_xbeach import Config
+from rompy_xbeach.config import Config
 
 config = Config(
     grid=...,           # Grid definition
@@ -33,10 +33,11 @@ All fields are optional and have sensible defaults.
 Direct instantiation with full IDE support:
 
 ```python
-from rompy_xbeach import Config
-from rompy_xbeach.components import Physics, Sediment
-from rompy_xbeach.components.physics import Surfbeat
-from rompy_xbeach.components.sediment import Morphology
+from rompy_xbeach.config import Config
+from rompy_xbeach.components.physics import Physics
+from rompy_xbeach.components.physics.wavemodel import Surfbeat
+from rompy_xbeach.components.sediment import Sediment
+from rompy_xbeach.components.sediment.morphology import Morphology
 
 config = Config(
     physics=Physics(
@@ -67,7 +68,7 @@ sediment:
 
 ```python
 import yaml
-from rompy_xbeach import Config
+from rompy_xbeach.config import Config
 
 with open("config.yml") as f:
     config = Config(**yaml.safe_load(f))
@@ -96,7 +97,7 @@ When using YAML or dictionaries, the `model_type` field tells Pydantic which cla
 ```yaml
 wavemodel:
   model_type: surfbeat  # Creates Surfbeat instance
-  break_type:
+  breaktype:
     model_type: roelvink1  # Creates Roelvink1 instance
     gamma: 0.55
 ```
@@ -112,7 +113,8 @@ Many XBeach features use the `Union[bool, Component]` pattern:
 physics = Physics(vegetation=True)
 
 # Enable with custom parameters
-physics = Physics(vegetation=Vegetation(nsec=2, ah=1.5))
+from rompy_xbeach.components.physics.vegetation import Vegetation
+physics = Physics(vegetation=Vegetation(nsec=2, ah=[1.5]))
 
 # Disable explicitly
 physics = Physics(vegetation=False)
@@ -151,7 +153,7 @@ morph = Morphology(morfac=-1)  # morfac must be >= 0
 Most numeric parameters have valid ranges:
 
 ```python
-from rompy_xbeach.components.physics import Roelvink1
+from rompy_xbeach.components.physics.wavemodel import Roelvink1
 
 # gamma must be between 0.4 and 0.9
 breaker = Roelvink1(gamma=0.55)  # OK
@@ -163,11 +165,11 @@ breaker = Roelvink1(gamma=1.5)   # ValidationError
 Some validations involve multiple fields:
 
 ```python
-from rompy_xbeach.components.sediment import BedComposition
+from rompy_xbeach.components.sediment.composition import BedComposition
 
 # D90 must be greater than D50
-bed = BedComposition(D50=0.0002, D90=0.0003)  # OK
-bed = BedComposition(D50=0.0003, D90=0.0002)  # ValidationError
+bed = BedComposition(D50=[0.0002], D90=[0.0003])  # OK
+bed = BedComposition(D50=[0.0003], D90=[0.0002])  # ValidationError
 ```
 
 ### Mutual Exclusivity
@@ -175,10 +177,12 @@ bed = BedComposition(D50=0.0003, D90=0.0002)  # ValidationError
 The wave boundary source can only be specified once:
 
 ```python
+from rompy_xbeach.config import Config, DataInterface
+
 # This raises ValidationError
 config = Config(
-    input=Input(wave=...),      # Data-driven
-    wave_boundary=...,          # Manual - can't have both!
+    input=DataInterface(wave=...),  # Data-driven
+    wave_boundary=...,              # Manual - can't have both!
 )
 ```
 
@@ -237,11 +241,14 @@ print(config.params)
 Some paths can use environment variables:
 
 ```python
-bathy = StaticBathy(
+from rompy_xbeach.data.base import XBeachBathy
+
+bathy = XBeachBathy(
     source=dict(
         model_type="xyz:crs",
         filename="${DATA_DIR}/bathymetry.xyz",
     ),
+    interpolator=dict(model_type="regular_grid"),
 )
 ```
 

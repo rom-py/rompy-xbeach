@@ -35,14 +35,19 @@ Config
 ### Direct Instantiation
 
 ```python
-from rompy_xbeach.components import Physics, Sediment
-from rompy_xbeach.components.physics import Surfbeat, BedFriction
-from rompy_xbeach.components.sediment import Morphology
+from rompy_xbeach.config import Config
+from rompy_xbeach.components.physics import Physics
+from rompy_xbeach.components.physics.wavemodel import Surfbeat
+from rompy_xbeach.components.physics.friction import Cf
+from rompy_xbeach.components.sediment import Sediment
+from rompy_xbeach.components.sediment.morphology import Morphology
 
 config = Config(
+    grid=...,  # Required
+    bathy=..., # Required
     physics=Physics(
         wavemodel=Surfbeat(),
-        bedfriction=BedFriction(bedfriccoef=0.01),
+        bedfriction=Cf(bedfriccoef=0.01),
     ),
     sediment=Sediment(
         morphology=Morphology(morfac=10),
@@ -98,7 +103,8 @@ Many features use `Union[bool, Component]`:
 # Enable with defaults
 physics = Physics(vegetation=True)
 
-# Enable with custom parameters  
+# Enable with custom parameters
+from rompy_xbeach.components.physics.vegetation import Vegetation
 physics = Physics(vegetation=Vegetation(nsec=2))
 
 # Disable
@@ -114,7 +120,7 @@ Some fields accept multiple types, distinguished by `model_type`:
 wavemodel: Stationary | Surfbeat | Nonh
 
 # Each has different parameters
-Surfbeat(break_type=Roelvink1(gamma=0.55))
+Surfbeat(breaktype=Roelvink1(gamma=0.55))
 Nonh(nhbreaker=1, solver="tridiag")
 ```
 

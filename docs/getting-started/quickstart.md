@@ -14,10 +14,13 @@ This guide walks you through creating a basic XBeach simulation with rompy-xbeac
 
 ```python
 from datetime import datetime
-from rompy_xbeach import Config, XBeachModel
+from rompy.model import ModelRun
+from rompy.core.time import TimeRange
+from rompy_xbeach.config import Config
 from rompy_xbeach.grid import RegularGrid
-from rompy_xbeach.bathy import StaticBathy
-from rompy_xbeach.components import Physics, Output
+from rompy_xbeach.data.base import XBeachBathy
+from rompy_xbeach.components.physics import Physics
+from rompy_xbeach.components.output import Output
 
 # 1. Define the grid
 grid = RegularGrid(
@@ -30,7 +33,7 @@ grid = RegularGrid(
 )
 
 # 2. Provide bathymetry (from a file or data source)
-bathy = StaticBathy(
+bathy = XBeachBathy(
     source=dict(
         model_type="xyz:crs",
         filename="bathymetry.xyz",
@@ -52,9 +55,9 @@ config = Config(
 )
 
 # 4. Create and run the model
-model = XBeachModel(
+model = ModelRun(
     run_id="my_simulation",
-    period=dict(
+    period=TimeRange(
         start=datetime(2024, 1, 1),
         end=datetime(2024, 1, 2),
     ),
@@ -65,7 +68,7 @@ model = XBeachModel(
 model.generate()
 
 # Run XBeach (requires xbeach executable)
-model.run()
+# model.run()
 ```
 
 ## Using YAML Configuration
@@ -98,7 +101,7 @@ bathy:
 physics:
   wavemodel:
     model_type: surfbeat
-    break_type:
+    breaktype:
       model_type: roelvink1
       gamma: 0.55
 
@@ -115,7 +118,7 @@ Load and use:
 
 ```python
 import yaml
-from rompy_xbeach import Config
+from rompy_xbeach.config import Config
 
 with open("config.yml") as f:
     config_dict = yaml.safe_load(f)
@@ -128,22 +131,18 @@ config = Config(**config_dict)
 ### From Data Source
 
 ```python
-from rompy_xbeach.data import Input
+from rompy_xbeach.config import Config, DataInterface
 from rompy_xbeach.data.boundary import BoundaryStationSpectraJonstable
 
 config = Config(
     grid=grid,
     bathy=bathy,
-    input=Input(
+    input=DataInterface(
         wave=BoundaryStationSpectraJonstable(
             source=dict(
-                model_type="dataset",
+                model_type="wavespectra:crs",
                 uri="wave_spectra.nc",
             ),
-            # Variable mappings
-            hm0_var="hs",
-            tp_var="tp",
-            dir_var="dir",
         ),
     ),
 )
@@ -154,7 +153,8 @@ config = Config(
 For pre-existing boundary files:
 
 ```python
-from rompy_xbeach.components.boundary import SpectralWaveBoundary
+from rompy_xbeach.config import Config
+from rompy_xbeach.components.boundary.specification import SpectralWaveBoundary
 
 config = Config(
     grid=grid,
@@ -162,7 +162,6 @@ config = Config(
     wave_boundary=SpectralWaveBoundary(
         wbctype="jonstable",
         bcfile="jonswap.txt",
-        dtbc=1.0,
     ),
 )
 ```
@@ -170,45 +169,32 @@ config = Config(
 ## Customising Physics
 
 ```python
-from rompy_xbeach.components import Physics
-from rompy_xbeach.components.physics import (
-    Surfbeat,
-    Roelvink1,
-    BedFriction,
-    Viscosity,
-)
+from rompy_xbeach.components.physics import Physics
+from rompy_xbeach.components.physics.wavemodel import Surfbeat, Roelvink1
+from rompy_xbeach.components.physics.friction import Viscosity, Chezy
 
 physics = Physics(
     # Wave model with custom breaker
-    wavemodel=Surfbeat(
-        break_type=Roelvink1(gamma=0.55, alpha=1.0),
-        single_dir=False,
-    ),
-    # Bed friction
-    bedfriction=BedFriction(
-        bedfriction="chezy",
-        bedfriccoef=55,
-    ),
+    wavemodel=Surfbeat(breaktype=Roelvink1(gamma=0.55, alpha=1.0)),
+    # Bed friction (use Chezy with coefficient)
+    bedfriction=Chezy(bedfriccoef=55),
     # Horizontal viscosity
     viscosity=Viscosity(nuh=0.1),
     # Enable processes
     flow=True,
-    sedtrans=True,
 )
 ```
 
 ## Customising Sediment and Morphology
 
 ```python
-from rompy_xbeach.components import Sediment
-from rompy_xbeach.components.sediment import (
-    Morphology,
-    SedimentTransport,
-    BedComposition,
-)
+from rompy_xbeach.components.sediment import Sediment
+from rompy_xbeach.components.sediment.morphology import Morphology
+from rompy_xbeach.components.sediment.transport import SedimentTransport
+from rompy_xbeach.components.sediment.composition import BedComposition
 
 sediment = Sediment(
-    transport=SedimentTransport(
+    sedtrans=SedimentTransport(
         form="vanthiel_vanrijn",
         waveform="vanthiel",
     ),
@@ -217,8 +203,8 @@ sediment = Sediment(
         morstart=3600,  # Start morphology after 1 hour
     ),
     bed_composition=BedComposition(
-        D50=0.0002,  # 200 microns
-        D90=0.0003,
+        D50=[0.0002],  # 200 microns (list for each sediment class)
+        D90=[0.0003],
         por=0.4,
     ),
 )

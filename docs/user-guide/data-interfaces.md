@@ -31,13 +31,12 @@ wave = BoundaryStationSpectraJonstable(
 **Use when:** You already have XBeach boundary files and just need to reference them.
 
 ```python
-from rompy_xbeach.components.boundary import SpectralWaveBoundary
+from rompy_xbeach.components.boundary.specification import SpectralWaveBoundary
 
 # Reference existing files directly
 wave_boundary = SpectralWaveBoundary(
     wbctype="jonstable",
     bcfile="my_existing_jonswap.txt",  # Pre-existing file
-    dtbc=1.0,
 )
 ```
 
@@ -48,7 +47,7 @@ wave_boundary = SpectralWaveBoundary(
 These parameters control how XBeach handles boundaries regardless of data source:
 
 ```python
-from rompy_xbeach.components.boundary import FlowBoundaryConditions, TideBoundaryConditions
+from rompy_xbeach.components.boundary.parameters import FlowBoundaryConditions, TideBoundaryConditions
 
 # Flow boundary behaviour (not data-dependent)
 flow_bc = FlowBoundaryConditions(
@@ -70,9 +69,11 @@ tide_bc = TideBoundaryConditions(
 In practice, you often combine these:
 
 ```python
+from rompy_xbeach.config import Config, DataInterface
+
 config = Config(
     # Data interface: generates wave boundary files from data
-    input=Input(
+    input=DataInterface(
         wave=BoundaryStationSpectraJonstable(...),
     ),
     # Boundary parameters: data-independent settings
@@ -101,14 +102,14 @@ config = Config(
 
 The following sections detail the data interface approach for automatic file generation.
 
-## The Input Class
+## The DataInterface Class
 
-The `Input` class groups all data-driven boundary conditions:
+The `DataInterface` class groups all data-driven boundary conditions:
 
 ```python
-from rompy_xbeach.data import Input
+from rompy_xbeach.config import DataInterface
 
-input_config = Input(
+input_config = DataInterface(
     wave=...,   # Wave boundary conditions
     tide=...,   # Tide/water level forcing
     wind=...,   # Wind forcing
@@ -126,14 +127,9 @@ from rompy_xbeach.data.boundary import BoundaryStationSpectraJonstable
 
 wave = BoundaryStationSpectraJonstable(
     source=dict(
-        model_type="dataset",
+        model_type="wavespectra:crs",
         uri="wave_spectra.nc",
     ),
-    # Map your variable names to expected names
-    hm0_var="hs",      # Significant wave height
-    tp_var="tp",       # Peak period
-    dir_var="dir",     # Mean direction
-    spread_var="spr",  # Directional spread (optional)
 )
 ```
 
@@ -152,12 +148,12 @@ from rompy_xbeach.data.boundary import BoundaryStationParamJons
 
 wave = BoundaryStationParamJons(
     source=dict(
-        model_type="dataset",
+        model_type="dataset:crs",
         uri="wave_params.nc",
     ),
-    hm0_var="hs",
-    tp_var="tp",
-    dir_var="dir",
+    hm0="hs",
+    tp="tp",
+    mainang="dir",
 )
 ```
 
@@ -170,27 +166,23 @@ from rompy_xbeach.data.boundary import BoundaryStationSpectraSwan
 
 wave = BoundaryStationSpectraSwan(
     source=dict(
-        model_type="dataset",
+        model_type="wavespectra:crs",
         uri="swan_spectra.nc",
     ),
-    freq_var="frequency",
-    dir_var="direction",
-    efth_var="efth",  # Energy density
 )
 ```
 
 ### Variable Mapping
 
-Data interfaces use `*_var` suffixes to map your data variables:
+For parametric boundaries, map your data variables to XBeach parameters:
 
 | Interface Field | XBeach Meaning |
 |----------------|----------------|
-| `hm0_var` | Significant wave height variable name |
-| `tp_var` | Peak period variable name |
-| `dir_var` | Mean wave direction variable name |
-| `spread_var` | Directional spread variable name |
-| `freq_var` | Frequency array variable name |
-| `efth_var` | Energy density variable name |
+| `hm0` | Significant wave height variable name or constant |
+| `tp` | Peak period variable name or constant |
+| `mainang` | Mean wave direction variable name or constant |
+| `gammajsp` | JONSWAP gamma variable name or constant |
+| `dspr` | Directional spread variable name or constant |
 
 ## Tide/Water Level
 
@@ -219,10 +211,10 @@ from rompy_xbeach.data.waterlevel import WaterLevelStation
 
 tide = WaterLevelStation(
     source=dict(
-        model_type="dataset",
+        model_type="dataset:crs",
         uri="water_levels.nc",
     ),
-    var="zs",  # Water level variable
+    variables=["zs"],  # Water level variable
     tideloc=1,
 )
 ```
@@ -237,30 +229,28 @@ This generates `zs0file` and sets:
 ### Spatially Uniform Wind
 
 ```python
-from rompy_xbeach.data.wind import WindStation
+from rompy_xbeach.data.wind import WindStation, WindVector
 
 wind = WindStation(
     source=dict(
-        model_type="dataset",
+        model_type="dataset:crs",
         uri="wind.nc",
     ),
-    u_var="u10",  # U-component
-    v_var="v10",  # V-component
+    wind_vars=WindVector(u="u10", v="v10"),
 )
 ```
 
 ### Spatially Varying Wind
 
 ```python
-from rompy_xbeach.data.wind import WindGrid
+from rompy_xbeach.data.wind import WindGrid, WindVector
 
 wind = WindGrid(
     source=dict(
-        model_type="dataset",
+        model_type="dataset:crs",
         uri="wind_grid.nc",
     ),
-    u_var="u10",
-    v_var="v10",
+    wind_vars=WindVector(u="u10", v="v10"),
 )
 ```
 
@@ -315,8 +305,13 @@ Data interfaces automatically handle time:
 The simulation period comes from the `ModelRun`:
 
 ```python
-model = XBeachModel(
-    period=dict(
+from datetime import datetime
+from rompy.model import ModelRun
+from rompy.core.time import TimeRange
+
+model = ModelRun(
+    run_id="my_simulation",
+    period=TimeRange(
         start=datetime(2024, 1, 1),
         end=datetime(2024, 1, 2),
     ),
@@ -329,9 +324,11 @@ model = XBeachModel(
 For gridded data, interpolation to the XBeach grid is automatic:
 
 ```python
-bathy = StaticBathy(
+from rompy_xbeach.data.base import XBeachBathy
+
+bathy = XBeachBathy(
     source=dict(
-        model_type="dataset",
+        model_type="dataset:crs",
         uri="bathymetry.nc",
     ),
     interpolator=dict(
@@ -345,14 +342,14 @@ bathy = StaticBathy(
 If you have pre-existing boundary files, use the parameter components instead:
 
 ```python
-from rompy_xbeach.components.boundary import SpectralWaveBoundary
+from rompy_xbeach.config import Config
+from rompy_xbeach.components.boundary.specification import SpectralWaveBoundary
 
 config = Config(
     # Don't use input.wave
     wave_boundary=SpectralWaveBoundary(
         wbctype="jonstable",
         bcfile="my_jonswap.txt",  # Pre-existing file
-        dtbc=1.0,
     ),
 )
 ```
@@ -363,39 +360,34 @@ config = Config(
 ## Example: Complete Data-Driven Setup
 
 ```python
-from rompy_xbeach import Config
-from rompy_xbeach.data import Input
+from rompy_xbeach.config import Config, DataInterface
 from rompy_xbeach.data.boundary import BoundaryStationSpectraJonstable
 from rompy_xbeach.data.waterlevel import TideConsGrid
-from rompy_xbeach.data.wind import WindStation
+from rompy_xbeach.data.wind import WindStation, WindVector
 
 config = Config(
     grid=grid,
     bathy=bathy,
-    input=Input(
+    input=DataInterface(
         wave=BoundaryStationSpectraJonstable(
             source=dict(
-                model_type="dataset",
+                model_type="wavespectra:crs",
                 uri="https://thredds.example.com/waves.nc",
             ),
-            hm0_var="hs",
-            tp_var="tp",
-            dir_var="dir",
         ),
         tide=TideConsGrid(
             source=dict(
-                model_type="oceantide",
+                model_type="oceantide:crs",
                 uri="tides.nc",
             ),
             tideloc=2,
         ),
         wind=WindStation(
             source=dict(
-                model_type="dataset",
+                model_type="dataset:crs",
                 uri="wind.nc",
             ),
-            u_var="u10",
-            v_var="v10",
+            wind_vars=WindVector(u="u10", v="v10"),
         ),
     ),
 )

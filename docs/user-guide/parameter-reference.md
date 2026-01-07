@@ -35,11 +35,11 @@ The [`Physics`](../api-reference/components.md#rompy_xbeach.components.physics.P
 
 | XBeach Parameter | Rompy Location | Description |
 |-----------------|----------------|-------------|
-| `break` | [`physics.wavemodel.break_type`](../api-reference/components.md#rompy_xbeach.components.physics.wavemodel.Surfbeat.break_type) | Breaker formulation |
-| `gamma` | [`physics.wavemodel.break_type.gamma`](../api-reference/components.md#rompy_xbeach.components.physics.wavemodel.Roelvink1.gamma) | Breaker parameter |
-| `alpha` | [`physics.wavemodel.break_type.alpha`](../api-reference/components.md#rompy_xbeach.components.physics.wavemodel.Roelvink1.alpha) | Wave dissipation coefficient |
-| `n` | [`physics.wavemodel.break_type.n`](../api-reference/components.md#rompy_xbeach.components.physics.wavemodel.Roelvink1.n) | Power in breaker formulation |
-| `gammax` | [`physics.wavemodel.break_type.gammax`](../api-reference/components.md#rompy_xbeach.components.physics.wavemodel.Roelvink1.gammax) | Maximum ratio Hb/hb |
+| `break` | [`physics.wavemodel.breaktype`](../api-reference/components.md#rompy_xbeach.components.physics.wavemodel.Surfbeat.breaktype) | Breaker formulation |
+| `gamma` | [`physics.wavemodel.breaktype.gamma`](../api-reference/components.md#rompy_xbeach.components.physics.wavemodel.Roelvink1.gamma) | Breaker parameter |
+| `alpha` | [`physics.wavemodel.breaktype.alpha`](../api-reference/components.md#rompy_xbeach.components.physics.wavemodel.Roelvink1.alpha) | Wave dissipation coefficient |
+| `n` | [`physics.wavemodel.breaktype.n`](../api-reference/components.md#rompy_xbeach.components.physics.wavemodel.Roelvink1.n) | Power in breaker formulation |
+| `gammax` | [`physics.wavemodel.breaktype.gammax`](../api-reference/components.md#rompy_xbeach.components.physics.wavemodel.Roelvink1.gammax) | Maximum ratio Hb/hb |
 | `single_dir` | [`physics.wavemodel.single_dir`](../api-reference/components.md#rompy_xbeach.components.physics.wavemodel.Surfbeat.single_dir) | Single directional bin (Surfbeat) |
 | `nhbreaker` | [`physics.wavemodel.nhbreaker`](../api-reference/components.md#rompy_xbeach.components.physics.wavemodel.Nonh.nhbreaker) | Non-hydrostatic breaker (Nonh) |
 | `solver` | [`physics.wavemodel.solver`](../api-reference/components.md#rompy_xbeach.components.physics.wavemodel.Nonh.solver) | Pressure solver (Nonh) |

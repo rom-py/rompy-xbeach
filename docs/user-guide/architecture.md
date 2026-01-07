@@ -17,14 +17,22 @@ The core challenge is that XBeach uses a flat `params.txt` file with ~250 key-va
 The `Config` class is the main entry point. It orchestrates all XBeach parameters and generates the `params.txt` file.
 
 ```python
-from rompy_xbeach import Config
+from rompy_xbeach.config import Config
+from rompy_xbeach.grid import RegularGrid
+from rompy_xbeach.data.base import XBeachBathy
+from rompy_xbeach.components.physics import Physics
+from rompy_xbeach.components.physics.wavemodel import Surfbeat
+from rompy_xbeach.components.physics.friction import Cf
+from rompy_xbeach.components.sediment import Sediment
+from rompy_xbeach.components.sediment.morphology import Morphology
+from rompy_xbeach.components.output import Output
 
 config = Config(
     grid=RegularGrid(...),
-    bathy=StaticBathy(...),
+    bathy=XBeachBathy(...),
     physics=Physics(
         wavemodel=Surfbeat(),
-        bedfriction=BedFriction(bedfriccoef=0.01),
+        bedfriction=Cf(bedfriccoef=0.01),
     ),
     sediment=Sediment(
         morphology=Morphology(morfac=10),
@@ -106,7 +114,7 @@ Some XBeach parameters only apply to certain modes. Components enforce this:
 
 ```python
 # Surfbeat-specific parameters are only available on Surfbeat
-physics=Physics(wavemodel=Surfbeat(break_type=Roelvink1()))
+physics=Physics(wavemodel=Surfbeat(breaktype=Roelvink1()))
 
 # Non-hydrostatic parameters are only available on Nonh
 physics=Physics(wavemodel=Nonh(nhbreaker=1, solver="tridiag"))
@@ -125,7 +133,8 @@ Many XBeach features can be enabled with defaults or customised:
 physics=Physics(vegetation=True)
 
 # Enable with custom parameters
-physics=Physics(vegetation=Vegetation(nsec=2, ah=1.5, Cd=1.0))
+from rompy_xbeach.components.physics.vegetation import Vegetation
+physics=Physics(vegetation=Vegetation(nsec=2, ah=[1.5], Cd=[1.0]))
 
 # Disable explicitly
 physics=Physics(vegetation=False)
@@ -148,8 +157,8 @@ Each variant has different parameters:
 
 | Wavemodel | Key Parameters |
 |-----------|----------------|
-| `Stationary` | `break_type` (Baldock, Janssen) |
-| `Surfbeat` | `break_type` (Roelvink variants), `single_dir`, `wci` |
+| `Stationary` | `breaktype` (Baldock, Janssen) |
+| `Surfbeat` | `breaktype` (Roelvink variants), `single_dir`, `wci` |
 | `Nonh` | `nhbreaker`, `solver`, `kdmin`, `Topt` |
 
 ### Breaker Formulations
@@ -158,13 +167,13 @@ Breaker types are further specialised:
 
 ```python
 # Roelvink (1993) - only for Surfbeat
-Surfbeat(break_type=Roelvink1(gamma=0.55, alpha=1.0))
+Surfbeat(breaktype=Roelvink1(gamma=0.55, alpha=1.0))
 
 # Roelvink-Daly (2012) - only for Surfbeat  
-Surfbeat(break_type=RoelvinkDaly(gamma=0.55))
+Surfbeat(breaktype=RoelvinkDaly(gamma=0.55))
 
 # Baldock (1998) - only for Stationary
-Stationary(break_type=Baldock(gamma=0.78, alpha=1.0))
+Stationary(breaktype=Baldock(gamma=0.78, alpha=1.0))
 ```
 
 This prevents invalid combinations that XBeach would reject at runtime.
@@ -273,7 +282,7 @@ grid:
 physics:
   wavemodel:
     model_type: surfbeat
-    break_type:
+    breaktype:
       model_type: roelvink1
       gamma: 0.55
   bedfriction:
@@ -328,7 +337,7 @@ from rompy_xbeach.components.physics import Surfbeat, Roelvink1
 
 # IDE shows available parameters
 wavemodel = Surfbeat(
-    break_type=Roelvink1(gamma=0.55),  # IDE shows Roelvink1 params
+    breaktype=Roelvink1(gamma=0.55),  # IDE shows Roelvink1 params
 )
 ```
 

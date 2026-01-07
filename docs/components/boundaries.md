@@ -16,7 +16,7 @@ This page covers the parameter components. For data-driven boundaries, see [Data
 Control how flow behaves at domain edges:
 
 ```python
-from rompy_xbeach.components.boundary import FlowBoundaryConditions
+from rompy_xbeach.components.boundary.parameters import FlowBoundaryConditions
 
 flow_bc = FlowBoundaryConditions(
     front="abs_2d",      # Offshore boundary
@@ -73,7 +73,7 @@ flow_bc = FlowBoundaryConditions(
 Control tide/surge forcing:
 
 ```python
-from rompy_xbeach.components.boundary import TideBoundaryConditions
+from rompy_xbeach.components.boundary.parameters import TideBoundaryConditions
 
 tide_bc = TideBoundaryConditions(
     tideloc=2,           # Number of tide locations
@@ -107,22 +107,18 @@ For manual wave boundary specification (when not using data interfaces):
 ### Spectral Boundaries
 
 ```python
-from rompy_xbeach.components.boundary import SpectralWaveBoundary
+from rompy_xbeach.components.boundary.specification import SpectralWaveBoundary
+from rompy_xbeach.components.boundary.parameters import SpectralWaveBoundaryConditions
 
 wave_bc = SpectralWaveBoundary(
     wbctype="jonstable",
     bcfile="jonswap.txt",
-    dtbc=1.0,
-    
-    # Directional settings
-    thetamin=-90,
-    thetamax=90,
-    dtheta=10,
-    thetanaut=False,
-    
-    # Reflection
-    ARC=False,
-    freewave=False,
+    wbc=SpectralWaveBoundaryConditions(
+        # Directional settings
+        thetamin=-90,
+        thetamax=90,
+        dtheta=10,
+    ),
 )
 ```
 
@@ -138,13 +134,13 @@ wave_bc = SpectralWaveBoundary(
 ### Non-Spectral Boundaries
 
 ```python
-from rompy_xbeach.components.boundary import NonSpectralWaveBoundary
+from rompy_xbeach.components.boundary.specification import NonSpectralWaveBoundary
 
 wave_bc = NonSpectralWaveBoundary(
     wbctype="stat",
     Hrms=1.0,
     Tp=10.0,
-    dir=270.0,
+    dir0=270.0,
     s=20.0,
 )
 ```
@@ -171,7 +167,7 @@ wave_bc = NonSpectralWaveBoundary(
 ### Special Boundaries
 
 ```python
-from rompy_xbeach.components.boundary import OffWaveBoundary, ReuseWaveBoundary
+from rompy_xbeach.components.boundary.specification import OffWaveBoundary, ReuseWaveBoundary
 
 # No wave boundary
 wave_bc = OffWaveBoundary()
@@ -206,12 +202,12 @@ config = Config(
 ## Complete Example
 
 ```python
-from rompy_xbeach import Config
-from rompy_xbeach.components.boundary import (
+from rompy_xbeach.config import Config
+from rompy_xbeach.components.boundary.parameters import (
     FlowBoundaryConditions,
     TideBoundaryConditions,
-    SpectralWaveBoundary,
 )
+from rompy_xbeach.components.boundary.specification import SpectralWaveBoundary
 
 config = Config(
     grid=grid,
@@ -235,7 +231,6 @@ config = Config(
     wave_boundary=SpectralWaveBoundary(
         wbctype="jonstable",
         bcfile="waves.txt",
-        dtbc=1.0,
     ),
 )
 ```

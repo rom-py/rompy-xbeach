@@ -5,20 +5,16 @@ The `Physics` component controls physical processes in XBeach: wave propagation,
 ## Overview
 
 ```python
-from rompy_xbeach.components import Physics
-from rompy_xbeach.components.physics import (
-    Surfbeat,
-    Roelvink1,
-    BedFriction,
-    Viscosity,
-    Vegetation,
-)
+from rompy_xbeach.components.physics import Physics
+from rompy_xbeach.components.physics.wavemodel import Surfbeat, Roelvink1
+from rompy_xbeach.components.physics.friction import Viscosity, Cf
+from rompy_xbeach.components.physics.vegetation import Vegetation
 
 physics = Physics(
     wavemodel=Surfbeat(
-        break_type=Roelvink1(gamma=0.55),
+        breaktype=Roelvink1(gamma=0.55),
     ),
-    bedfriction=BedFriction(bedfriccoef=0.01),
+    bedfriction=Cf(bedfriccoef=0.01),
     viscosity=Viscosity(nuh=0.1),
     vegetation=True,
     swave=True,
@@ -51,11 +47,11 @@ The `wavemodel` field accepts one of three types:
 For stationary wave conditions (no wave groups):
 
 ```python
-from rompy_xbeach.components.physics import Stationary, Baldock
+from rompy_xbeach.components.physics.wavemodel import Stationary, Baldock
 
 physics = Physics(
     wavemodel=Stationary(
-        break_type=Baldock(gamma=0.78),
+        breaktype=Baldock(gamma=0.78),
     ),
 )
 ```
@@ -70,14 +66,15 @@ physics = Physics(
 For infragravity wave modelling (default):
 
 ```python
-from rompy_xbeach.components.physics import Surfbeat, Roelvink1
+from rompy_xbeach.components.physics import Physics
+from rompy_xbeach.components.physics.wavemodel import Surfbeat, Roelvink1
 
 physics = Physics(
     wavemodel=Surfbeat(
-        break_type=Roelvink1(gamma=0.55, alpha=1.0, n=10),
+        breaktype=Roelvink1(gamma=0.55, alpha=1.0, n=10),
         single_dir=False,
-        wci=True,  # Wave-current interaction
     ),
+    wci=True,  # Wave-current interaction
 )
 ```
 
@@ -92,7 +89,8 @@ physics = Physics(
 For phase-resolving wave modelling:
 
 ```python
-from rompy_xbeach.components.physics import Nonh
+from rompy_xbeach.components.physics import Physics
+from rompy_xbeach.components.physics.wavemodel import Nonh
 
 physics = Physics(
     wavemodel=Nonh(
@@ -116,27 +114,16 @@ physics = Physics(
 ## Bed Friction
 
 ```python
-from rompy_xbeach.components.physics import BedFriction
+from rompy_xbeach.components.physics.friction import Chezy, Manning, Cf
 
 # Using Chezy coefficient
-friction = BedFriction(
-    bedfriction="chezy",
-    bedfriccoef=55,
-)
+friction = Chezy(bedfriccoef=55)
 
 # Using Manning coefficient
-friction = BedFriction(
-    bedfriction="manning",
-    bedfriccoef=0.02,
-)
+friction = Manning(bedfriccoef=0.02)
 
-# Spatially varying friction
-friction = BedFriction(
-    bedfriction="chezy",
-    bedfricfile=dict(
-        source="/path/to/friction.dep",
-    ),
-)
+# Using friction factor
+friction = Cf(bedfriccoef=0.01)
 ```
 
 **Friction formulations:**
@@ -152,7 +139,7 @@ friction = BedFriction(
 ## Viscosity
 
 ```python
-from rompy_xbeach.components.physics import Viscosity
+from rompy_xbeach.components.physics.friction import Viscosity
 
 # Constant viscosity
 viscosity = Viscosity(nuh=0.1)
@@ -167,21 +154,21 @@ viscosity = Viscosity(nuhfac=1.0)
 ## Vegetation
 
 ```python
-from rompy_xbeach.components.physics import Vegetation
+from rompy_xbeach.components.physics.vegetation import Vegetation
 
 vegetation = Vegetation(
-    nsec=2,      # Number of vertical sections
-    ah=1.5,      # Vegetation height (m)
-    bv=0.01,     # Stem diameter (m)
-    Nv=100,      # Stem density (stems/m²)
-    Cd=1.0,      # Drag coefficient
+    nsec=2,        # Number of vertical sections
+    ah=[1.5],      # Vegetation height per section (m)
+    bv=[0.01],     # Stem diameter per section (m)
+    Nv=[100],      # Stem density per section (stems/m²)
+    Cd=[1.0],      # Drag coefficient per section
 )
 ```
 
 ## Wind
 
 ```python
-from rompy_xbeach.components.physics import Wind
+from rompy_xbeach.components.physics.wind import Wind
 
 # Enable with custom drag coefficient
 wind = Wind(Cd=0.002)
@@ -195,7 +182,7 @@ physics = Physics(wind=True)
 ### Wave Numerics
 
 ```python
-from rompy_xbeach.components.physics import WaveNumerics
+from rompy_xbeach.components.physics.numerics import WaveNumerics
 
 wave_numerics = WaveNumerics(
     scheme="warmbeam",  # Numerical scheme
@@ -208,7 +195,7 @@ wave_numerics = WaveNumerics(
 ### Flow Numerics
 
 ```python
-from rompy_xbeach.components.physics import FlowNumerics
+from rompy_xbeach.components.physics.numerics import FlowNumerics
 
 flow_numerics = FlowNumerics(
     cfl=0.7,           # CFL criterion
@@ -221,7 +208,7 @@ flow_numerics = FlowNumerics(
 ## Physical Constants
 
 ```python
-from rompy_xbeach.components.physics import PhysicalConstants
+from rompy_xbeach.components.physics.constants import PhysicalConstants
 
 constants = PhysicalConstants(
     rho=1025,    # Water density (kg/m³)
@@ -234,29 +221,22 @@ constants = PhysicalConstants(
 ## Complete Example
 
 ```python
-from rompy_xbeach.components import Physics
-from rompy_xbeach.components.physics import (
-    Surfbeat,
-    Roelvink1,
-    BedFriction,
-    Viscosity,
-    WaveNumerics,
-    FlowNumerics,
-    PhysicalConstants,
-)
+from rompy_xbeach.components.physics import Physics
+from rompy_xbeach.components.physics.wavemodel import Surfbeat, Roelvink1
+from rompy_xbeach.components.physics.friction import Viscosity, Chezy
+from rompy_xbeach.components.physics.numerics import WaveNumerics, FlowNumerics
+from rompy_xbeach.components.physics.constants import PhysicalConstants
 
 physics = Physics(
     # Wave model
     wavemodel=Surfbeat(
-        break_type=Roelvink1(gamma=0.55, alpha=1.0),
+        breaktype=Roelvink1(gamma=0.55, alpha=1.0),
         single_dir=False,
-        wci=True,
     ),
+    # Wave-current interaction
+    wci=True,
     # Friction
-    bedfriction=BedFriction(
-        bedfriction="chezy",
-        bedfriccoef=55,
-    ),
+    bedfriction=Chezy(bedfriccoef=55),
     # Viscosity
     viscosity=Viscosity(nuh=0.1),
     # Numerics
@@ -267,7 +247,6 @@ physics = Physics(
     # Process switches
     swave=True,
     flow=True,
-    sedtrans=True,
 )
 ```
 

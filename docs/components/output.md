@@ -5,7 +5,7 @@ The `Output` component controls what XBeach writes to output files, including fo
 ## Overview
 
 ```python
-from rompy_xbeach.components import Output
+from rompy_xbeach.components.output import Output
 
 output = Output(
     outputformat="netcdf",
@@ -143,7 +143,7 @@ output = Output(
 ## Complete Example
 
 ```python
-from rompy_xbeach.components import Output
+from rompy_xbeach.components.output import Output
 
 output = Output(
     # Format

@@ -5,17 +5,15 @@ The `Sediment` component controls sediment transport, morphological updating, be
 ## Overview
 
 ```python
-from rompy_xbeach.components import Sediment
-from rompy_xbeach.components.sediment import (
-    SedimentTransport,
-    Morphology,
-    BedComposition,
-    BedUpdate,
-    GroundwaterFlow,
-)
+from rompy_xbeach.components.sediment import Sediment
+from rompy_xbeach.components.sediment.transport import SedimentTransport
+from rompy_xbeach.components.sediment.morphology import Morphology
+from rompy_xbeach.components.sediment.composition import BedComposition
+from rompy_xbeach.components.sediment.bed import BedUpdate
+from rompy_xbeach.components.sediment.groundwater import GroundwaterFlow
 
 sediment = Sediment(
-    transport=SedimentTransport(form="vanthiel_vanrijn"),
+    sedtrans=SedimentTransport(form="vanthiel_vanrijn"),
     morphology=Morphology(morfac=10),
     bed_composition=BedComposition(D50=0.0002),
 )
@@ -28,7 +26,7 @@ sediment = Sediment(
 Controls the sediment transport formulation:
 
 ```python
-from rompy_xbeach.components.sediment import SedimentTransport
+from rompy_xbeach.components.sediment.transport import SedimentTransport
 
 transport = SedimentTransport(
     # Transport formulation
@@ -78,7 +76,7 @@ transport = SedimentTransport(
 Controls morphological acceleration and timing:
 
 ```python
-from rompy_xbeach.components.sediment import Morphology
+from rompy_xbeach.components.sediment.morphology import Morphology
 
 morphology = Morphology(
     morfac=10,           # Morphological acceleration factor
@@ -110,13 +108,13 @@ morphology = Morphology(
 Defines sediment properties:
 
 ```python
-from rompy_xbeach.components.sediment import BedComposition
+from rompy_xbeach.components.sediment.composition import BedComposition
 
 bed = BedComposition(
-    # Grain sizes
-    D50=0.0002,          # Median grain size (m)
-    D90=0.0003,          # 90th percentile (m)
-    D15=0.00015,         # 15th percentile (m)
+    # Grain sizes (lists for each sediment class)
+    D50=[0.0002],        # Median grain size (m)
+    D90=[0.0003],        # 90th percentile (m)
+    D15=[0.00015],       # 15th percentile (m)
     
     # Multiple grain classes
     ngd=1,               # Number of grain classes
@@ -148,7 +146,7 @@ bed = BedComposition(
 Controls bed level updating:
 
 ```python
-from rompy_xbeach.components.sediment import BedUpdate
+from rompy_xbeach.components.sediment.bed import BedUpdate
 
 bed_update = BedUpdate(
     fwfile=None,         # Wave friction file
@@ -159,7 +157,7 @@ bed_update = BedUpdate(
 ### Groundwater Flow
 
 ```python
-from rompy_xbeach.components.sediment import GroundwaterFlow
+from rompy_xbeach.components.sediment.groundwater import GroundwaterFlow
 
 groundwater = GroundwaterFlow(
     gwflow=True,         # Enable groundwater
@@ -173,17 +171,15 @@ groundwater = GroundwaterFlow(
 ## Complete Example
 
 ```python
-from rompy_xbeach.components import Sediment
-from rompy_xbeach.components.sediment import (
-    SedimentTransport,
-    Morphology,
-    BedComposition,
-    GroundwaterFlow,
-)
+from rompy_xbeach.components.sediment import Sediment
+from rompy_xbeach.components.sediment.transport import SedimentTransport
+from rompy_xbeach.components.sediment.morphology import Morphology
+from rompy_xbeach.components.sediment.composition import BedComposition
+from rompy_xbeach.components.sediment.groundwater import GroundwaterFlow
 
 sediment = Sediment(
     # Enable sediment transport with custom formulation
-    transport=SedimentTransport(
+    sedtrans=SedimentTransport(
         form="vanthiel_vanrijn",
         waveform="vanthiel",
         turb="wave_averaged",
@@ -202,8 +198,8 @@ sediment = Sediment(
     
     # Sediment properties
     bed_composition=BedComposition(
-        D50=0.0002,
-        D90=0.0003,
+        D50=[0.0002],
+        D90=[0.0003],
         rhos=2650,
         por=0.4,
     ),
