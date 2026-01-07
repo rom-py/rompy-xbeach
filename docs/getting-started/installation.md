@@ -33,8 +33,8 @@ print(rompy_xbeach.__version__)
 
 Rompy-xbeach generates XBeach input files but does not include the XBeach executable. You need to install XBeach separately:
 
-- **Pre-built binaries**: Available from [XBeach downloads](https://download.deltares.nl/xbeach/)
-- **Build from source**: See [XBeach documentation](https://xbeach.readthedocs.io/en/latest/user_manual.html#installation)
+- **Pre-built binaries**: Available from [XBeach Release & Source](https://oss.deltares.nl/web/xbeach/release-and-source)
+- **Build from source**: See [XBeach documentation](https://xbeach.readthedocs.io/en/latest/xbeach_manual.html#compilation-of-xbeach)
 
 Ensure the `xbeach` executable is in your system PATH, or specify its location when running simulations.
 

@@ -1,15 +1,105 @@
 # Data Interfaces
 
-Rompy-xbeach provides data interfaces that automatically generate XBeach boundary condition files from various data sources. This is one of the most powerful features, allowing you to connect XBeach to NetCDF files, THREDDS servers, and other data sources.
+Rompy-xbeach provides multiple ways to configure boundary conditions, each suited to different workflows.
 
-## Overview
+## Three Approaches to Boundary Configuration
+
+### 1. Data Interfaces (Automatic Generation)
+
+**Use when:** You have raw data (NetCDF, THREDDS, buoy data) and want rompy-xbeach to generate XBeach input files automatically.
 
 Data interfaces handle:
 
-1. **Data retrieval** — Fetching data from local files, remote servers, or databases
-2. **Processing** — Interpolation, unit conversion, format transformation
-3. **File generation** — Creating XBeach-compatible input files
-4. **Parameter setting** — Automatically setting related XBeach parameters
+- **Data retrieval** — Fetching from local files, remote servers, or databases
+- **Processing** — Interpolation, unit conversion, format transformation
+- **File generation** — Creating XBeach-compatible input files (e.g., `jonswap.txt`)
+- **Data-dependent parameters** — Setting `bcfile`, `dtbc`, time specifications, etc.
+
+```python
+from rompy_xbeach.data.boundary import BoundaryStationSpectraJonstable
+
+# Data interface generates files AND sets data-dependent parameters
+wave = BoundaryStationSpectraJonstable(
+    source=dict(model_type="dataset", uri="wave_spectra.nc"),
+    hm0_var="hs",
+    tp_var="tp",
+)
+```
+
+### 2. Manual Specification (Pre-existing Files)
+
+**Use when:** You already have XBeach boundary files and just need to reference them.
+
+```python
+from rompy_xbeach.components.boundary import SpectralWaveBoundary
+
+# Reference existing files directly
+wave_boundary = SpectralWaveBoundary(
+    wbctype="jonstable",
+    bcfile="my_existing_jonswap.txt",  # Pre-existing file
+    dtbc=1.0,
+)
+```
+
+### 3. Boundary Parameters (Data-Independent Settings)
+
+**Use when:** You need to configure boundary behaviour that doesn't depend on data files.
+
+These parameters control how XBeach handles boundaries regardless of data source:
+
+```python
+from rompy_xbeach.components.boundary import FlowBoundaryConditions, TideBoundaryConditions
+
+# Flow boundary behaviour (not data-dependent)
+flow_bc = FlowBoundaryConditions(
+    front="abs_2d",
+    back="wall",
+    left="neumann",
+    right="neumann",
+)
+
+# Tide boundary settings
+tide_bc = TideBoundaryConditions(
+    tideloc=2,
+    tidetype="velocity",
+)
+```
+
+## Combining Approaches
+
+In practice, you often combine these:
+
+```python
+config = Config(
+    # Data interface: generates wave boundary files from data
+    input=Input(
+        wave=BoundaryStationSpectraJonstable(...),
+    ),
+    # Boundary parameters: data-independent settings
+    flow_boundary=FlowBoundaryConditions(front="abs_2d", back="wall"),
+    tide_boundary=TideBoundaryConditions(tideloc=2),
+)
+```
+
+Or with pre-existing files:
+
+```python
+config = Config(
+    # Manual specification: use existing boundary files
+    wave_boundary=SpectralWaveBoundary(wbctype="jonstable", bcfile="waves.txt"),
+    # Boundary parameters: still needed for flow/tide behaviour
+    flow_boundary=FlowBoundaryConditions(front="abs_2d", back="wall"),
+)
+```
+
+!!! warning "Don't mix data interfaces and manual specification for the same boundary"
+    You cannot specify both `input.wave` and `wave_boundary`. Choose one approach per boundary type.
+
+---
+
+## Data Interface Details
+
+The following sections detail the data interface approach for automatic file generation.
 
 ## The Input Class
 

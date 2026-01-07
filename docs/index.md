@@ -95,6 +95,22 @@ Rompy-xbeach addresses these by:
 
     [:octicons-arrow-right-24: API Reference](api-reference/config.md)
 
+-   :material-notebook:{ .lg .middle } **Examples**
+
+    ---
+
+    Interactive Jupyter notebooks demonstrating rompy-xbeach features
+
+    [:octicons-arrow-right-24: Examples](examples/index.md)
+
+-   :material-account-group:{ .lg .middle } **Developer**
+
+    ---
+
+    Contributing guidelines and development setup
+
+    [:octicons-arrow-right-24: Contributing](developer/contributing.md)
+
 </div>
 
 ## Part of the Rompy Ecosystem
@@ -107,5 +123,5 @@ Rompy-xbeach is a plugin for [rompy](https://github.com/rom-py/rompy), the regio
 ## Links
 
 - [XBeach Documentation](https://xbeach.readthedocs.io/)
-- [XBeach Source Code](https://github.com/openearth/xbeach)
-- [Rompy Core](https://github.com/rom-py/rompy)
+- [XBeach Release & Source](https://oss.deltares.nl/web/xbeach/release-and-source)
+- [Rompy Core](https://rom-py.github.io/rompy/)
