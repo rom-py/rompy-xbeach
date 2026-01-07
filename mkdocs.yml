@@ -89,7 +89,7 @@ plugins:
             show_root_full_path: false
             show_object_full_path: false
             show_category_heading: true
-            show_if_no_docstring: false
+            show_if_no_docstring: true
             show_signature_annotations: true
             signature_crossrefs: true
             separate_signature: true
@@ -99,8 +99,14 @@ plugins:
             show_submodules: false
             merge_init_into_class: true
             show_docstring_attributes: true
+            members: true
+            inherited_members: false
+            annotations_path: brief
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
             filters:
               - "!^_"  # Hide private members
+              - "!^model_"  # Hide Pydantic internal methods
 
 markdown_extensions:
   - pymdownx.highlight:
