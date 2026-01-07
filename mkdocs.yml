@@ -27,7 +27,6 @@ nav:
       - Bathymetry: examples/bathy-demo.ipynb
       - Wave Boundary: examples/wave-boundary-demo.ipynb
       - Physics: examples/physics-demo.ipynb
-      - Sediment: examples/sediment-demo.ipynb
       - Output: examples/output-demo.ipynb
       - Forcing: examples/forcing-demo.ipynb
       - Full Example (Procedural): examples/example_procedural.ipynb
