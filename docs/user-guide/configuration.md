@@ -243,12 +243,12 @@ Some paths can use environment variables:
 ```python
 from rompy_xbeach.data.base import XBeachBathy
 
+from rompy_xbeach.source import SourceGeotiff
+
 bathy = XBeachBathy(
-    source=dict(
-        model_type="xyz:crs",
-        filename="${DATA_DIR}/bathymetry.xyz",
+    source=SourceGeotiff(
+        filename="${DATA_DIR}/bathymetry.tif",
     ),
-    interpolator=dict(model_type="regular_grid"),
 )
 ```
 

@@ -127,7 +127,7 @@ from rompy_xbeach.data.boundary import BoundaryStationSpectraJonstable
 
 wave = BoundaryStationSpectraJonstable(
     source=dict(
-        model_type="wavespectra:crs",
+        model_type="wavespectra",
         uri="wave_spectra.nc",
     ),
 )
@@ -148,7 +148,7 @@ from rompy_xbeach.data.boundary import BoundaryStationParamJons
 
 wave = BoundaryStationParamJons(
     source=dict(
-        model_type="dataset:crs",
+        model_type="dataset",
         uri="wave_params.nc",
     ),
     hm0="hs",
@@ -166,7 +166,7 @@ from rompy_xbeach.data.boundary import BoundaryStationSpectraSwan
 
 wave = BoundaryStationSpectraSwan(
     source=dict(
-        model_type="wavespectra:crs",
+        model_type="wavespectra",
         uri="swan_spectra.nc",
     ),
 )
@@ -211,7 +211,7 @@ from rompy_xbeach.data.waterlevel import WaterLevelStation
 
 tide = WaterLevelStation(
     source=dict(
-        model_type="dataset:crs",
+        model_type="dataset",
         uri="water_levels.nc",
     ),
     variables=["zs"],  # Water level variable
@@ -233,7 +233,7 @@ from rompy_xbeach.data.wind import WindStation, WindVector
 
 wind = WindStation(
     source=dict(
-        model_type="dataset:crs",
+        model_type="dataset",
         uri="wind.nc",
     ),
     wind_vars=WindVector(u="u10", v="v10"),
@@ -247,7 +247,7 @@ from rompy_xbeach.data.wind import WindGrid, WindVector
 
 wind = WindGrid(
     source=dict(
-        model_type="dataset:crs",
+        model_type="dataset",
         uri="wind_grid.nc",
     ),
     wind_vars=WindVector(u="u10", v="v10"),
@@ -287,10 +287,12 @@ source=dict(
 ### XYZ Files (for bathymetry)
 
 ```python
-source=dict(
-    model_type="xyz:crs",
+from rompy_xbeach.source import SourceXYZ
+
+source=SourceXYZ(
     filename="bathymetry.xyz",
     crs="EPSG:4326",
+    res=10.0,  # Resolution for gridding
 )
 ```
 
@@ -328,11 +330,11 @@ from rompy_xbeach.data.base import XBeachBathy
 
 bathy = XBeachBathy(
     source=dict(
-        model_type="dataset:crs",
+        model_type="dataset",
         uri="bathymetry.nc",
     ),
     interpolator=dict(
-        model_type="regular_grid",
+        model_type="scipy_regular_grid",
     ),
 )
 ```
@@ -371,20 +373,20 @@ config = Config(
     input=DataInterface(
         wave=BoundaryStationSpectraJonstable(
             source=dict(
-                model_type="wavespectra:crs",
+                model_type="wavespectra",
                 uri="https://thredds.example.com/waves.nc",
             ),
         ),
         tide=TideConsGrid(
             source=dict(
-                model_type="oceantide:crs",
+                model_type="oceantide",
                 uri="tides.nc",
             ),
             tideloc=2,
         ),
         wind=WindStation(
             source=dict(
-                model_type="dataset:crs",
+                model_type="dataset",
                 uri="wind.nc",
             ),
             wind_vars=WindVector(u="u10", v="v10"),

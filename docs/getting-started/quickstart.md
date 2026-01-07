@@ -32,21 +32,21 @@ grid = RegularGrid(
     ny=50,
 )
 
-# 2. Provide bathymetry (from a file or data source)
+# 2. Provide bathymetry (from a GeoTIFF file)
+from rompy_xbeach.source import SourceGeotiff
+
 bathy = XBeachBathy(
-    source=dict(
-        model_type="xyz:crs",
-        filename="bathymetry.xyz",
-    ),
-    interpolator=dict(model_type="regular_grid"),
+    source=SourceGeotiff(filename="bathymetry.tif"),
 )
 
 # 3. Configure the model
+from rompy_xbeach.components.physics.wavemodel import Surfbeat
+
 config = Config(
     grid=grid,
     bathy=bathy,
     physics=Physics(
-        wavemodel="surfbeat",  # or Surfbeat() for more control
+        wavemodel=Surfbeat(),
     ),
     output=Output(
         outputformat="netcdf",
@@ -93,10 +93,8 @@ grid:
 bathy:
   model_type: static
   source:
-    model_type: "xyz:crs"
-    filename: bathymetry.xyz
-  interpolator:
-    model_type: regular_grid
+    model_type: geotiff
+    filename: bathymetry.tif
 
 physics:
   wavemodel:
