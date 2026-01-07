@@ -13,8 +13,13 @@ nav:
   - User Guide:
       - Architecture: user-guide/architecture.md
       - Configuration: user-guide/configuration.md
-      - Data Interfaces: user-guide/data-interfaces.md
       - Parameter Reference: user-guide/parameter-reference.md
+  - Data Interfaces:
+      - Overview: data-interfaces/index.md
+      - Grid: data-interfaces/grid.md
+      - Bathymetry: data-interfaces/bathy.md
+      - Wave Boundaries: data-interfaces/boundaries.md
+      - Forcing: data-interfaces/forcing.md
   - Components:
       - Overview: components/index.md
       - Physics: components/physics.md
