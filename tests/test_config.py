@@ -25,7 +25,7 @@ def kwargs():
         if isinstance(obj, dict):
             for key, value in obj.items():
                 if (
-                    key in ["filename", "uri", "gfile", "hfile", "ufile"]
+                    key in ["filename", "uri", "gfile", "hfile", "ufile", "source"]
                     and isinstance(value, str)
                     and value.startswith("./")
                 ):
