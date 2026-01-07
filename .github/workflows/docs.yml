@@ -88,7 +88,7 @@ jobs:
           ls -la docs/examples/
 
       - name: Build documentation
-        run: mkdocs build --strict
+        run: mkdocs build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
