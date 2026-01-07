@@ -117,11 +117,11 @@ Rompy-xbeach addresses these by:
 
 Rompy-xbeach is a plugin for [rompy](https://github.com/rom-py/rompy), the regional ocean modelling framework. Other model plugins include:
 
-- [rompy-swan](https://github.com/rom-py/rompy-swan) — SWAN spectral wave model
-- [rompy-schism](https://github.com/rom-py/rompy-schism) — SCHISM unstructured grid model
+- [rompy-swan](https://github.com/rom-py/rompy-swan){:target="_blank"} — SWAN spectral wave model
+- [rompy-schism](https://github.com/rom-py/rompy-schism){:target="_blank"} — SCHISM unstructured grid model
 
 ## Links
 
-- [XBeach Documentation](https://xbeach.readthedocs.io/)
-- [XBeach Release & Source](https://oss.deltares.nl/web/xbeach/release-and-source)
-- [Rompy Core](https://rom-py.github.io/rompy/)
+- [XBeach Documentation](https://xbeach.readthedocs.io/){:target="_blank"}
+- [XBeach Release & Source](https://oss.deltares.nl/web/xbeach/release-and-source){:target="_blank"}
+- [Rompy Core](https://rom-py.github.io/rompy/){:target="_blank"}
