@@ -41,10 +41,10 @@ xfile, yfile, depfile, grid = bathy.get(
 
 | Source | Best For |
 |--------|----------|
-| `SourceGeotiff` | GeoTIFF raster files (most common) |
-| `SourceXYZ` | XYZ point cloud / survey data |
-| `SourceCRSFile` | NetCDF, Zarr, or other xarray-compatible files |
-| `SourceCRSDataset` | Existing xarray Dataset objects |
+| [`SourceGeotiff`](../api-reference/types.md#rompy_xbeach.source.SourceGeotiff) | GeoTIFF raster files (most common) |
+| [`SourceXYZ`](../api-reference/types.md#rompy_xbeach.source.SourceXYZ) | XYZ point cloud / survey data |
+| [`SourceCRSFile`](../api-reference/types.md#rompy_xbeach.source.SourceCRSFile) | NetCDF, Zarr, or other xarray-compatible files |
+| [`SourceCRSDataset`](../api-reference/types.md#rompy_xbeach.source.SourceCRSDataset) | Existing xarray Dataset objects |
 
 ```python
 from rompy_xbeach.source import SourceGeotiff, SourceXYZ

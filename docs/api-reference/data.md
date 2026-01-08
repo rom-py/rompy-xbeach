@@ -4,7 +4,9 @@ API reference for data interfaces that generate boundary conditions from externa
 
 ## Wave Boundaries
 
-::: rompy_xbeach.data.boundary.BoundaryStationSpectraJonstable
+### JONS Boundary Type
+
+::: rompy_xbeach.data.boundary.BoundaryStationSpectraJons
     options:
       show_root_heading: true
       show_source: false
@@ -14,10 +16,39 @@ API reference for data interfaces that generate boundary conditions from externa
       show_root_heading: true
       show_source: false
 
+::: rompy_xbeach.data.boundary.BoundaryPointParamJons
+    options:
+      show_root_heading: true
+      show_source: false
+
 ::: rompy_xbeach.data.boundary.BoundaryGridParamJons
     options:
       show_root_heading: true
       show_source: false
+
+### JONSTABLE Boundary Type
+
+::: rompy_xbeach.data.boundary.BoundaryStationSpectraJonstable
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.data.boundary.BoundaryStationParamJonstable
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.data.boundary.BoundaryPointParamJonstable
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.data.boundary.BoundaryGridParamJonstable
+    options:
+      show_root_heading: true
+      show_source: false
+
+### SWAN Boundary Type
 
 ::: rompy_xbeach.data.boundary.BoundaryStationSpectraSwan
     options:

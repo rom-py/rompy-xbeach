@@ -108,17 +108,17 @@ config = Config(
 
 | Type | Description | Example Classes |
 |------|-------------|-----------------|
-| **Grid** | Spatially gridded data | `WindGrid`, `TideConsGrid` |
-| **Station** | Multi-point station data | `WindStation`, `BoundaryStationSpectraJons` |
+| **Grid** | Spatially gridded data | [`WindGrid`](../api-reference/data.md#rompy_xbeach.data.wind.WindGrid), [`TideConsGrid`](../api-reference/data.md#rompy_xbeach.data.waterlevel.TideConsGrid) |
+| **Station** | Multi-point station data | [`WindStation`](../api-reference/data.md#rompy_xbeach.data.wind.WindStation), [`BoundaryStationSpectraJonstable`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStationSpectraJonstable) |
 | **Point** | Single-point timeseries | `WindPoint`, `WaterLevelPoint`, `BoundaryPointParamJons` |
 
 ### Supported Source Types
 
 | Source | `model_type` | Use Case |
 |--------|--------------|----------|
-| `SourceGeotiff` | `geotiff` | Bathymetry rasters |
-| `SourceCRSDataset` | `dataset` | NetCDF with coordinates |
-| `SourceCRSWavespectra` | `wavespectra` | Wave spectra files |
-| `SourceCRSOceantide` | `oceantide` | Tide constituent data |
+| [`SourceGeotiff`](../api-reference/types.md#rompy_xbeach.source.SourceGeotiff) | `geotiff` | Bathymetry rasters |
+| [`SourceCRSDataset`](../api-reference/types.md#rompy_xbeach.source.SourceCRSDataset) | `dataset` | NetCDF with coordinates |
+| [`SourceCRSWavespectra`](../api-reference/types.md#rompy_xbeach.source.SourceCRSWavespectra) | `wavespectra` | Wave spectra files |
+| [`SourceCRSOceantide`](../api-reference/types.md#rompy_xbeach.source.SourceCRSOceantide) | `oceantide` | Tide constituent data |
 | `SourceTimeseriesCSV` | `timeseries_csv` | CSV timeseries |
-| `SourceXYZ` | `xyz` | XYZ point data |
+| [`SourceXYZ`](../api-reference/types.md#rompy_xbeach.source.SourceXYZ) | `xyz` | XYZ point data |

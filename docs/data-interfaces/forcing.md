@@ -8,9 +8,9 @@ XBeach supports several types of forcing:
 
 | Forcing Type | XBeach File | Data Interface Classes |
 |--------------|-------------|------------------------|
-| **Wind** | `wind.txt` | `WindStation`, `WindGrid`, `WindPoint` |
-| **Tide (constituents)** | `zs0file.txt` | `TideConsGrid`, `TideConsPoint` |
-| **Water level (timeseries)** | `zs0file.txt` | `WaterLevelStation`, `WaterLevelGrid`, `WaterLevelPoint` |
+| **Wind** | `wind.txt` | [`WindStation`](../api-reference/data.md#rompy_xbeach.data.wind.WindStation), [`WindGrid`](../api-reference/data.md#rompy_xbeach.data.wind.WindGrid), `WindPoint` |
+| **Tide (constituents)** | `zs0file.txt` | [`TideConsGrid`](../api-reference/data.md#rompy_xbeach.data.waterlevel.TideConsGrid), `TideConsPoint` |
+| **Water level (timeseries)** | `zs0file.txt` | [`WaterLevelStation`](../api-reference/data.md#rompy_xbeach.data.waterlevel.WaterLevelStation), `WaterLevelGrid`, `WaterLevelPoint` |
 
 ## Wind Forcing
 
@@ -18,8 +18,8 @@ XBeach supports several types of forcing:
 
 | Class | Source Data | Use Case |
 |-------|-------------|----------|
-| `WindStation` | Multi-point stations | Regional model output with station locations |
-| `WindGrid` | Spatially gridded | Reanalysis or forecast grids |
+| [`WindStation`](../api-reference/data.md#rompy_xbeach.data.wind.WindStation) | Multi-point stations | Regional model output with station locations |
+| [`WindGrid`](../api-reference/data.md#rompy_xbeach.data.wind.WindGrid) | Spatially gridded | Reanalysis or forecast grids |
 | `WindPoint` | Single-point timeseries | Local measurements, CSV files |
 
 ### Wind Variables

@@ -65,13 +65,13 @@ Boundary{DataStructure}{DataType}{BcType}
 
 | Class | Source Data | XBeach Type |
 |-------|-------------|-------------|
-| `BoundaryStationSpectraJons` | Station 2D spectra | `jons` |
-| `BoundaryStationSpectraJonstable` | Station 2D spectra | `jonstable` |
-| `BoundaryStationSpectraSwan` | Station 2D spectra | `swan` |
-| `BoundaryStationParamJons` | Station parameters | `jons` |
-| `BoundaryStationParamJonstable` | Station parameters | `jonstable` |
-| `BoundaryPointParamJons` | Point timeseries | `jons` |
-| `BoundaryPointParamJonstable` | Point timeseries | `jonstable` |
+| [`BoundaryStationSpectraJons`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStationSpectraJons) | Station 2D spectra | `jons` |
+| [`BoundaryStationSpectraJonstable`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStationSpectraJonstable) | Station 2D spectra | `jonstable` |
+| [`BoundaryStationSpectraSwan`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStationSpectraSwan) | Station 2D spectra | `swan` |
+| [`BoundaryStationParamJons`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStationParamJons) | Station parameters | `jons` |
+| [`BoundaryStationParamJonstable`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStationParamJonstable) | Station parameters | `jonstable` |
+| [`BoundaryPointParamJons`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryPointParamJons) | Point timeseries | `jons` |
+| [`BoundaryPointParamJonstable`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryPointParamJonstable) | Point timeseries | `jonstable` |
 
 ## XBeach Boundary Types
 

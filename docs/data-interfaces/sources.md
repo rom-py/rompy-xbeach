@@ -167,13 +167,13 @@ xfile, yfile, depfile, grid = bathy.get(destdir="./run", grid=grid)
 
 | Source | Use Case | CRS Required |
 |--------|----------|--------------|
-| `SourceGeotiff` | GeoTIFF raster files | No (embedded) |
-| `SourceXYZ` | Point cloud / XYZ text files | Yes |
-| `SourceCRSFile` | NetCDF, Zarr, etc. | Yes |
-| `SourceCRSIntake` | Intake catalogues | Yes |
-| `SourceCRSDataset` | Existing xarray Dataset | Yes |
-| `SourceCRSWavespectra` | Wave spectra files | Yes (default: 4326) |
-| `SourceCRSOceantide` | Tidal constituent files | Yes (default: 4326) |
+| [`SourceGeotiff`](../api-reference/types.md#rompy_xbeach.source.SourceGeotiff) | GeoTIFF raster files | No (embedded) |
+| [`SourceXYZ`](../api-reference/types.md#rompy_xbeach.source.SourceXYZ) | Point cloud / XYZ text files | Yes |
+| [`SourceCRSFile`](../api-reference/types.md#rompy_xbeach.source.SourceCRSFile) | NetCDF, Zarr, etc. | Yes |
+| [`SourceCRSIntake`](../api-reference/types.md#rompy_xbeach.source.SourceCRSIntake) | Intake catalogues | Yes |
+| [`SourceCRSDataset`](../api-reference/types.md#rompy_xbeach.source.SourceCRSDataset) | Existing xarray Dataset | Yes |
+| [`SourceCRSWavespectra`](../api-reference/types.md#rompy_xbeach.source.SourceCRSWavespectra) | Wave spectra files | Yes (default: 4326) |
+| [`SourceCRSOceantide`](../api-reference/types.md#rompy_xbeach.source.SourceCRSOceantide) | Tidal constituent files | Yes (default: 4326) |
 
 ## See Also
 

@@ -36,3 +36,47 @@ API reference for base types and utilities.
     options:
       show_root_heading: true
       show_source: false
+
+::: rompy_xbeach.data.bathy.SeawardExtensionLinear
+    options:
+      show_root_heading: true
+      show_source: false
+
+---
+
+## Sources
+
+::: rompy_xbeach.source.SourceGeotiff
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.source.SourceXYZ
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.source.SourceCRSFile
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.source.SourceCRSIntake
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.source.SourceCRSDataset
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.source.SourceCRSWavespectra
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.source.SourceCRSOceantide
+    options:
+      show_root_heading: true
+      show_source: false
