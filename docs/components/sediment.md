@@ -97,11 +97,11 @@ morphology = Morphology(
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `morfac` | Morphological acceleration factor | 1 |
-| `morstart` | Time to start morphology (s) | 0 |
-| `morstop` | Time to stop morphology (s) | tstop |
-| `wetslp` | Critical wet slope for avalanching | 0.3 |
-| `dryslp` | Critical dry slope for avalanching | 1.0 |
+| [`morfac`](../api-reference/components.md#rompy_xbeach.components.sediment.morphology.Morphology.morfac) | Morphological acceleration factor | 1 |
+| [`morstart`](../api-reference/components.md#rompy_xbeach.components.sediment.morphology.Morphology.morstart) | Time to start morphology (s) | 0 |
+| [`morstop`](../api-reference/components.md#rompy_xbeach.components.sediment.morphology.Morphology.morstop) | Time to stop morphology (s) | tstop |
+| [`wetslp`](../api-reference/components.md#rompy_xbeach.components.sediment.morphology.Morphology.wetslp) | Critical wet slope for avalanching | 0.3 |
+| [`dryslp`](../api-reference/components.md#rompy_xbeach.components.sediment.morphology.Morphology.dryslp) | Critical dry slope for avalanching | 1.0 |
 
 ### Bed Composition
 

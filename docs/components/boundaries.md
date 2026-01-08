@@ -159,10 +159,10 @@ wave_bc = NonSpectralWaveBoundary(
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `thetamin` | Minimum wave direction (°) | -90 |
-| `thetamax` | Maximum wave direction (°) | 90 |
-| `dtheta` | Directional resolution (°) | 10 |
-| `thetanaut` | Nautical convention | False |
+| [`thetamin`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.SpectralWaveBoundaryConditions.thetamin) | Minimum wave direction (°) | -90 |
+| [`thetamax`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.SpectralWaveBoundaryConditions.thetamax) | Maximum wave direction (°) | 90 |
+| [`dtheta`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.SpectralWaveBoundaryConditions.dtheta) | Directional resolution (°) | 10 |
+| [`thetanaut`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.SpectralWaveBoundaryConditions.thetanaut) | Nautical convention | False |
 
 ### Special Boundaries
 

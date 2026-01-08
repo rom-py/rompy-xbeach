@@ -59,12 +59,31 @@ API reference for data interfaces that generate boundary conditions from externa
 
 ## Tide / Water Level
 
+### Tidal Constituents
+
 ::: rompy_xbeach.data.waterlevel.TideConsGrid
     options:
       show_root_heading: true
       show_source: false
 
+::: rompy_xbeach.data.waterlevel.TideConsPoint
+    options:
+      show_root_heading: true
+      show_source: false
+
+### Water Level Timeseries
+
+::: rompy_xbeach.data.waterlevel.WaterLevelGrid
+    options:
+      show_root_heading: true
+      show_source: false
+
 ::: rompy_xbeach.data.waterlevel.WaterLevelStation
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.data.waterlevel.WaterLevelPoint
     options:
       show_root_heading: true
       show_source: false
@@ -79,6 +98,11 @@ API reference for data interfaces that generate boundary conditions from externa
       show_source: false
 
 ::: rompy_xbeach.data.wind.WindStation
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.data.wind.WindPoint
     options:
       show_root_heading: true
       show_source: false

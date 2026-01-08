@@ -44,11 +44,11 @@ output = Output(
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `tstart` | Time to start output (s) | 0 |
-| `tintg` | Global (spatial) output interval (s) | 1 |
-| `tintm` | Time-averaged output interval (s) | tstop |
-| `tintp` | Point output interval (s) | 1 |
-| `tintc` | Cross-shore output interval (s) | 1 |
+| [`tstart`](../api-reference/components.md#rompy_xbeach.components.output.Output.tstart) | Time to start output (s) | 0 |
+| [`tintg`](../api-reference/components.md#rompy_xbeach.components.output.Output.tintg) | Global (spatial) output interval (s) | 1 |
+| [`tintm`](../api-reference/components.md#rompy_xbeach.components.output.Output.tintm) | Time-averaged output interval (s) | tstop |
+| [`tintp`](../api-reference/components.md#rompy_xbeach.components.output.Output.tintp) | Point output interval (s) | 1 |
+| [`tintc`](../api-reference/components.md#rompy_xbeach.components.output.Output.tintc) | Cross-shore output interval (s) | 1 |
 
 ## Output Variables
 

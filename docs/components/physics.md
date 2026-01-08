@@ -28,15 +28,15 @@ These boolean fields enable/disable major processes:
 
 | Field | XBeach Parameter | Description | Default |
 |-------|-----------------|-------------|---------|
-| `swave` | `swave` | Short wave action balance | 1 |
-| `lwave` | `lwave` | Long wave propagation | 1 |
-| `flow` | `flow` | Flow computation | 1 |
-| `sedtrans` | `sedtrans` | Sediment transport | 1 |
-| `morphology` | `morphology` | Morphological updating | 1 |
-| `avalanching` | `avalanching` | Avalanching | 1 |
-| `wind` | `wind` | Wind forcing | 0 |
-| `vegetation` | `vegetation` | Vegetation effects | 0 |
-| `ships` | `ships` | Ship-induced waves | 0 |
+| [`swave`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.swave) | `swave` | Short wave action balance | 1 |
+| [`lwave`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.lwave) | `lwave` | Long wave propagation | 1 |
+| [`flow`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.flow) | `flow` | Flow computation | 1 |
+| [`sedtrans`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.sedtrans) | `sedtrans` | Sediment transport | 1 |
+| [`morphology`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.morphology) | `morphology` | Morphological updating | 1 |
+| [`avalanching`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.avalanching) | `avalanching` | Avalanching | 1 |
+| [`wind`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.wind) | `wind` | Wind forcing | 0 |
+| [`vegetation`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.vegetation) | `vegetation` | Vegetation effects | 0 |
+| [`ships`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.ships) | `ships` | Ship-induced waves | 0 |
 
 ## Wave Models
 
@@ -106,10 +106,10 @@ physics = Physics(
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
-| `nhbreaker` | Non-hydrostatic breaker model | 0 |
-| `solver` | Pressure solver (tridiag/sip) | tridiag |
-| `Topt` | Optimal timestep factor | 0.5 |
-| `kdmin` | Minimum kd for dispersion | 0.01 |
+| [`nhbreaker`](../api-reference/components.md#rompy_xbeach.components.physics.wavemodel.Nonh.nhbreaker) | Non-hydrostatic breaker model | 0 |
+| [`solver`](../api-reference/components.md#rompy_xbeach.components.physics.wavemodel.Nonh.solver) | Pressure solver (tridiag/sip) | tridiag |
+| [`Topt`](../api-reference/components.md#rompy_xbeach.components.physics.wavemodel.Nonh.Topt) | Optimal timestep factor | 0.5 |
+| [`kdmin`](../api-reference/components.md#rompy_xbeach.components.physics.wavemodel.Nonh.kdmin) | Minimum kd for dispersion | 0.01 |
 
 ## Bed Friction
 
