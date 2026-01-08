@@ -35,9 +35,9 @@ dev = [
   "ruff",
 ]
 docs = [
-  "mkdocs-material>=9.0",
-  "mkdocstrings[python]>=0.24",
-  "mkdocs-jupyter>=0.24",
+  "mkdocs-material",
+  "mkdocstrings[python]",
+  "mkdocs-jupyter",
 ]
 
 [project.scripts]
