@@ -593,11 +593,11 @@ def test_output_projection_string():
     # EPSG format
     output1 = Output(projection="EPSG:32633")
     assert output1.params["projection"] == "EPSG:32633"
-    
+
     # PROJ4 format
     output2 = Output(projection="+proj=utm +zone=33 +datum=WGS84")
     assert output2.params["projection"] == "+proj=utm +zone=33 +datum=WGS84"
-    
+
     # WKT format (partial example)
     output3 = Output(projection='GEOGCS["WGS 84",DATUM["WGS_1984"]]')
     assert 'GEOGCS["WGS 84",DATUM["WGS_1984"]]' in output3.params["projection"]

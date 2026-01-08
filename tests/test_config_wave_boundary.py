@@ -10,7 +10,6 @@ from rompy_xbeach.components.boundary.specification import (
     SpectralWaveBoundary,
     NonSpectralWaveBoundary,
     OffWaveBoundary,
-    ReuseWaveBoundary,
 )
 from rompy_xbeach.components.boundary.parameters import (
     SpectralWaveBoundaryConditions,
@@ -48,10 +47,10 @@ def test_config_accepts_spectral_wave_boundary():
     # Note: We can't fully instantiate Config without grid, bathy, etc.
     # Just test that the field accepts the right type
     from pydantic import ValidationError
-    
+
     # This should work (will fail on other required fields, but that's OK)
     try:
-        config = Config(
+        Config(
             wave_boundary=SpectralWaveBoundary(
                 wbctype="jons",
                 bcfile="jonswap.txt",
@@ -70,9 +69,9 @@ def test_config_accepts_spectral_wave_boundary():
 def test_config_accepts_non_spectral_wave_boundary():
     """Test that Config accepts NonSpectralWaveBoundary."""
     from pydantic import ValidationError
-    
+
     try:
-        config = Config(
+        Config(
             wave_boundary=NonSpectralWaveBoundary(
                 wbctype="stat",
                 wbc=NonSpectralWaveBoundaryConditions(
@@ -91,11 +90,9 @@ def test_config_accepts_non_spectral_wave_boundary():
 def test_config_accepts_off_wave_boundary():
     """Test that Config accepts OffWaveBoundary."""
     from pydantic import ValidationError
-    
+
     try:
-        config = Config(
-            wave_boundary=OffWaveBoundary()
-        )
+        Config(wave_boundary=OffWaveBoundary())
     except ValidationError as e:
         errors = e.errors()
         error_fields = [err["loc"][0] for err in errors]
@@ -106,10 +103,10 @@ def test_config_accepts_off_wave_boundary():
 def test_config_wave_boundary_discriminator():
     """Test that wave_boundary uses discriminator correctly."""
     from pydantic import ValidationError
-    
+
     # Should work with correct model_type
     try:
-        config = Config(
+        Config(
             wave_boundary={
                 "model_type": "spectral",
                 "wbctype": "jons",
@@ -127,12 +124,10 @@ def test_config_wave_boundary_discriminator():
 def test_config_input_optional():
     """Test that input field is now optional."""
     from pydantic import ValidationError
-    
+
     # input should be optional now
     try:
-        config = Config(
-            wave_boundary=OffWaveBoundary()
-        )
+        Config(wave_boundary=OffWaveBoundary())
     except ValidationError as e:
         errors = e.errors()
         error_fields = [err["loc"][0] for err in errors]
@@ -144,10 +139,10 @@ def test_config_input_optional():
 def test_warn_wave_direction_params_without_swave(grid, bathy, caplog):
     """Test that a warning is logged when wave direction params are set but swave=False."""
     import logging
-    
+
     caplog.set_level(logging.WARNING)
-    
-    config = Config(
+
+    Config(
         grid=grid,
         bathy=bathy,
         physics=Physics(swave=False),
@@ -159,9 +154,9 @@ def test_warn_wave_direction_params_without_swave(grid, bathy, caplog):
                 thetamax=60,
                 dtheta=10,
             ),
-        )
+        ),
     )
-    
+
     # Check that warning was logged
     assert any(
         "Wave directional parameters" in record.message and "swave=0" in record.message
@@ -172,10 +167,10 @@ def test_warn_wave_direction_params_without_swave(grid, bathy, caplog):
 def test_no_warn_wave_direction_params_with_swave(grid, bathy, caplog):
     """Test that no warning is logged when swave is enabled (default)."""
     import logging
-    
+
     caplog.set_level(logging.WARNING)
-    
-    config = Config(
+
+    Config(
         grid=grid,
         bathy=bathy,
         wave_boundary=SpectralWaveBoundary(
@@ -186,11 +181,10 @@ def test_no_warn_wave_direction_params_with_swave(grid, bathy, caplog):
                 thetamax=60,
                 dtheta=10,
             ),
-        )
+        ),
     )
-    
+
     # Check that no wave direction warning was logged
     assert not any(
-        "Wave directional parameters" in record.message
-        for record in caplog.records
+        "Wave directional parameters" in record.message for record in caplog.records
     )

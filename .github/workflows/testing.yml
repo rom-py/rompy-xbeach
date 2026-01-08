@@ -28,7 +28,7 @@ jobs:
       name: Run linting
       run: |
         pip install ruff
-        ruff check .
+        ruff check src/ tests/
     -
       name: Build package
       run: python -m build

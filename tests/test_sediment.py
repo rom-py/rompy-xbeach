@@ -233,7 +233,7 @@ def test_bed_composition_validation_d90_greater_than_d50():
 def test_bed_composition_gravel():
     """Test BedComposition for gravel beach (XBeach-G)."""
     composition = BedComposition(
-        D50=[0.01],   # 10mm - gravel
+        D50=[0.01],  # 10mm - gravel
         D90=[0.015],  # 15mm
         rhos=2650.0,
         por=0.4,
@@ -378,7 +378,7 @@ def test_sediment_with_bed_composition():
         morphology=Morphology(morfac=10.0),
     )
     params = sediment.get(destdir="/tmp")
-    
+
     # Check bed composition params
     assert params["ngd"] == 1
     assert params["D50"] == [0.0002]
@@ -386,7 +386,7 @@ def test_sediment_with_bed_composition():
     assert params["rhos"] == 2650.0
     assert params["por"] == 0.4
     assert params["dzg1"] == 0.1
-    
+
     # Check morphology params
     assert params["morfac"] == 10.0
     assert params["morphology"] == 1

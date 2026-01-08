@@ -4,7 +4,11 @@ import pytest
 from rompy_xbeach.components.physics import Physics
 from rompy_xbeach.components.boundary.parameters import WaveBoundaryConditions
 from rompy_xbeach.components.physics.constants import Coriolis, PhysicalConstants
-from rompy_xbeach.components.physics.friction import Viscosity, HorizontalViscosity, Manning
+from rompy_xbeach.components.physics.friction import (
+    Viscosity,
+    HorizontalViscosity,
+    Manning,
+)
 from rompy_xbeach.components.physics.wci import WaveCurrentInteraction
 from rompy_xbeach.components.physics.numerics import (
     FlowNumerics,
@@ -170,7 +174,7 @@ def test_coriolis():
 
 def test_physics_with_all_new_components():
     """Test Physics with all new component fields.
-    
+
     Note: wbc field has been removed from Physics - wave boundary parameters
     are now handled through Config.wave_boundary or input.wave.wbc
     """

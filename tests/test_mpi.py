@@ -44,7 +44,7 @@ def test_mpi_manual_mode_without_mmpi_raises_error():
     """Test that manual mode without mmpi raises validation error."""
     with pytest.raises(ValueError) as exc_info:
         Mpi(mpiboundary="man", nmpi=8)
-    
+
     assert "both mmpi and nmpi must be specified" in str(exc_info.value)
 
 
@@ -52,7 +52,7 @@ def test_mpi_manual_mode_without_nmpi_raises_error():
     """Test that manual mode without nmpi raises validation error."""
     with pytest.raises(ValueError) as exc_info:
         Mpi(mpiboundary="man", mmpi=4)
-    
+
     assert "both mmpi and nmpi must be specified" in str(exc_info.value)
 
 
@@ -60,7 +60,7 @@ def test_mpi_manual_mode_without_both_raises_error():
     """Test that manual mode without mmpi and nmpi raises validation error."""
     with pytest.raises(ValueError) as exc_info:
         Mpi(mpiboundary="man")
-    
+
     assert "both mmpi and nmpi must be specified" in str(exc_info.value)
 
 
@@ -83,19 +83,19 @@ def test_mpi_validation_ranges():
     mpi = Mpi(mpiboundary="man", mmpi=1, nmpi=100)
     assert mpi.mmpi == 1
     assert mpi.nmpi == 100
-    
+
     # Invalid mmpi (too low)
     with pytest.raises(ValueError):
         Mpi(mpiboundary="man", mmpi=0, nmpi=4)
-    
+
     # Invalid mmpi (too high)
     with pytest.raises(ValueError):
         Mpi(mpiboundary="man", mmpi=101, nmpi=4)
-    
+
     # Invalid nmpi (too low)
     with pytest.raises(ValueError):
         Mpi(mpiboundary="man", mmpi=4, nmpi=0)
-    
+
     # Invalid nmpi (too high)
     with pytest.raises(ValueError):
         Mpi(mpiboundary="man", mmpi=4, nmpi=101)

@@ -2,7 +2,6 @@
 
 import pytest
 from rompy_xbeach.components.boundary.specification import (
-    WaveBoundary,
     SpectralWaveBoundary,
     NonSpectralWaveBoundary,
     OffWaveBoundary,
@@ -24,7 +23,7 @@ def test_spectral_wave_boundary():
             rt=3600.0,
             dtbc=1.0,
             random=True,
-        )
+        ),
     )
     assert boundary.model_type == "spectral"
     assert boundary.wbctype == "jons"
@@ -59,7 +58,7 @@ def test_non_spectral_wave_boundary_stat():
             Trep=12.0,
             dir0=285.0,
             m=10,
-        )
+        ),
     )
     assert boundary.model_type == "nonspectral"
     assert boundary.wbctype == "stat"
@@ -77,7 +76,7 @@ def test_non_spectral_wave_boundary_bichrom():
             Trep=10.0,
             Tlong=80.0,
             dir0=270.0,
-        )
+        ),
     )
     assert boundary.wbctype == "bichrom"
     assert boundary.bcfile is None
@@ -98,7 +97,7 @@ def test_non_spectral_wave_boundary_ts1_with_file():
         wbc=NonSpectralWaveBoundaryConditions(
             Hrms=2.0,
             Trep=12.0,
-        )
+        ),
     )
     assert boundary.wbctype == "ts_1"
     assert boundary.bcfile == "bc/gen.ezs"
@@ -174,7 +173,7 @@ def test_spectral_wave_boundary_serialization():
         wbc=SpectralWaveBoundaryConditions(
             nmax=0.8,
             rt=3600.0,
-        )
+        ),
     )
     data = boundary.model_dump(exclude_none=True)
     assert data["model_type"] == "spectral"
@@ -192,7 +191,7 @@ def test_non_spectral_wave_boundary_serialization():
         wbc=NonSpectralWaveBoundaryConditions(
             Hrms=2.0,
             Trep=12.0,
-        )
+        ),
     )
     data = boundary.model_dump(exclude_none=True)
     assert data["model_type"] == "nonspectral"
@@ -209,7 +208,7 @@ def test_spectral_wbctype_validation():
     for wbctype in ["jons", "parametric", "swan", "vardens", "jonstable"]:
         boundary = SpectralWaveBoundary(wbctype=wbctype, bcfile="test.txt")
         assert boundary.wbctype == wbctype
-    
+
     # Invalid type
     with pytest.raises(ValueError):
         SpectralWaveBoundary(wbctype="invalid", bcfile="test.txt")
@@ -221,12 +220,12 @@ def test_non_spectral_wbctype_validation():
     for wbctype in ["stat", "bichrom"]:
         boundary = NonSpectralWaveBoundary(wbctype=wbctype)
         assert boundary.wbctype == wbctype
-    
+
     # Valid types that need files
     for wbctype in ["stat_table", "ts_1", "ts_2", "ts_nonh"]:
         boundary = NonSpectralWaveBoundary(wbctype=wbctype, bcfile="test.txt")
         assert boundary.wbctype == wbctype
-    
+
     # Invalid type
     with pytest.raises(ValueError):
         NonSpectralWaveBoundary(wbctype="invalid")

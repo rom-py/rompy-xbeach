@@ -226,7 +226,7 @@ def test_physics_hydrodynamic_only_simulation():
 
 def test_physics_nonhydrostatic_simulation():
     """Test Physics configuration for non-hydrostatic simulation.
-    
+
     Note: The legacy 'nonh' parameter is deprecated in XBeach. Use wavemodel=Nonh()
     which outputs 'wavemodel = nonh' in params.txt.
     """
@@ -464,9 +464,10 @@ def test_no_log_for_default_disabled_processes(caplog):
 def test_nonh_wavemodel_with_swave_true_logs_warning(caplog):
     """Test that using Nonh wavemodel with swave=True logs a warning."""
     import logging
+
     with caplog.at_level(logging.WARNING):
         physics = Physics(wavemodel=Nonh(), swave=True)
-    
+
     assert "swave' should not be True when using Nonh wavemodel" in caplog.text
     assert "XBeach requires swave=0" in caplog.text
     # Model is still created
@@ -477,6 +478,7 @@ def test_nonh_wavemodel_with_swave_true_logs_warning(caplog):
 def test_nonh_wavemodel_with_swave_none_logs_warning(caplog):
     """Test that using Nonh wavemodel without setting swave logs a warning."""
     import logging
+
     with caplog.at_level(logging.WARNING):
         physics = Physics(wavemodel=Nonh())
 
@@ -490,9 +492,10 @@ def test_nonh_wavemodel_with_swave_none_logs_warning(caplog):
 def test_nonh_wavemodel_with_swave_false_no_warning(caplog):
     """Test that using Nonh wavemodel with swave=False does not log a warning."""
     import logging
+
     with caplog.at_level(logging.WARNING):
         physics = Physics(wavemodel=Nonh(), swave=False)
-    
+
     assert "swave" not in caplog.text
     assert isinstance(physics.wavemodel, Nonh)
     assert physics.swave is False
@@ -505,12 +508,13 @@ def test_nonh_wavemodel_with_swave_false_no_warning(caplog):
 def test_swave_true_without_nonh_wavemodel_no_warning(caplog):
     """Test that swave=True without Nonh wavemodel does not log a warning."""
     import logging
+
     with caplog.at_level(logging.WARNING):
         # Surfbeat wavemodel
         physics1 = Physics(wavemodel=Surfbeat(), swave=True)
         # No wavemodel specified (default)
         physics2 = Physics(swave=True)
-    
+
     assert "swave" not in caplog.text
     assert physics1.swave is True
     assert isinstance(physics1.wavemodel, Surfbeat)
