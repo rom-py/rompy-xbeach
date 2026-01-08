@@ -97,6 +97,7 @@ config = Config(
 | Section | Description |
 |---------|-------------|
 | [Grid](grid.md) | Grid definition with CRS support and coordinate transformations |
+| [Sources](sources.md) | Source objects for loading data with CRS awareness |
 | [Bathymetry](bathy.md) | Bathymetry interpolation, extension, and file generation |
 | [Wave Boundaries](boundaries.md) | Wave boundary generation from spectra and parameters |
 | [Forcing](forcing.md) | Wind and tide forcing from various data sources |

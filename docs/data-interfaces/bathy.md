@@ -37,73 +37,30 @@ xfile, yfile, depfile, grid = bathy.get(
 
 ## Source Types
 
-### GeoTIFF (Most Common)
+`XBeachBathy` accepts any source object that provides gridded data with CRS information. Common choices for bathymetry:
+
+| Source | Best For |
+|--------|----------|
+| `SourceGeotiff` | GeoTIFF raster files (most common) |
+| `SourceXYZ` | XYZ point cloud / survey data |
+| `SourceCRSFile` | NetCDF, Zarr, or other xarray-compatible files |
+| `SourceCRSDataset` | Existing xarray Dataset objects |
 
 ```python
-from rompy_xbeach.source import SourceGeotiff
+from rompy_xbeach.source import SourceGeotiff, SourceXYZ
 
-source = SourceGeotiff(
-    filename="bathymetry.tif",
-    band=1,  # Optional: specify band index
-)
-```
+# GeoTIFF (simplest - CRS embedded in file)
+source = SourceGeotiff(filename="bathymetry.tif")
 
-### Generic File
-
-```python
-from rompy_xbeach.source import SourceCRSFile
-
-source = SourceCRSFile(
-    uri="bathy.nc",
-    kwargs={"engine": "netcdf"},  # Optional kwargs passed to xarray.open_dataset
-    crs="EPSG:4326",              # CRS of the source generic data file
-    variable="depth",             # Variable name in the data file
-    x_dim="x",                    # X dimension name in the data file
-    y_dim="y",                    # Y dimension name in the data file
-)
-```
-
-### Intake
-
-```python
-from rompy_xbeach.source import SourceCRSIntake
-
-source = SourceCRSIntake(
-    catalog_uri="my-catalog.yaml",  # Path to the intake catalog
-    dataset_id="my-dataset-id",     # Dataset ID in the catalog
-    crs="EPSG:4326",                # CRS of the source data
-    x_dim="longitude",              # X dimension name in the data file
-    y_dim="latitude",               # Y dimension name in the data file
-)
-```
-
-### Xarray Dataset object
-
-```python
-from rompy_xbeach.source import SourceCRSDataset
-
-source = SourceCRSDataset(
-    obj=dset,         # Xarray Dataset object previously loaded
-    crs="EPSG:4326",  # CRS of the source data
-)
-```
-
-### XYZ Point Data
-
-```python
-from rompy_xbeach.source import SourceXYZ
-
+# XYZ point data (requires gridding)
 source = SourceXYZ(
-    filename="bathymetry.xyz",
-    res=0.0005,                             # Resolution for gridding
-    read_csv_kwargs=dict(sep="\t"),         # Optional kwargs for pandas.read_csv
-    griddata_kwargs=dict(method="linear"),  # Optional kwargs for scipy.interpolate.griddata
-    xcol="easting",                         # Column name for x in the xyz file
-    ycol="northing",                        # Column name for y in the xyz file
-    zcol="elevation",                       # Column name for z in the xyz file
-    crs="EPSG:4326",                        # CRS of the source data
+    filename="survey.xyz",
+    crs="EPSG:4326",
+    res=0.0005,
 )
 ```
+
+For detailed documentation on all source types and their parameters, see [Sources](sources.md).
 
 ## Interpolation
 
