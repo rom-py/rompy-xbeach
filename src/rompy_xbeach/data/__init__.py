@@ -16,3 +16,11 @@ from rompy_xbeach.data.bathy import (
     SeawardExtensionLinear,
     XBeachAccessor,
 )
+
+__all__ = [
+    "XBeachBathy",
+    "XBeachDataGrid",
+    "SeawardExtensionBase",
+    "SeawardExtensionLinear",
+    "XBeachAccessor",
+]

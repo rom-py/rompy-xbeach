@@ -5,7 +5,6 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Literal, Union, Optional
 from functools import cached_property
-import numpy as np
 import xarray as xr
 
 from pydantic import Field, model_validator
