@@ -3,7 +3,7 @@ import pytest
 import xarray as xr
 
 from rompy_xbeach.source import SourceGeotiff
-from rompy_xbeach.data.base import XBeachBathy
+from rompy_xbeach.data.bathy import XBeachBathy
 from rompy_xbeach.grid import RegularGrid, GeoPoint
 
 HERE = Path(__file__).parent

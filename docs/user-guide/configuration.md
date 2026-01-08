@@ -241,7 +241,7 @@ print(config.params)
 Some paths can use environment variables:
 
 ```python
-from rompy_xbeach.data.base import XBeachBathy
+from rompy_xbeach.data.bathy import XBeachBathy
 
 from rompy_xbeach.source import SourceGeotiff
 
@@ -254,6 +254,6 @@ bathy = XBeachBathy(
 
 ## Next Steps
 
-- [Data Interfaces](data-interfaces.md) — Configure boundary conditions from data
+- [Data Interfaces](../data-interfaces/index.md) — Configure boundary conditions from data
 - [Parameter Reference](parameter-reference.md) — Find specific XBeach parameters
 - [Components](../components/index.md) — Detailed component documentation

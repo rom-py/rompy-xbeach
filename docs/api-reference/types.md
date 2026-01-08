@@ -32,7 +32,7 @@ API reference for base types and utilities.
 
 ## Bathymetry
 
-::: rompy_xbeach.data.base.XBeachBathy
+::: rompy_xbeach.data.bathy.XBeachBathy
     options:
       show_root_heading: true
       show_source: false

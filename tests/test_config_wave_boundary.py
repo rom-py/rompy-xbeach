@@ -4,7 +4,7 @@ import pytest
 from pathlib import Path
 from rompy_xbeach.config import Config
 from rompy_xbeach.grid import RegularGrid, GeoPoint
-from rompy_xbeach.data.base import XBeachBathy
+from rompy_xbeach.data.bathy import XBeachBathy
 from rompy_xbeach.source import SourceGeotiff
 from rompy_xbeach.components.boundary.specification import (
     SpectralWaveBoundary,

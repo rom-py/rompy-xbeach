@@ -18,7 +18,7 @@ from rompy.model import ModelRun
 from rompy.core.time import TimeRange
 from rompy_xbeach.config import Config
 from rompy_xbeach.grid import RegularGrid
-from rompy_xbeach.data.base import XBeachBathy
+from rompy_xbeach.data.bathy import XBeachBathy
 from rompy_xbeach.components.physics import Physics
 from rompy_xbeach.components.output import Output
 

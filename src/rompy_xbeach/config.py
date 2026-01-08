@@ -11,7 +11,7 @@ from rompy.utils import load_entry_points
 
 from rompy_xbeach.types import XBeachBaseConfig
 from rompy_xbeach.grid import RegularGrid
-from rompy_xbeach.data.base import XBeachBathy
+from rompy_xbeach.data.bathy import XBeachBathy
 
 from rompy_xbeach.components.mpi import Mpi
 from rompy_xbeach.components.output import Output

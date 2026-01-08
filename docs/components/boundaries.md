@@ -9,7 +9,7 @@ There are two ways to specify boundaries:
 1. **Data interfaces** (`input.wave`, `input.tide`) — Generate boundary files from data sources
 2. **Parameter components** — Specify parameters directly for pre-existing files
 
-This page covers the parameter components. For data-driven boundaries, see [Data Interfaces](../user-guide/data-interfaces.md).
+This page covers the parameter components. For data-driven boundaries, see [Data Interfaces](../data-interfaces/index.md).
 
 ## Flow Boundaries
 

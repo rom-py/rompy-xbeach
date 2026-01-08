@@ -19,7 +19,7 @@ The `Config` class is the main entry point. It orchestrates all XBeach parameter
 ```python
 from rompy_xbeach.config import Config
 from rompy_xbeach.grid import RegularGrid
-from rompy_xbeach.data.base import XBeachBathy
+from rompy_xbeach.data.bathy import XBeachBathy
 from rompy_xbeach.components.physics import Physics
 from rompy_xbeach.components.physics.wavemodel import Surfbeat
 from rompy_xbeach.components.physics.friction import Cf
