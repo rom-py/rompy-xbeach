@@ -254,6 +254,6 @@ bathy = XBeachBathy(
 
 ## Next Steps
 
-- [Data Interfaces](../data-interfaces/index.md) — Configure boundary conditions from data
 - [Parameter Reference](parameter-reference.md) — Find specific XBeach parameters
+- [Data Interfaces](../data-interfaces/index.md) — Configure boundary conditions from data
 - [Components](../components/index.md) — Detailed component documentation
