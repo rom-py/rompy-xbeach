@@ -40,6 +40,9 @@ class BoundaryStat(NonSpectralWaveBoundaryParams):
 
     """
 
+    id: Literal["stat"] = Field(
+        default="stat", description="Boundary type identifier"
+    )
     model_type: Literal["stat"] = Field(
         default="stat",
         description="Model type discriminator",
@@ -87,10 +90,10 @@ class BoundaryStat(NonSpectralWaveBoundaryParams):
             XBeach parameters including wbctype and wave parameters.
 
         """
-        params = {"wbctype": "stat"}
+        params = {"wbctype": self.id}
         params.update(
             self.model_dump(
-                exclude={"model_type"},
+                exclude={"model_type", "id"},
                 exclude_none=True,
             )
         )
@@ -118,6 +121,9 @@ class BoundaryBichrom(NonSpectralWaveBoundaryParams):
 
     """
 
+    id: Literal["bichrom"] = Field(
+        default="bichrom", description="Boundary type identifier"
+    )
     model_type: Literal["bichrom"] = Field(
         default="bichrom",
         description="Model type discriminator",
@@ -170,10 +176,10 @@ class BoundaryBichrom(NonSpectralWaveBoundaryParams):
             XBeach parameters including wbctype and wave parameters.
 
         """
-        params = {"wbctype": "bichrom"}
+        params = {"wbctype": self.id}
         params.update(
             self.model_dump(
-                exclude={"model_type"},
+                exclude={"model_type", "id"},
                 exclude_none=True,
             )
         )

@@ -26,6 +26,9 @@ class BoundaryOff(RompyBaseModel):
 
     """
 
+    id: Literal["off"] = Field(
+        default="off", description="Boundary type identifier"
+    )
     model_type: Literal["off"] = Field(
         default="off",
         description="Model type discriminator",
@@ -51,7 +54,7 @@ class BoundaryOff(RompyBaseModel):
             XBeach parameters with wbctype='off'.
 
         """
-        return {"wbctype": "off"}
+        return {"wbctype": self.id}
 
 
 class BoundaryReuse(RompyBaseModel):
@@ -69,6 +72,9 @@ class BoundaryReuse(RompyBaseModel):
 
     """
 
+    id: Literal["reuse"] = Field(
+        default="reuse", description="Boundary type identifier"
+    )
     model_type: Literal["reuse"] = Field(
         default="reuse",
         description="Model type discriminator",
@@ -98,7 +104,7 @@ class BoundaryReuse(RompyBaseModel):
             XBeach parameters with wbctype='reuse' and optional bcfile.
 
         """
-        params = {"wbctype": "reuse"}
+        params = {"wbctype": self.id}
         if self.bcfile:
             params["bcfile"] = self.bcfile
         return params
