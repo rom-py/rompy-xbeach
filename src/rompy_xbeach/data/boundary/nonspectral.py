@@ -11,11 +11,12 @@ This module contains boundary classes for non-spectral wave boundary types:
 
 from typing import Literal, Optional
 from pathlib import Path
-from pydantic import Field, model_validator
+from pydantic import Field
 
 from rompy.core.time import TimeRange
 
 from rompy_xbeach.grid import RegularGrid
+from rompy_xbeach.types import XBeachDataBlob
 from rompy_xbeach.data.boundary.base import NonSpectralWaveBoundaryParams
 
 
@@ -189,16 +190,21 @@ class BoundaryStatTable(NonSpectralWaveBoundaryParams):
 
     Examples
     --------
-    >>> boundary = BoundaryStatTable(bcfile="stat_table.txt")
+    >>> from rompy_xbeach.types import XBeachDataBlob
+    >>> boundary = BoundaryStatTable(
+    ...     source=XBeachDataBlob(source="/path/to/stat_table.txt"),
+    ... )
 
     """
-
-    model_type: Literal["stat_table"] = Field(
-        default="stat_table",
+    id: Literal["stat_table"] = Field(
+        default="stat_table", description="Boundary type identifier"
+    )
+    model_type: Literal["file_stat_table"] = Field(
+        default="file_stat_table",
         description="Model type discriminator",
     )
-    bcfile: str = Field(
-        description="Path to stat_table boundary file",
+    source: XBeachDataBlob = Field(
+        description="Source for stat_table boundary file",
     )
 
     def get(
@@ -221,10 +227,12 @@ class BoundaryStatTable(NonSpectralWaveBoundaryParams):
             XBeach parameters including wbctype, bcfile, and wave parameters.
 
         """
-        params = {"wbctype": "stat_table", "bcfile": self.bcfile}
+        destdir = Path(destdir)
+        bcfile = self.source.get(destdir)
+        params = {"wbctype": self.id, "bcfile": bcfile.name}
         params.update(
             self.model_dump(
-                exclude={"model_type", "bcfile"},
+                exclude={"model_type", "id", "source"},
                 exclude_none=True,
             )
         )
@@ -235,23 +243,26 @@ class BoundaryTs1(NonSpectralWaveBoundaryParams):
     """Time series wave boundary at single location (ts_1).
 
     Requires a bc/gen.ezs file with columns: time, zs, E.
+    The file will be fetched to destdir/bc/ subdirectory.
 
     Examples
     --------
+    >>> from rompy_xbeach.types import XBeachDataBlob
     >>> boundary = BoundaryTs1(
-    ...     bcfile="bc/gen.ezs",
-    ...     Hrms=2.0,
-    ...     Trep=12.0,
+    ...     source=XBeachDataBlob(source="/path/to/gen.ezs"),
     ... )
 
     """
 
-    model_type: Literal["ts_1"] = Field(
-        default="ts_1",
+    id: Literal["ts_1"] = Field(
+        default="ts_1", description="Boundary type identifier"
+    )
+    model_type: Literal["file_ts_1"] = Field(
+        default="file_ts_1",
         description="Model type discriminator",
     )
-    bcfile: str = Field(
-        description="Path to time series boundary file (bc/gen.ezs format)",
+    source: XBeachDataBlob = Field(
+        description="Source for time series boundary file (bc/gen.ezs format)",
     )
 
     def get(
@@ -274,10 +285,14 @@ class BoundaryTs1(NonSpectralWaveBoundaryParams):
             XBeach parameters including wbctype, bcfile, and wave parameters.
 
         """
-        params = {"wbctype": "ts_1", "bcfile": self.bcfile}
+        destdir = Path(destdir)
+        bc_dir = destdir / "bc"
+        bc_dir.mkdir(parents=True, exist_ok=True)
+        bcfile = self.source.get(bc_dir)
+        params = {"wbctype": self.id, "bcfile": f"bc/{bcfile.name}"}
         params.update(
             self.model_dump(
-                exclude={"model_type", "bcfile"},
+                exclude={"model_type", "id", "source"},
                 exclude_none=True,
             )
         )
@@ -288,23 +303,26 @@ class BoundaryTs2(NonSpectralWaveBoundaryParams):
     """Time series wave boundary at two locations (ts_2).
 
     Requires a bc/gen.ezs file with columns: time, zs, E.
+    The file will be fetched to destdir/bc/ subdirectory.
 
     Examples
     --------
+    >>> from rompy_xbeach.types import XBeachDataBlob
     >>> boundary = BoundaryTs2(
-    ...     bcfile="bc/gen.ezs",
-    ...     Hrms=2.0,
-    ...     Trep=12.0,
+    ...     source=XBeachDataBlob(source="/path/to/gen.ezs"),
     ... )
 
     """
 
-    model_type: Literal["ts_2"] = Field(
-        default="ts_2",
+    id: Literal["ts_2"] = Field(
+        default="ts_2", description="Boundary type identifier"
+    )
+    model_type: Literal["file_ts_2"] = Field(
+        default="file_ts_2",
         description="Model type discriminator",
     )
-    bcfile: str = Field(
-        description="Path to time series boundary file (bc/gen.ezs format)",
+    source: XBeachDataBlob = Field(
+        description="Source for time series boundary file (bc/gen.ezs format)",
     )
 
     def get(
@@ -327,10 +345,14 @@ class BoundaryTs2(NonSpectralWaveBoundaryParams):
             XBeach parameters including wbctype, bcfile, and wave parameters.
 
         """
-        params = {"wbctype": "ts_2", "bcfile": self.bcfile}
+        destdir = Path(destdir)
+        bc_dir = destdir / "bc"
+        bc_dir.mkdir(parents=True, exist_ok=True)
+        bcfile = self.source.get(bc_dir)
+        params = {"wbctype": self.id, "bcfile": f"bc/{bcfile.name}"}
         params.update(
             self.model_dump(
-                exclude={"model_type", "bcfile"},
+                exclude={"model_type", "id", "source"},
                 exclude_none=True,
             )
         )
@@ -344,16 +366,22 @@ class BoundaryTsNonh(NonSpectralWaveBoundaryParams):
 
     Examples
     --------
-    >>> boundary = BoundaryTsNonh(bcfile="Boun_u.bcf")
+    >>> from rompy_xbeach.types import XBeachDataBlob
+    >>> boundary = BoundaryTsNonh(
+    ...     source=XBeachDataBlob(source="/path/to/Boun_u.bcf"),
+    ... )
 
     """
 
-    model_type: Literal["ts_nonh"] = Field(
-        default="ts_nonh",
+    id: Literal["ts_nonh"] = Field(
+        default="ts_nonh", description="Boundary type identifier"
+    )
+    model_type: Literal["file_ts_nonh"] = Field(
+        default="file_ts_nonh",
         description="Model type discriminator",
     )
-    bcfile: str = Field(
-        description="Path to non-hydrostatic time series boundary file (Boun_u.bcf format)",
+    source: XBeachDataBlob = Field(
+        description="Source for non-hydrostatic time series boundary file (Boun_u.bcf format)",
     )
 
     def get(
@@ -376,10 +404,12 @@ class BoundaryTsNonh(NonSpectralWaveBoundaryParams):
             XBeach parameters including wbctype, bcfile, and wave parameters.
 
         """
-        params = {"wbctype": "ts_nonh", "bcfile": self.bcfile}
+        destdir = Path(destdir)
+        bcfile = self.source.get(destdir)
+        params = {"wbctype": self.id, "bcfile": bcfile.name}
         params.update(
             self.model_dump(
-                exclude={"model_type", "bcfile"},
+                exclude={"model_type", "id", "source"},
                 exclude_none=True,
             )
         )

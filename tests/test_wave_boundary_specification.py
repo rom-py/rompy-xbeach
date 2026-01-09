@@ -1,6 +1,8 @@
 """Tests for wave boundary classes in data/boundary/."""
 
 import pytest
+from pathlib import Path
+from rompy_xbeach.types import XBeachDataBlob
 from rompy_xbeach.data.boundary import (
     BoundaryStat,
     BoundaryBichrom,
@@ -11,6 +13,9 @@ from rompy_xbeach.data.boundary import (
     BoundaryOff,
     BoundaryReuse,
 )
+
+
+HERE = Path(__file__).parent
 
 
 def test_boundary_stat():
@@ -73,55 +78,94 @@ def test_boundary_bichrom_get():
     assert params["Tlong"] == 80.0
 
 
-def test_boundary_ts1():
+def test_boundary_ts1(tmp_path):
     """Test BoundaryTs1 for time series at single location."""
+    # Create a test file
+    test_file = tmp_path / "gen.ezs"
+    test_file.write_text("test content")
+    
     boundary = BoundaryTs1(
-        bcfile="bc/gen.ezs",
-        Hrms=2.0,
-        Trep=12.0,
+        source=XBeachDataBlob(source=test_file),
     )
-    assert boundary.model_type == "ts_1"
-    assert boundary.bcfile == "bc/gen.ezs"
+    assert boundary.model_type == "file_ts_1"
+    assert boundary.id == "ts_1"
 
 
-def test_boundary_ts1_get():
+def test_boundary_ts1_get(tmp_path):
     """Test BoundaryTs1.get() returns correct XBeach parameters."""
+    # Create a test file
+    source_file = tmp_path / "source" / "gen.ezs"
+    source_file.parent.mkdir(parents=True, exist_ok=True)
+    source_file.write_text("test content")
+    
     boundary = BoundaryTs1(
-        bcfile="bc/gen.ezs",
-        Hrms=2.0,
-        Trep=12.0,
+        source=XBeachDataBlob(source=source_file),
     )
-    params = boundary.get("/tmp")
+    destdir = tmp_path / "dest"
+    destdir.mkdir(parents=True, exist_ok=True)
+    params = boundary.get(destdir)
     assert params["wbctype"] == "ts_1"
     assert params["bcfile"] == "bc/gen.ezs"
-    assert params["Hrms"] == 2.0
+    # Verify file was copied to bc/ subdirectory
+    assert (destdir / "bc" / "gen.ezs").exists()
 
 
-def test_boundary_ts2():
+def test_boundary_ts2(tmp_path):
     """Test BoundaryTs2 for time series at two locations."""
+    # Create a test file
+    test_file = tmp_path / "gen.ezs"
+    test_file.write_text("test content")
+    
     boundary = BoundaryTs2(
-        bcfile="bc/gen.ezs",
+        source=XBeachDataBlob(source=test_file),
     )
-    assert boundary.model_type == "ts_2"
-    assert boundary.bcfile == "bc/gen.ezs"
+    assert boundary.model_type == "file_ts_2"
+    assert boundary.id == "ts_2"
 
 
-def test_boundary_ts_nonh():
+def test_boundary_ts_nonh(tmp_path):
     """Test BoundaryTsNonh for non-hydrostatic time series."""
+    # Create a test file
+    test_file = tmp_path / "Boun_u.bcf"
+    test_file.write_text("test content")
+    
     boundary = BoundaryTsNonh(
-        bcfile="Boun_u.bcf",
+        source=XBeachDataBlob(source=test_file),
     )
-    assert boundary.model_type == "ts_nonh"
-    assert boundary.bcfile == "Boun_u.bcf"
+    assert boundary.model_type == "file_ts_nonh"
+    assert boundary.id == "ts_nonh"
 
 
-def test_boundary_stat_table():
+def test_boundary_stat_table(tmp_path):
     """Test BoundaryStatTable for time-varying parametric waves."""
+    # Create a test file
+    test_file = tmp_path / "stat_table.txt"
+    test_file.write_text("test content")
+    
     boundary = BoundaryStatTable(
-        bcfile="stat_table.txt",
+        source=XBeachDataBlob(source=test_file),
     )
-    assert boundary.model_type == "stat_table"
-    assert boundary.bcfile == "stat_table.txt"
+    assert boundary.model_type == "file_stat_table"
+    assert boundary.id == "stat_table"
+
+
+def test_boundary_stat_table_get(tmp_path):
+    """Test BoundaryStatTable.get() returns correct XBeach parameters."""
+    # Create a test file
+    source_file = tmp_path / "source" / "stat_table.txt"
+    source_file.parent.mkdir(parents=True, exist_ok=True)
+    source_file.write_text("test content")
+    
+    boundary = BoundaryStatTable(
+        source=XBeachDataBlob(source=source_file),
+    )
+    destdir = tmp_path / "dest"
+    destdir.mkdir(parents=True, exist_ok=True)
+    params = boundary.get(destdir)
+    assert params["wbctype"] == "stat_table"
+    assert params["bcfile"] == "stat_table.txt"
+    # Verify file was copied
+    assert (destdir / "stat_table.txt").exists()
 
 
 def test_boundary_off():
