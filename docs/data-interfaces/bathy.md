@@ -133,7 +133,9 @@ This setting is also written to `params.txt` so XBeach interprets the bathymetry
 
 ## Offshore Extension
 
-Nearshore surveys often don't extend far enough offshore for wave modelling. `XBeachBathy` can automatically extend the bathymetry seaward.
+XBeach requires a **homogeneous offshore boundary** for proper wave forcing — the depth along the seaward edge of the grid should be uniform. Nearshore bathymetry surveys rarely satisfy this requirement, as they typically capture the natural alongshore depth variability.
+
+The `SeawardExtensionLinear` class addresses this by extending the grid seaward with a uniform slope until reaching a target depth, ensuring the offshore boundary has consistent depth for wave boundary conditions.
 
 ### Linear Extension
 

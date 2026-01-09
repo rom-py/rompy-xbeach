@@ -55,6 +55,25 @@ API reference for data interfaces that generate boundary conditions from externa
       show_root_heading: true
       show_source: false
 
+### File-Based Boundaries
+
+For using pre-existing boundary files:
+
+::: rompy_xbeach.data.boundary.BoundaryFileJons
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.data.boundary.BoundaryFileJonstable
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.data.boundary.BoundaryFileSwan
+    options:
+      show_root_heading: true
+      show_source: false
+
 ---
 
 ## Tide / Water Level

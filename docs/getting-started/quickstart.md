@@ -146,20 +146,22 @@ config = Config(
 )
 ```
 
-### Manual Specification
+### From Pre-existing Files
 
-For pre-existing boundary files:
+For pre-existing boundary files, use the file-based boundary classes:
 
 ```python
-from rompy_xbeach.config import Config
-from rompy_xbeach.components.boundary.specification import SpectralWaveBoundary
+from rompy_xbeach.config import Config, DataInterface
+from rompy_xbeach.data.boundary import BoundaryFileJonstable
+from rompy_xbeach.types import XBeachDataBlob
 
 config = Config(
     grid=grid,
     bathy=bathy,
-    wave_boundary=SpectralWaveBoundary(
-        wbctype="jonstable",
-        bcfile="jonswap.txt",
+    input=DataInterface(
+        wave=BoundaryFileJonstable(
+            bcfile_source=XBeachDataBlob(source="jonswap.txt"),
+        ),
     ),
 )
 ```

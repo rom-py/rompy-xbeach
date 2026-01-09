@@ -163,15 +163,7 @@ API reference for all rompy-xbeach components.
 
 ### Wave Boundaries
 
-::: rompy_xbeach.components.boundary.specification.SpectralWaveBoundary
-    options:
-      show_root_heading: true
-      show_source: false
-
-::: rompy_xbeach.components.boundary.specification.NonSpectralWaveBoundary
-    options:
-      show_root_heading: true
-      show_source: false
+For manual wave boundary specification, see [Wave Boundaries Data API](../data.md#wave-boundaries).
 
 ---
 

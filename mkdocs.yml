@@ -26,7 +26,7 @@ nav:
       - Physics: components/physics.md
       - Sediment: components/sediment.md
       - Output: components/output.md
-      - Boundaries: components/boundaries.md
+      - Boundary Conditions: components/boundary_conditions.md
   - Examples:
       - examples/index.md
       - Grid: examples/grid-demo.ipynb

@@ -14,7 +14,7 @@ API reference for base types and utilities.
       show_root_heading: true
       show_source: false
 
-::: rompy_xbeach.types.XBeachHotstartBlob
+::: rompy_xbeach.types.XBeachDirectoryBlob
     options:
       show_root_heading: true
       show_source: false

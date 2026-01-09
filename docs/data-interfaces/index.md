@@ -110,7 +110,8 @@ config = Config(
 |------|-------------|-----------------|
 | **Grid** | Spatially gridded data | [`WindGrid`](../api-reference/data.md#rompy_xbeach.data.wind.WindGrid), [`TideConsGrid`](../api-reference/data.md#rompy_xbeach.data.waterlevel.TideConsGrid) |
 | **Station** | Multi-point station data | [`WindStation`](../api-reference/data.md#rompy_xbeach.data.wind.WindStation), [`BoundaryStationSpectraJonstable`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStationSpectraJonstable) |
-| **Point** | Single-point timeseries | `WindPoint`, `WaterLevelPoint`, `BoundaryPointParamJons` |
+| **Point** | Single-point timeseries | [`WindPoint`](../api-reference/data.md#rompy_xbeach.data.wind.WindPoint), [`WaterLevelPoint`](../api-reference/data.md#rompy_xbeach.data.waterlevel.WaterLevelPoint), [`BoundaryPointParamJons`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryPointParamJons) |
+| **File** | Pre-existing files | [`BoundaryFileJons`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryFileJons), [`BoundaryFileJonstable`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryFileJonstable) |
 
 ### Supported Source Types
 
@@ -120,5 +121,8 @@ config = Config(
 | [`SourceCRSDataset`](../api-reference/types.md#rompy_xbeach.source.SourceCRSDataset) | `dataset` | NetCDF with coordinates |
 | [`SourceCRSWavespectra`](../api-reference/types.md#rompy_xbeach.source.SourceCRSWavespectra) | `wavespectra` | Wave spectra files |
 | [`SourceCRSOceantide`](../api-reference/types.md#rompy_xbeach.source.SourceCRSOceantide) | `oceantide` | Tide constituent data |
-| `SourceTimeseriesCSV` | `timeseries_csv` | CSV timeseries |
+| [`SourceTimeseriesCSV`](../api-reference/types.md#rompy.core.source.SourceTimeseriesCSV) | `timeseries_csv` | CSV timeseries |
 | [`SourceXYZ`](../api-reference/types.md#rompy_xbeach.source.SourceXYZ) | `xyz` | XYZ point data |
+| [`SourceCRSFile`](../api-reference/types.md#rompy_xbeach.source.SourceCRSFile) | `file` | Generic CRS-aware files |
+| [`SourceCRSIntake`](../api-reference/types.md#rompy_xbeach.source.SourceCRSIntake) | `intake` | Intake catalog datasets |
+| [`SourceTideConsPointCSV`](../api-reference/types.md#rompy_xbeach.source.SourceTideConsPointCSV) | `tide_cons_point_csv` | Tide constituent CSV |

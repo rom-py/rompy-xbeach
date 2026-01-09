@@ -16,7 +16,6 @@ Config
 ├── output            # Output configuration
 ├── flow_boundary     # Flow boundary conditions
 ├── tide_boundary     # Tide/surge parameters
-├── wave_boundary     # Manual wave boundary specification
 ├── hotstart          # Hotstart initialisation
 └── mpi               # MPI parallelisation
 ```
@@ -28,7 +27,7 @@ Config
 | [Physics](physics.md) | Wave models, friction, viscosity | `wavemodel`, `bedfriction`, `swave`, `flow` |
 | [Sediment](sediment.md) | Transport, morphology, bed composition | `morfac`, `D50`, `form`, `turb` |
 | [Output](output.md) | Output format and intervals | `outputformat`, `tintg`, `tintm` |
-| [Boundaries](boundaries.md) | Flow, tide, wave boundaries | `front`, `back`, `tideloc`, `wbctype` |
+| [Boundary Conditions](boundary_conditions.md) | Flow and tide boundary conditions | `front`, `back`, `tideloc` |
 
 ## Using Components
 
@@ -145,4 +144,4 @@ If you're exploring, browse the component pages:
 - [Physics](physics.md) — Wave models, friction, viscosity, numerics
 - [Sediment](sediment.md) — Transport, morphology, bed composition
 - [Output](output.md) — Output format, intervals, variables
-- [Boundaries](boundaries.md) — Flow, tide, wave boundaries
+- [Boundary Conditions](boundary_conditions.md) — Flow and tide boundary conditions

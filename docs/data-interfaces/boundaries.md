@@ -1,442 +1,403 @@
 # Wave Boundaries
 
-Rompy-xbeach provides comprehensive support for generating XBeach wave boundary conditions from external data sources. The boundary system handles multiple data structures (grids, stations, points), various XBeach boundary types (JONSWAP, JONSTABLE, SWAN), and automatic file generation.
+Wave boundary conditions in rompy-xbeach are specified through `Config.input.wave`. This unified interface supports:
 
-## Two Approaches
+- **Data-driven boundaries** — Generate boundary files from external data sources (spectra, parameters)
+- **File-based boundaries** — Use pre-existing boundary files
+- **Parametric boundaries** — Simple stationary wave conditions without files
+- **Special boundaries** — No waves or reuse from previous simulations
 
-There are two ways to specify wave boundaries:
+All wave boundary classes are in the `rompy_xbeach.data.boundary` module.
 
-### 1. Manual Specification (`Config.wave_boundary`)
+## Class Naming Convention
 
-Use pre-existing boundary files or simple parametric conditions:
-
-```python
-from rompy_xbeach.components.boundary.specification import SpectralWaveBoundary
-
-config = Config(
-    grid=grid,
-    bathy=bathy,
-    wave_boundary=SpectralWaveBoundary(
-        wbctype="jons",
-        bcfile="jonswap.txt",  # Pre-existing file
-    ),
-)
-```
-
-### 2. Data-Driven Generation (`Config.input.wave`)
-
-Automatically generate boundary files from data sources:
-
-```python
-from rompy_xbeach.data.boundary import BoundaryStationSpectraJons
-
-config = Config(
-    grid=grid,
-    bathy=bathy,
-    input=DataInterface(
-        wave=BoundaryStationSpectraJons(
-            source=source,
-            # ...
-        ),
-    ),
-)
-```
-
-!!! warning "Cannot Mix Approaches"
-    Use either `wave_boundary` OR `input.wave`, not both.
-
-## Data-Driven Boundary Classes
-
-### Naming Convention
-
-Boundary classes follow a consistent naming pattern:
+Data-driven spectral boundary classes follow a consistent naming pattern:
 
 ```
-Boundary{DataStructure}{DataType}{BcType}
+Boundary{SourceType}{DataType}{OutputFormat}
 ```
 
-| Component | Options | Description |
-|-----------|---------|-------------|
-| **DataStructure** | `Station`, `Grid`, `Point` | Spatial structure of source data |
-| **DataType** | `Spectra`, `Param` | Full spectra or integrated parameters |
-| **BcType** | `Jons`, `Jonstable`, `Swan` | XBeach boundary type |
+Where:
 
-### Available Classes
+- **SourceType**: `Station`, `Grid`, or `Point` — how the source data is structured
+- **DataType**: `Spectra` or `Param` — whether source contains 2D spectra or bulk parameters
+- **OutputFormat**: `Jons`, `Jonstable`, or `Swan` — the XBeach boundary file format
 
-| Class | Source Data | XBeach Type |
-|-------|-------------|-------------|
-| [`BoundaryStationSpectraJons`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStationSpectraJons) | Station 2D spectra | `jons` |
-| [`BoundaryStationSpectraJonstable`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStationSpectraJonstable) | Station 2D spectra | `jonstable` |
-| [`BoundaryStationSpectraSwan`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStationSpectraSwan) | Station 2D spectra | `swan` |
-| [`BoundaryStationParamJons`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStationParamJons) | Station parameters | `jons` |
-| [`BoundaryStationParamJonstable`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStationParamJonstable) | Station parameters | `jonstable` |
-| [`BoundaryPointParamJons`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryPointParamJons) | Point timeseries | `jons` |
-| [`BoundaryPointParamJonstable`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryPointParamJonstable) | Point timeseries | `jonstable` |
+Examples:
 
-## XBeach Boundary Types
+| Class Name | Source | Data | Output |
+|------------|--------|------|--------|
+| `BoundaryStationSpectraJonstable` | Station (multi-point) | 2D Spectra | JONSTABLE |
+| `BoundaryGridParamJons` | Grid (spatial) | Parameters | JONSWAP |
+| `BoundaryPointParamJonstable` | Point (single) | Parameters | JONSTABLE |
 
-### JONSWAP (`jons`)
-
-Parametric JONSWAP spectrum defined by Hm0, Tp, direction, and spreading:
-
-```python
-from rompy_xbeach.data.boundary import BoundaryStationParamJons
-
-wbdata = BoundaryStationParamJons(
-    source=source,
-    hm0="hs",           # Variable name for wave height
-    tp="tp",            # Variable name for peak period
-    mainang="dir",      # Variable name for direction
-    gammajsp="gamma",   # Variable name for peak enhancement (optional)
-    dspr="spread",      # Variable name for directional spreading (optional)
-)
-```
-
-**Output**: Individual JONSWAP files for each timestep, referenced by a filelist.
-
-### JONSWAP Table (`jonstable`)
-
-Time-varying JONSWAP parameters in a single table file:
-
-```python
-from rompy_xbeach.data.boundary import BoundaryStationSpectraJonstable
-
-wbdata = BoundaryStationSpectraJonstable(source=source)
-```
-
-**Output**: Single `jonswap.txt` file with columns for Hm0, Tp, direction, etc.
-
-### SWAN 2D Spectra (`swan`)
-
-Full 2D directional spectra in SWAN format:
-
-```python
-from rompy_xbeach.data.boundary import BoundaryStationSpectraSwan
-
-wbdata = BoundaryStationSpectraSwan(source=source)
-```
-
-**Output**: SWAN-format spectral files preserving full directional information.
-
-## Data Structures
-
-### Station Data
-
-Multi-point data with a station/site dimension. Data is selected at the location nearest to the grid's offshore boundary:
-
-```python
-from rompy_xbeach.data.boundary import BoundaryStationSpectraJons
-
-wbdata = BoundaryStationSpectraJons(
-    source=source,
-    coords=dict(
-        x="lon",      # Longitude coordinate
-        y="lat",      # Latitude coordinate
-        s="site",     # Station dimension
-        t="time",     # Time dimension (optional, uses default)
-    ),
-    sel_method="idw",  # Selection method: "idw" or "nearest"
-    sel_method_kwargs=dict(tolerance=0.5),
-)
-```
-
-### Grid Data
-
-Spatially gridded data. Data is interpolated or selected at the offshore boundary:
-
-```python
-wbdata = BoundaryGridSpectraJons(
-    source=source,
-    coords=dict(x="longitude", y="latitude"),
-    sel_method="interp",  # or "sel"
-)
-```
-
-### Point Data
-
-Single-point timeseries with no spatial selection:
-
-```python
-from rompy_xbeach.data.boundary import BoundaryPointParamJons
-
-wbdata = BoundaryPointParamJons(
-    source=source,
-    hm0="phs1",
-    tp="ptp1",
-    mainang="pdp1",
-)
-```
-
-## Source Objects
-
-### Wavespectra Source
-
-For spectral data compatible with the `wavespectra` library:
-
-```python
-from rompy_xbeach.source import SourceCRSWavespectra
-
-source = SourceCRSWavespectra(
-    uri="wave_spectra.nc",
-    crs="EPSG:4326",
-)
-```
-
-### Dataset Source
-
-For NetCDF files with integrated parameters:
-
-```python
-from rompy_xbeach.source import SourceCRSDataset
-
-source = SourceCRSDataset(
-    uri="wave_params.nc",
-    crs="EPSG:4326",
-)
-```
-
-### CSV Timeseries
-
-For point data from CSV files:
-
-```python
-from rompy.core.source import SourceTimeseriesCSV
-
-source = SourceTimeseriesCSV(
-    filename="wave_params.csv",
-    tcol="time",
-)
-```
-
-## File Generation Options
-
-### Single vs Multiple Files
-
-Control whether to generate one file or multiple files:
-
-```python
-# Multiple files (one per timestep) - DEFAULT
-wbdata = BoundaryStationSpectraJons(
-    source=source,
-    filelist=True,  # Creates jons-filelist.txt + individual files
-)
-
-# Single file at simulation start
-wbdata = BoundaryStationSpectraJons(
-    source=source,
-    filelist=False,  # Creates single jonswap file
-)
-```
-
-### Time Parameters
-
-```python
-wbdata = BoundaryStationSpectraJons(
-    source=source,
-    dtbc=2.0,    # Timestep for boundary conditions (s)
-    fnyq=0.3,    # Nyquist frequency (Hz)
-)
-```
-
-## Variable Mapping
-
-### From Spectra
-
-When using spectral data, parameters are computed automatically:
-
-```python
-# Spectra source - parameters derived from spectra
-wbdata = BoundaryStationSpectraJonstable(source=source_spectra)
-```
-
-### From Parameters
-
-When using integrated parameters, map variable names:
-
-```python
-wbdata = BoundaryStationParamJons(
-    source=source,
-    hm0="phs1",        # Wave height variable
-    tp="ptp1",         # Peak period variable
-    mainang="pdp1",    # Direction variable
-    gammajsp="ppe1",   # Peak enhancement (optional)
-    dspr="pspr1",      # Directional spreading (optional)
-)
-```
-
-### Mixed: Variables and Constants
-
-You can mix data variables with constant values:
-
-```python
-wbdata = BoundaryStationParamJons(
-    source=source,
-    hm0="phs1",        # From data
-    tp="ptp1",         # From data
-    mainang="pdp1",    # From data
-    gammajsp=3.3,      # Constant value
-    dspr=20.0,         # Constant value (degrees)
-)
-```
-
-## Wave Boundary Parameters (`wbc`)
-
-Both manual and data-driven boundaries can use additional parameters:
-
-```python
-from rompy_xbeach.components.boundary.parameters import SpectralWaveBoundaryConditions
-
-wbdata = BoundaryStationParamJons(
-    source=source,
-    hm0="phs1",
-    tp="ptp1",
-    mainang="pdp1",
-    wbc=SpectralWaveBoundaryConditions(
-        nmax=0.8,              # Ratio of max/mean frequency
-        rt=3600.0,             # Duration of wave record (s)
-        dtbc=1.0,              # Time step in boundary file (s)
-        wbcevarreduce=1.0,     # Variance reduction factor
-        bclwonly=False,        # Use only long waves
-        wbcRemoveStokes=True,  # Remove Stokes drift
-        wbcScaleEnergy=True,   # Scale energy to match Hm0
-        correcthm0=True,       # Correct Hm0
-    ),
-)
-```
-
-## The `get()` Method
-
-All boundary classes implement `get()` to generate files:
-
-```python
-wbc = wbdata.get(
-    destdir=Path("./run"),
-    grid=grid,
-    time=TimeRange(start="2024-01-01", end="2024-01-02"),
-)
-
-# Returns a WaveBoundary object with params
-print(wbc.params)
-# {'wbctype': 'jons', 'bcfile': 'jons-filelist.txt', ...}
-```
-
-### What `get()` Does
-
-1. Opens the source data
-2. Selects/interpolates at the offshore boundary location
-3. Slices to the simulation time period
-4. Computes spectral parameters (if from spectra)
-5. Writes XBeach-compatible boundary files
-6. Returns parameters for `params.txt`
-
-## Integration with Config
+## Quick Start
 
 ```python
 from rompy_xbeach.config import Config, DataInterface
 from rompy_xbeach.data.boundary import BoundaryStationSpectraJonstable
 
+# Data-driven: generate JONSTABLE from wave spectra
 config = Config(
     grid=grid,
     bathy=bathy,
     input=DataInterface(
         wave=BoundaryStationSpectraJonstable(
-            source=source,
-            wbc=SpectralWaveBoundaryConditions(
-                nmax=0.8,
-                rt=3600.0,
-            ),
+            source=spectra_source,
+            hm0_var="hs",
+            tp_var="tp",
+            mainang_var="dir",
         ),
     ),
 )
 ```
 
-## Example: Complete Workflow
+## Boundary Class Categories
+
+### 1. Data-Driven Spectral Boundaries
+
+Generate spectral boundary files from external data sources. These classes read wave data, extract/interpolate to the model boundary, and write XBeach-compatible files.
+
+| Class | Source Type | Output Format |
+|-------|-------------|---------------|
+| [`BoundaryStationSpectraJons`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStationSpectraJons) | Station spectra | Single JONSWAP |
+| [`BoundaryStationSpectraJonstable`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStationSpectraJonstable) | Station spectra | Time-varying JONSTABLE |
+| [`BoundaryStationSpectraSwan`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStationSpectraSwan) | Station spectra | SWAN 2D spectrum |
+| [`BoundaryStationParamJons`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStationParamJons) | Station parameters | Single JONSWAP |
+| [`BoundaryStationParamJonstable`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStationParamJonstable) | Station parameters | Time-varying JONSTABLE |
+| [`BoundaryGridParamJons`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryGridParamJons) | Gridded parameters | Single JONSWAP |
+| [`BoundaryGridParamJonstable`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryGridParamJonstable) | Gridded parameters | Time-varying JONSTABLE |
+| [`BoundaryPointParamJons`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryPointParamJons) | Point timeseries | Single JONSWAP |
+| [`BoundaryPointParamJonstable`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryPointParamJonstable) | Point timeseries | Time-varying JONSTABLE |
+
+### 2. File-Based Spectral Boundaries
+
+Use pre-existing boundary files. These classes fetch files from a source location and configure XBeach to use them.
+
+| Class | File Type | Description |
+|-------|-----------|-------------|
+| [`BoundaryFileJons`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryFileJons) | JONSWAP | Single or multiple JONSWAP files |
+| [`BoundaryFileJonstable`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryFileJonstable) | JONSTABLE | Time-varying JONSWAP table |
+| [`BoundaryFileSwan`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryFileSwan) | SWAN | SWAN 2D spectrum files |
+
+### 3. Non-Spectral Boundaries
+
+Simple parametric boundaries or time series from files.
+
+| Class | XBeach `wbctype` | Description |
+|-------|------------------|-------------|
+| [`BoundaryStat`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStat) | `stat` | Stationary parametric (no file needed) |
+| [`BoundaryBichrom`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryBichrom) | `bichrom` | Bichromatic waves (no file needed) |
+| [`BoundaryStatTable`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStatTable) | `stat_table` | Time-varying parametric from file |
+| [`BoundaryTs1`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryTs1) | `ts_1` | Time series at single location |
+| [`BoundaryTs2`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryTs2) | `ts_2` | Time series at two locations |
+| [`BoundaryTsNonh`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryTsNonh) | `ts_nonh` | Non-hydrostatic time series |
+
+### 4. Special Boundaries
+
+| Class | XBeach `wbctype` | Description |
+|-------|------------------|-------------|
+| [`BoundaryOff`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryOff) | `off` | No wave forcing |
+| [`BoundaryReuse`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryReuse) | `reuse` | Reuse files from previous simulation |
+
+---
+
+## Data-Driven Boundaries
+
+### From Wave Spectra
+
+When you have 2D wave spectra (frequency × direction), use the `Spectra` classes:
 
 ```python
-from pathlib import Path
-from rompy.core.time import TimeRange
-from rompy_xbeach.grid import RegularGrid, GeoPoint
-from rompy_xbeach.source import SourceCRSWavespectra
 from rompy_xbeach.data.boundary import BoundaryStationSpectraJonstable
-from rompy_xbeach.components.boundary.parameters import SpectralWaveBoundaryConditions
+from rompy_xbeach.source import SourceCRSWavespectra
 
-# 1. Define grid
-grid = RegularGrid(
-    ori=GeoPoint(x=115.594239, y=-32.641104, crs="EPSG:4326"),
-    alfa=347.0,
-    dx=10, dy=15, nx=230, ny=220,
-    crs="EPSG:28350",
-)
-
-# 2. Define source
+# Source: wave spectra from NetCDF
 source = SourceCRSWavespectra(
     uri="wave_spectra.nc",
-    crs="EPSG:4326",
+    reader="read_ww3",  # wavespectra reader
+    crs=4326,
 )
 
-# 3. Create boundary object
-wbdata = BoundaryStationSpectraJonstable(
+# Generate time-varying JONSTABLE boundary
+wave = BoundaryStationSpectraJonstable(
     source=source,
-    coords=dict(x="lon", y="lat", s="site"),
-    wbc=SpectralWaveBoundaryConditions(
-        nmax=0.8,
-        rt=3600.0,
-        dtbc=1.0,
+    location="offshore",  # Extract at offshore boundary
+    filelist=True,        # Generate FILELIST with multiple files
+)
+```
+
+### From Wave Parameters
+
+When you have bulk wave parameters (Hm0, Tp, direction), use the `Param` classes:
+
+```python
+from rompy_xbeach.data.boundary import BoundaryGridParamJonstable
+from rompy_xbeach.source import SourceCRSDataset
+
+# Source: gridded wave parameters
+source = SourceCRSDataset(
+    uri="wave_params.nc",
+    crs=4326,
+)
+
+# Generate JONSTABLE from parameters
+wave = BoundaryGridParamJonstable(
+    source=source,
+    hm0_var="hs",           # Variable name for Hm0
+    tp_var="tp",            # Variable name for Tp
+    mainang_var="dir",      # Variable name for direction
+    gammajsp_var="gamma",   # Optional: JONSWAP gamma
+    dspr_var="spr",         # Optional: directional spreading
+    location="offshore",
+    filelist=True,
+)
+```
+
+### Source Types
+
+| Source Type | Class | Use Case |
+|-------------|-------|----------|
+| **Station** | `BoundaryStation*` | Multi-point data, nearest station selected |
+| **Grid** | `BoundaryGrid*` | Gridded data, interpolated to boundary |
+| **Point** | `BoundaryPoint*` | Single-point timeseries |
+
+### Location Options
+
+The `location` field controls where data is extracted:
+
+| Value | Description |
+|-------|-------------|
+| `offshore` | Middle of the offshore (seaward) boundary |
+| `centre` | Centre of the model grid |
+| `grid` | All grid points (for spatially-varying boundaries) |
+
+---
+
+## File-Based Boundaries
+
+Use pre-existing boundary files with the `BoundaryFile*` classes:
+
+```python
+from rompy_xbeach.data.boundary import BoundaryFileJonstable
+from rompy_xbeach.types import XBeachDataBlob
+
+# Single JONSTABLE file
+wave = BoundaryFileJonstable(
+    bcfile_source=XBeachDataBlob(source="jonstable.txt"),
+)
+
+# Multiple files via FILELIST
+wave = BoundaryFileJonstable(
+    bcfile_source=XBeachDataBlob(source="filelist.txt"),
+    filelist=True,  # Source file is a FILELIST
+)
+```
+
+### FILELIST Format
+
+When `filelist=True`, the source file should be in XBeach FILELIST format:
+
+```
+FILELIST
+1800 0.2 jonswap1.inp
+1800 0.2 jonswap2.inp
+3600 0.2 jonswap3.inp
+```
+
+Each line after `FILELIST` contains: `<duration> <timestep> <filename>`
+
+The `FilelistMixin` automatically:
+1. Parses the FILELIST file
+2. Fetches all referenced boundary files
+3. Copies them to the run directory
+
+---
+
+## Non-Spectral Boundaries
+
+### Stationary Parametric
+
+For simple, constant wave conditions without files:
+
+```python
+from rompy_xbeach.data.boundary import BoundaryStat
+
+wave = BoundaryStat(
+    Hrms=1.0,    # Root-mean-square wave height [m]
+    Tp=10.0,     # Peak period [s]
+    dir0=270.0,  # Mean direction [deg]
+    s=20.0,      # Directional spreading [-]
+)
+```
+
+### Bichromatic Waves
+
+For laboratory-style bichromatic wave conditions:
+
+```python
+from rompy_xbeach.data.boundary import BoundaryBichrom
+
+wave = BoundaryBichrom(
+    Hrms=0.5,
+    Tp=8.0,
+    dir0=270.0,
+    s=1000.0,    # Narrow spreading
+)
+```
+
+### Time Series from Files
+
+```python
+from rompy_xbeach.data.boundary import BoundaryTs1
+from rompy_xbeach.types import XBeachDataBlob
+
+wave = BoundaryTs1(
+    source=XBeachDataBlob(source="bc_gen.ezs"),
+)
+```
+
+---
+
+## Special Boundaries
+
+### No Wave Forcing
+
+```python
+from rompy_xbeach.data.boundary import BoundaryOff
+
+wave = BoundaryOff()
+```
+
+### Reuse Previous Simulation
+
+```python
+from rompy_xbeach.data.boundary import BoundaryReuse
+from rompy_xbeach.types import XBeachDirectoryBlob
+
+wave = BoundaryReuse(
+    previous_run=XBeachDirectoryBlob(source="/path/to/previous/run"),
+)
+```
+
+---
+
+## XBeach Boundary Types Reference
+
+| `wbctype` | Description | Rompy-xbeach Classes |
+|-----------|-------------|---------------------|
+| `jons` | Single JONSWAP spectrum | `BoundaryStationSpectraJons`, `BoundaryStationParamJons`, `BoundaryGridParamJons`, `BoundaryPointParamJons`, `BoundaryFileJons` |
+| `jonstable` | Time-varying JONSWAP table | `BoundaryStationSpectraJonstable`, `BoundaryStationParamJonstable`, `BoundaryGridParamJonstable`, `BoundaryPointParamJonstable`, `BoundaryFileJonstable` |
+| `swan` | SWAN 2D spectrum | `BoundaryStationSpectraSwan`, `BoundaryFileSwan` |
+| `stat` | Stationary parametric | `BoundaryStat` |
+| `bichrom` | Bichromatic | `BoundaryBichrom` |
+| `stat_table` | Time-varying parametric | `BoundaryStatTable` |
+| `ts_1` | Time series (1 location) | `BoundaryTs1` |
+| `ts_2` | Time series (2 locations) | `BoundaryTs2` |
+| `ts_nonh` | Non-hydrostatic time series | `BoundaryTsNonh` |
+| `off` | No waves | `BoundaryOff` |
+| `reuse` | Reuse previous | `BoundaryReuse` |
+
+---
+
+## Wave Boundary Parameters
+
+Wave boundary parameters are specified directly on the boundary data classes via `Config.input.wave`, not through separate component objects. This design ensures that spectral-specific parameters (like `thetamin`, `dtheta`) are only available on spectral boundary classes, preventing invalid parameter combinations.
+
+### Parameter Inheritance
+
+All wave boundary classes inherit from one of two base parameter classes:
+
+| Base Class | Inheriting Classes | Key Parameters |
+|------------|-------------------|----------------|
+| [`WaveBoundaryParams`](../api-reference/data.md#rompy_xbeach.data.boundary.WaveBoundaryParams) | All boundary classes | `rt`, `dtbc`, `random`, `sprdthr` |
+| [`SpectralWaveBoundaryParams`](../api-reference/data.md#rompy_xbeach.data.boundary.SpectralWaveBoundaryParams) | Spectral classes only | Above + `thetamin`, `thetamax`, `dtheta`, `thetanaut`, `correctHm0` |
+
+This inheritance structure means:
+
+- **Spectral boundaries** (JONS, JONSTABLE, SWAN) have access to directional grid parameters
+- **Non-spectral boundaries** (stat, bichrom, ts_*) do not expose spectral parameters, avoiding configuration errors
+
+### Common Parameters (All Boundaries)
+
+| Parameter | Description | Default |
+|-----------|-------------|--------|
+| `rt` | Duration of wave time series [s] | None |
+| `dtbc` | Timestep for boundary condition [s] | 1.0 |
+| `random` | Random seed for wave generation | True |
+| `sprdthr` | Threshold for directional spreading | 0.08 |
+
+### Spectral Parameters (Spectral Boundaries Only)
+
+| Parameter | Description | Default |
+|-----------|-------------|--------|
+| `thetamin` | Minimum wave direction [deg] | -90 |
+| `thetamax` | Maximum wave direction [deg] | 90 |
+| `dtheta` | Directional resolution [deg] | 10 |
+| `thetanaut` | Use nautical convention | False |
+| `correctHm0` | Correct Hm0 for directional spreading | True |
+
+Example:
+
+```python
+wave = BoundaryStationSpectraJonstable(
+    source=source,
+    # Spectral parameters (only available on spectral classes)
+    thetamin=-60,
+    thetamax=60,
+    dtheta=5,
+    thetanaut=True,
+    # Common parameters
+    dtbc=0.5,
+)
+```
+
+---
+
+## Complete Example
+
+```python
+from rompy_xbeach.config import Config, DataInterface
+from rompy_xbeach.data.boundary import BoundaryStationSpectraJonstable
+from rompy_xbeach.source import SourceCRSWavespectra
+from rompy_xbeach.grid import RegularGrid
+from rompy_xbeach.data.bathy import XBeachBathy
+
+# Define grid
+grid = RegularGrid(...)
+
+# Define bathymetry
+bathy = XBeachBathy(...)
+
+# Define wave source
+wave_source = SourceCRSWavespectra(
+    uri="https://thredds.server/waves.nc",
+    reader="read_ww3",
+    crs=4326,
+)
+
+# Create config with wave boundary
+config = Config(
+    grid=grid,
+    bathy=bathy,
+    input=DataInterface(
+        wave=BoundaryStationSpectraJonstable(
+            source=wave_source,
+            location="offshore",
+            filelist=True,
+            thetamin=-90,
+            thetamax=90,
+            dtheta=10,
+        ),
     ),
 )
 
-# 4. Generate files
-destdir = Path("./xbeach_run")
-times = TimeRange(start="2024-01-01T00", end="2024-01-02T00")
-
-wbc = wbdata.get(destdir=destdir, grid=grid, time=times)
-
-# 5. Check output
-print(f"Boundary type: {wbc.wbctype}")
-print(f"Boundary file: {wbc.bcfile}")
-print(f"Parameters: {wbc.params}")
+# Generate XBeach files
+config.generate(destdir="./run")
 ```
 
-## Troubleshooting
+---
 
-### No Data at Offshore Location
+## API Reference
 
-**Symptom**: Empty or NaN values in boundary files.
-
-**Cause**: Source data doesn't cover the grid's offshore boundary.
-
-**Fix**: Check source data extent and grid positioning, or increase selection tolerance:
-
-```python
-wbdata = BoundaryStationSpectraJons(
-    source=source,
-    sel_method_kwargs=dict(tolerance=1.0),  # Increase tolerance
-)
-```
-
-### Time Mismatch
-
-**Symptom**: Boundary files don't cover simulation period.
-
-**Cause**: Source data time range doesn't overlap with simulation period.
-
-**Fix**: Verify source data time coverage:
-
-```python
-# Check source data times
-ds = source.open()
-print(ds.time.values)
-```
-
-### Direction Convention
-
-**Symptom**: Waves coming from wrong direction.
-
-**Cause**: Different direction conventions (from vs to, nautical vs cartesian).
-
-**Fix**: Check and adjust direction mapping in your source data.
-
-## See Also
-
-- [Forcing](forcing.md) — Wind and tide forcing
-- [Examples: Wave Boundary Demo](../examples/wave-boundary-demo.ipynb) — Interactive notebook
+See [Wave Boundaries API](../api-reference/data.md#wave-boundaries) for complete class documentation.

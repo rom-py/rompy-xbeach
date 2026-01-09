@@ -79,6 +79,14 @@ Rompy-xbeach addresses these by:
 
     [:octicons-arrow-right-24: Architecture](user-guide/architecture.md)
 
+-   :material-database:{ .lg .middle } **Data Interfaces**
+
+    ---
+
+    Bridge external data sources with XBeach model inputs
+
+    [:octicons-arrow-right-24: Data Interfaces](data-interfaces/index.md)
+
 -   :material-puzzle:{ .lg .middle } **Components**
 
     ---
@@ -95,6 +103,7 @@ Rompy-xbeach addresses these by:
 
     [:octicons-arrow-right-24: API Reference](api-reference/config.md)
 
+
 -   :material-notebook:{ .lg .middle } **Examples**
 
     ---
@@ -103,13 +112,13 @@ Rompy-xbeach addresses these by:
 
     [:octicons-arrow-right-24: Examples](examples/index.md)
 
--   :material-account-group:{ .lg .middle } **Developer**
+<!-- -   :material-account-group:{ .lg .middle } **Developer**
 
     ---
 
     Contributing guidelines and development setup
 
-    [:octicons-arrow-right-24: Contributing](developer/contributing.md)
+    [:octicons-arrow-right-24: Contributing](developer/contributing.md) -->
 
 </div>
 
