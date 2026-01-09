@@ -37,6 +37,7 @@ from rompy_xbeach.data.boundary.base import (
     ParamMixin,
     FilelistMixin,
     SOURCE_TIMESERIES_TYPES,
+    SOURCE_PARAM_TYPES,
 )
 
 
@@ -329,6 +330,10 @@ class BoundaryStationParamJons(
 ):
     """Wave boundary conditions from station type parameters dataset such as SMC."""
 
+    source: SOURCE_PARAM_TYPES = Field(
+        description="Dataset source reader, must support CRS",
+        discriminator="model_type",
+    )
     model_type: Literal["station_param_jons"] = Field(
         default="station_param_jons",
         description="Model type discriminator",
@@ -355,6 +360,10 @@ class BoundaryGridParamJons(
 ):
     """Wave boundary conditions from grid type parameters dataset."""
 
+    source: SOURCE_PARAM_TYPES = Field(
+        description="Dataset source reader, must support CRS",
+        discriminator="model_type",
+    )
     model_type: Literal["grid_param_jons"] = Field(
         default="grid_param_jons",
         description="Model type discriminator",
@@ -411,6 +420,10 @@ class BoundaryStationParamJonstable(
 ):
     """Wave boundary conditions from station type parameters dataset such as SMC."""
 
+    source: SOURCE_PARAM_TYPES = Field(
+        description="Dataset source reader, must support CRS",
+        discriminator="model_type",
+    )
     model_type: Literal["station_param_jonstable"] = Field(
         default="station_param_jonstable",
         description="Model type discriminator",
@@ -443,6 +456,10 @@ class BoundaryGridParamJonstable(
 
     """
 
+    source: SOURCE_PARAM_TYPES = Field(
+        description="Dataset source reader, must support CRS",
+        discriminator="model_type",
+    )
     model_type: Literal["grid_param_jonstable"] = Field(
         default="grid_param_jonstable",
         description="Model type discriminator",

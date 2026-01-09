@@ -397,11 +397,6 @@ class SpectraMixin:
 
 class ParamMixin:
     """Mixin class to get Jonswap statistics from parameter data."""
-
-    source: SOURCE_PARAM_TYPES = Field(
-        description="Dataset source reader, must support CRS",
-        discriminator="model_type",
-    )
     hm0_var: Union[str, float] = Field(
         description=(
             "Variable name of the significant wave height Hm0 in the source data, "
