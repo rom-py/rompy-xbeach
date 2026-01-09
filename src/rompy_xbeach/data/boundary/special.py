@@ -5,7 +5,7 @@ This module contains special boundary classes:
 - BoundaryReuse: Reuse previous simulation boundary files
 """
 
-from typing import Literal, Optional
+from typing import Literal
 from pathlib import Path
 from pydantic import Field
 
@@ -13,6 +13,7 @@ from rompy.core.types import RompyBaseModel
 from rompy.core.time import TimeRange
 
 from rompy_xbeach.grid import RegularGrid
+from rompy_xbeach.types import XBeachDirectoryBlob
 
 
 class BoundaryOff(RompyBaseModel):
@@ -61,14 +62,24 @@ class BoundaryReuse(RompyBaseModel):
     """Reuse previous boundary conditions.
 
     Makes XBeach reuse wave time series from a previous simulation.
-    Requires copying ebcflist.bcf and qbcflist.bcf files (and referenced files)
-    to the current working directory.
+    Requires the ebcflist.bcf and qbcflist.bcf files from a previous run.
+    The source field should point to the directory containing these files.
+
+    XBeach automatically looks for ebcflist.bcf and qbcflist.bcf in the
+    run directory - no bcfile parameter is needed in params.txt.
+
+    .. note::
+        TODO: The ebcflist.bcf and qbcflist.bcf files reference additional files
+        (typically with E_ and q_ prefixes) that also need to be present in the
+        workspace. Currently these referenced files are not automatically fetched.
+        Users must ensure all referenced files are available in the source directory.
 
     Examples
     --------
-    >>> boundary = BoundaryReuse()
-    >>> # Or with explicit file path
-    >>> boundary = BoundaryReuse(bcfile="path/to/ebcflist.bcf")
+    >>> from rompy_xbeach.types import XBeachDirectoryBlob
+    >>> boundary = BoundaryReuse(
+    ...     previous_run=XBeachDirectoryBlob(source="/path/to/previous/run")
+    ... )
 
     """
 
@@ -79,9 +90,11 @@ class BoundaryReuse(RompyBaseModel):
         default="reuse",
         description="Model type discriminator",
     )
-    bcfile: Optional[str] = Field(
-        default=None,
-        description="Path to previous boundary files (optional)",
+    previous_run: XBeachDirectoryBlob = Field(
+        description=(
+            "Directory containing ebcflist.bcf and qbcflist.bcf files "
+            "from a previous XBeach simulation."
+        ),
     )
 
     def get(
@@ -92,7 +105,7 @@ class BoundaryReuse(RompyBaseModel):
         Parameters
         ----------
         destdir : str | Path
-            Destination directory (not used, but required for interface).
+            Destination directory where boundary files will be fetched.
         grid : RegularGrid, optional
             Grid instance (not used).
         time : TimeRange, optional
@@ -101,10 +114,9 @@ class BoundaryReuse(RompyBaseModel):
         Returns
         -------
         dict
-            XBeach parameters with wbctype='reuse' and optional bcfile.
+            XBeach parameters with wbctype='reuse'.
 
         """
-        params = {"wbctype": self.id}
-        if self.bcfile:
-            params["bcfile"] = self.bcfile
-        return params
+        # Fetch the required bcf files from previous run directory
+        self.previous_run.get(destdir, patterns=["ebcflist.bcf", "qbcflist.bcf"])
+        return {"wbctype": self.id}

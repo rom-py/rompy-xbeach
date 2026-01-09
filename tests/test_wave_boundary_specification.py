@@ -1,6 +1,5 @@
 """Tests for wave boundary classes in data/boundary/."""
 
-import pytest
 from pathlib import Path
 from rompy_xbeach.types import XBeachDataBlob
 from rompy_xbeach.data.boundary import (
@@ -182,30 +181,46 @@ def test_boundary_off_get():
     assert len(params) == 1
 
 
-def test_boundary_reuse():
-    """Test BoundaryReuse without file."""
-    boundary = BoundaryReuse()
+def test_boundary_reuse(tmp_path):
+    """Test BoundaryReuse with previous_run directory."""
+    from rompy_xbeach.types import XBeachDirectoryBlob
+
+    # Create source directory with test files
+    source_dir = tmp_path / "source"
+    source_dir.mkdir(parents=True, exist_ok=True)
+    (source_dir / "ebcflist.bcf").write_text("test ebcflist content")
+    (source_dir / "qbcflist.bcf").write_text("test qbcflist content")
+
+    boundary = BoundaryReuse(
+        previous_run=XBeachDirectoryBlob(source=str(source_dir))
+    )
     assert boundary.model_type == "reuse"
-    assert boundary.bcfile is None
+    assert boundary.id == "reuse"
 
 
-def test_boundary_reuse_with_file():
-    """Test BoundaryReuse with file."""
-    boundary = BoundaryReuse(bcfile="path/to/ebcflist.bcf")
-    assert boundary.model_type == "reuse"
-    assert boundary.bcfile == "path/to/ebcflist.bcf"
-
-
-def test_boundary_reuse_get():
+def test_boundary_reuse_get(tmp_path):
     """Test BoundaryReuse.get() returns correct XBeach parameters."""
-    boundary = BoundaryReuse()
-    params = boundary.get("/tmp")
-    assert params["wbctype"] == "reuse"
+    from rompy_xbeach.types import XBeachDirectoryBlob
 
-    boundary_with_file = BoundaryReuse(bcfile="ebcflist.bcf")
-    params = boundary_with_file.get("/tmp")
+    # Create source directory with test files
+    source_dir = tmp_path / "source"
+    source_dir.mkdir(parents=True, exist_ok=True)
+    (source_dir / "ebcflist.bcf").write_text("test ebcflist content")
+    (source_dir / "qbcflist.bcf").write_text("test qbcflist content")
+
+    boundary = BoundaryReuse(
+        previous_run=XBeachDirectoryBlob(source=str(source_dir))
+    )
+
+    destdir = tmp_path / "dest"
+    destdir.mkdir(parents=True, exist_ok=True)
+    params = boundary.get(destdir)
+
     assert params["wbctype"] == "reuse"
-    assert params["bcfile"] == "ebcflist.bcf"
+    assert "bcfile" not in params  # XBeach knows the file names automatically
+    # Verify files were copied
+    assert (destdir / "ebcflist.bcf").exists()
+    assert (destdir / "qbcflist.bcf").exists()
 
 
 def test_boundary_stat_with_wave_params():

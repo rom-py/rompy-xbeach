@@ -35,94 +35,100 @@ class XBeachDataBlob(DataBlob):
         return {}
 
 
-class XBeachHotstartBlob(XBeachDataBlob):
-    """DataBlob for XBeach hotstart files with glob pattern support.
+class XBeachDirectoryBlob(RompyBaseModel):
+    """DataBlob for fetching files from a directory using glob patterns.
 
-    Hotstart files follow the naming convention: hotstart_{varname}{fileno:06d}.dat
-    where varname is the variable name (zs, zb, uu, vv, etc.) and fileno is the
-    hotstart file number (0-999).
+    This class provides a flexible way to fetch multiple files from a source
+    directory (local or remote) that match specified glob patterns.
 
-    The source should point to a directory containing hotstart files from a
-    previous XBeach simulation.
+    The source should point to a directory containing the files to fetch.
+    Patterns are passed to the get() method to specify which files to copy.
 
     Usage:
-        hotstart_source: Optional[XBeachHotstartBlob] = Field(default=None, ...)
+        source: Optional[XBeachDirectoryBlob] = Field(
+            default=None,
+            description="Directory containing files to fetch"
+        )
 
-        def get(self, destdir: Path, fileno: int = 0) -> list[Path]:
-            # Returns list of copied hotstart files
-            return self.hotstart_source.get(destdir, fileno)
+        def get(self, destdir: Path) -> dict:
+            if self.source:
+                self.source.get(destdir, patterns=["*.bcf"])
+            return params
+
+    Examples
+    --------
+    >>> blob = XBeachDirectoryBlob(source="/path/to/dir")
+    >>> # Fetch specific files
+    >>> blob.get("/dest", patterns=["ebcflist.bcf", "qbcflist.bcf"])
+    >>> # Fetch files matching a pattern
+    >>> blob.get("/dest", patterns=["hotstart_*000000.dat"])
     """
 
-    source: AnyPath = Field(
+    source: str = Field(
         description=(
-            "Directory containing hotstart files from a previous XBeach simulation. "
+            "Directory containing files to fetch. "
             "Can be a local path or remote URI (e.g., s3://bucket/path)."
         ),
     )
 
     @field_validator("source", mode="after")
     @classmethod
-    def validate_source_is_directory(cls, v: AnyPath) -> AnyPath:
+    def validate_source_is_directory(cls, v: str) -> str:
         """Validate that source is a directory."""
-        if not v.is_dir():
+        source_path = AnyPath(v)
+        if not source_path.is_dir():
             raise ValueError(
-                f"Hotstart source must be a directory containing hotstart files, "
+                f"Source must be a directory containing files to fetch, "
                 f"got: {v}"
             )
         return v
 
-    @field_validator("link", mode="after")
-    @classmethod
-    def validate_link_not_allowed(cls, v: bool) -> bool:
-        """Validate that link is not enabled for hotstart directories."""
-        if v:
-            raise ValueError(
-                "Symlinks are not supported for hotstart directories. "
-                "Files must be copied."
-            )
-        return v
-
-    def get(
-        self, destdir: Union[str, Path], fileno: int = 0, *args, **kwargs
-    ) -> list[Path]:
-        """Copy hotstart files matching the pattern to destdir.
+    def get(self, destdir: Union[str, Path], patterns: list[str]) -> list[Path]:
+        """Copy files matching the patterns to destdir.
 
         Parameters
         ----------
         destdir : str | Path
-            The destination directory to copy hotstart files to.
-        fileno : int, optional
-            The hotstart file number to match (0-999). Default is 0.
+            The destination directory to copy files to.
+        patterns : list[str]
+            List of glob patterns to match files in the source directory.
+            Each pattern is applied separately and all matching files are fetched.
 
         Returns
         -------
         list[Path]
-            List of paths to the copied hotstart files.
+            List of paths to the copied files.
 
         Raises
         ------
         FileNotFoundError
-            If no hotstart files matching the pattern are found.
+            If no files matching any pattern are found.
         """
         destdir = Path(destdir).resolve()
         destdir.mkdir(parents=True, exist_ok=True)
 
         source_path = AnyPath(self.source)
-        pattern = f"hotstart_*{fileno:06d}.dat"
         copied_files = []
 
-        for f in source_path.glob(pattern):
-            dest_file = destdir / f.name
-            # Use read_bytes/write_bytes for remote compatibility (same as DataBlob)
-            dest_file.write_bytes(f.read_bytes())
-            copied_files.append(dest_file)
+        for pattern in patterns:
+            for f in source_path.glob(pattern):
+                if f.is_file():
+                    dest_file = destdir / f.name
+                    # Use read_bytes/write_bytes for remote compatibility
+                    dest_file.write_bytes(f.read_bytes())
+                    copied_files.append(dest_file)
 
         if not copied_files:
             raise FileNotFoundError(
-                f"No hotstart files matching '{pattern}' found in {source_path}"
+                f"No files matching patterns {patterns} found in {source_path}"
             )
 
         return copied_files
+
+    @model_serializer(mode="wrap")
+    def _serialize_skip_for_params(self, serializer: Any) -> dict:
+        """Skip serialization to prevent field leakage in params."""
+        return {}
 
 
 class XBeachBaseModel(RompyBaseModel):

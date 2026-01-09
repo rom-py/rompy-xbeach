@@ -9,7 +9,7 @@ from typing import Literal, Optional
 
 from pydantic import Field
 
-from rompy_xbeach.types import XBeachBaseModel, XBeachHotstartBlob
+from rompy_xbeach.types import XBeachBaseModel, XBeachDirectoryBlob
 
 
 class Hotstart(XBeachBaseModel):
@@ -28,7 +28,7 @@ class Hotstart(XBeachBaseModel):
         hotstart: true   # Enable hotstart, files must exist in run directory
         hotstart:        # Full hotstart configuration
           hotstartfileno: 3
-          source:
+          previous_run:
             source: /path/to/previous/run
 
     See https://xbeach.readthedocs.io/en/latest/xbeach_manual.html#hotstart-beta
@@ -48,7 +48,7 @@ class Hotstart(XBeachBaseModel):
         ge=0,
         le=999,
     )
-    source: Optional[XBeachHotstartBlob] = Field(
+    previous_run: Optional[XBeachDirectoryBlob] = Field(
         default=None,
         description=(
             "Directory containing hotstart files from a previous XBeach simulation. "
@@ -57,7 +57,7 @@ class Hotstart(XBeachBaseModel):
     )
 
     def get(self, destdir: str | Path) -> dict:
-        """Fetch hotstart files if source is specified, and return the params dict.
+        """Fetch hotstart files if previous_run is specified, and return the params dict.
 
         Parameters
         ----------
@@ -71,8 +71,9 @@ class Hotstart(XBeachBaseModel):
         """
         params = {"hotstart": 1, "hotstartfileno": self.hotstartfileno}
 
-        # Fetch hotstart files from source directory if specified
-        if self.source:
-            self.source.get(destdir, fileno=self.hotstartfileno)
+        # Fetch hotstart files from previous run directory if specified
+        if self.previous_run:
+            pattern = f"hotstart_*{self.hotstartfileno:06d}.dat"
+            self.previous_run.get(destdir, patterns=[pattern])
 
         return params
