@@ -2,7 +2,7 @@
 
 import pytest
 from rompy_xbeach.components.physics import Physics
-from rompy_xbeach.components.boundary.parameters import WaveBoundaryConditions
+from rompy_xbeach.data.boundary.base import WaveBoundaryParams
 from rompy_xbeach.components.physics.constants import Coriolis, PhysicalConstants
 from rompy_xbeach.components.physics.friction import (
     Viscosity,
@@ -96,9 +96,9 @@ def test_wave_numerics():
     assert params["wavint"] == 300.0
 
 
-def test_wave_boundary_conditions():
-    """Test WaveBoundaryConditions model."""
-    wave_bc = WaveBoundaryConditions(
+def test_wave_boundary_params():
+    """Test WaveBoundaryParams model."""
+    wave_bc = WaveBoundaryParams(
         nmax=0.7,
         wbcevarreduce=0.8,
         bclwonly=True,
@@ -107,14 +107,14 @@ def test_wave_boundary_conditions():
         wbcScaleEnergy=True,
         cyclicdiradjust=False,
     )
-    params = wave_bc.params
-    assert params["nmax"] == 0.7
-    assert params["wbcevarreduce"] == 0.8
-    assert params["bclwonly"] == 1
-    assert params["swkhmin"] == 0.01
-    assert params["wbcRemoveStokes"] == 0
-    assert params["wbcScaleEnergy"] == 1
-    assert params["cyclicdiradjust"] == 0
+    data = wave_bc.model_dump(exclude_none=True)
+    assert data["nmax"] == 0.7
+    assert data["wbcevarreduce"] == 0.8
+    assert data["bclwonly"] is True
+    assert data["swkhmin"] == 0.01
+    assert data["wbcRemoveStokes"] is False
+    assert data["wbcScaleEnergy"] is True
+    assert data["cyclicdiradjust"] is False
 
 
 def test_nonh_wavemodel():

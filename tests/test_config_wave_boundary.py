@@ -1,19 +1,16 @@
-"""Tests for Config with wave_boundary field."""
+"""Tests for wave boundary classes in data/boundary/."""
 
 import pytest
 from pathlib import Path
-from rompy_xbeach.config import Config
+from rompy_xbeach.config import Config, DataInterface
 from rompy_xbeach.grid import RegularGrid, GeoPoint
 from rompy_xbeach.data.bathy import XBeachBathy
 from rompy_xbeach.source import SourceGeotiff
-from rompy_xbeach.components.boundary.specification import (
-    SpectralWaveBoundary,
-    NonSpectralWaveBoundary,
-    OffWaveBoundary,
-)
-from rompy_xbeach.components.boundary.parameters import (
-    SpectralWaveBoundaryConditions,
-    NonSpectralWaveBoundaryConditions,
+from rompy_xbeach.data.boundary import (
+    BoundaryStat,
+    BoundaryBichrom,
+    BoundaryOff,
+    BoundaryReuse,
 )
 from rompy_xbeach.components.physics import Physics
 
@@ -42,92 +39,64 @@ def bathy():
     )
 
 
-def test_config_accepts_spectral_wave_boundary():
-    """Test that Config accepts SpectralWaveBoundary."""
-    # Note: We can't fully instantiate Config without grid, bathy, etc.
-    # Just test that the field accepts the right type
-    from pydantic import ValidationError
-
-    # This should work (will fail on other required fields, but that's OK)
-    try:
-        Config(
-            wave_boundary=SpectralWaveBoundary(
-                wbctype="jons",
-                bcfile="jonswap.txt",
-                wbc=SpectralWaveBoundaryConditions(nmax=0.8),
-            )
-        )
-    except ValidationError as e:
-        # Should fail on missing grid, bathy (required fields)
-        # wave_boundary should NOT be in the validation errors
-        errors = e.errors()
-        error_fields = [err["loc"][0] for err in errors]
-        assert "wave_boundary" not in error_fields
-        assert "grid" in error_fields or "bathy" in error_fields
+def test_boundary_stat_get():
+    """Test BoundaryStat.get() returns correct parameters."""
+    boundary = BoundaryStat(
+        Hrms=2.0,
+        Trep=12.0,
+        dir0=270.0,
+        m=10,
+    )
+    params = boundary.get("/tmp")
+    assert params["wbctype"] == "stat"
+    assert params["Hrms"] == 2.0
+    assert params["Trep"] == 12.0
+    assert params["dir0"] == 270.0
+    assert params["m"] == 10
 
 
-def test_config_accepts_non_spectral_wave_boundary():
-    """Test that Config accepts NonSpectralWaveBoundary."""
-    from pydantic import ValidationError
-
-    try:
-        Config(
-            wave_boundary=NonSpectralWaveBoundary(
-                wbctype="stat",
-                wbc=NonSpectralWaveBoundaryConditions(
-                    Hrms=2.0,
-                    Trep=12.0,
-                ),
-            )
-        )
-    except ValidationError as e:
-        errors = e.errors()
-        error_fields = [err["loc"][0] for err in errors]
-        assert "wave_boundary" not in error_fields
-        assert "grid" in error_fields or "bathy" in error_fields
+def test_boundary_bichrom_get():
+    """Test BoundaryBichrom.get() returns correct parameters."""
+    boundary = BoundaryBichrom(
+        Hrms=1.5,
+        Trep=10.0,
+        Tlong=80.0,
+        dir0=270.0,
+        m=10,
+    )
+    params = boundary.get("/tmp")
+    assert params["wbctype"] == "bichrom"
+    assert params["Hrms"] == 1.5
+    assert params["Tlong"] == 80.0
 
 
-def test_config_accepts_off_wave_boundary():
-    """Test that Config accepts OffWaveBoundary."""
-    from pydantic import ValidationError
-
-    try:
-        Config(wave_boundary=OffWaveBoundary())
-    except ValidationError as e:
-        errors = e.errors()
-        error_fields = [err["loc"][0] for err in errors]
-        assert "wave_boundary" not in error_fields
-        assert "grid" in error_fields or "bathy" in error_fields
+def test_boundary_off_get():
+    """Test BoundaryOff.get() returns correct parameters."""
+    boundary = BoundaryOff()
+    params = boundary.get("/tmp")
+    assert params["wbctype"] == "off"
+    assert len(params) == 1
 
 
-def test_config_wave_boundary_discriminator():
-    """Test that wave_boundary uses discriminator correctly."""
-    from pydantic import ValidationError
+def test_boundary_reuse_get():
+    """Test BoundaryReuse.get() returns correct parameters."""
+    boundary = BoundaryReuse()
+    params = boundary.get("/tmp")
+    assert params["wbctype"] == "reuse"
 
-    # Should work with correct model_type
-    try:
-        Config(
-            wave_boundary={
-                "model_type": "spectral",
-                "wbctype": "jons",
-                "bcfile": "test.txt",
-            }
-        )
-    except ValidationError as e:
-        errors = e.errors()
-        error_fields = [err["loc"][0] for err in errors]
-        # Should not have discriminator errors
-        assert "wave_boundary" not in error_fields
-        assert "grid" in error_fields or "bathy" in error_fields
+    boundary_with_file = BoundaryReuse(bcfile="ebcflist.bcf")
+    params = boundary_with_file.get("/tmp")
+    assert params["wbctype"] == "reuse"
+    assert params["bcfile"] == "ebcflist.bcf"
 
 
 def test_config_input_optional():
-    """Test that input field is now optional."""
+    """Test that input field is optional in Config."""
     from pydantic import ValidationError
 
-    # input should be optional now
+    # input should be optional
     try:
-        Config(wave_boundary=OffWaveBoundary())
+        Config()
     except ValidationError as e:
         errors = e.errors()
         error_fields = [err["loc"][0] for err in errors]
@@ -146,10 +115,10 @@ def test_warn_wave_direction_params_without_swave(grid, bathy, caplog):
         grid=grid,
         bathy=bathy,
         physics=Physics(swave=False),
-        wave_boundary=SpectralWaveBoundary(
-            wbctype="jons",
-            bcfile="jonswap.txt",
-            wbc=SpectralWaveBoundaryConditions(
+        input=DataInterface(
+            wave=BoundaryStat(
+                Hrms=2.0,
+                Trep=12.0,
                 thetamin=-60,
                 thetamax=60,
                 dtheta=10,
@@ -173,10 +142,10 @@ def test_no_warn_wave_direction_params_with_swave(grid, bathy, caplog):
     Config(
         grid=grid,
         bathy=bathy,
-        wave_boundary=SpectralWaveBoundary(
-            wbctype="jons",
-            bcfile="jonswap.txt",
-            wbc=SpectralWaveBoundaryConditions(
+        input=DataInterface(
+            wave=BoundaryStat(
+                Hrms=2.0,
+                Trep=12.0,
                 thetamin=-60,
                 thetamax=60,
                 dtheta=10,

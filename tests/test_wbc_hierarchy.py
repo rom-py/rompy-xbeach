@@ -1,18 +1,20 @@
 """Tests for boundary condition parameter hierarchy."""
 
 import pytest
+from rompy_xbeach.data.boundary.base import (
+    WaveBoundaryParams,
+    SpectralWaveBoundaryParams,
+    NonSpectralWaveBoundaryParams,
+)
 from rompy_xbeach.components.boundary.parameters import (
-    WaveBoundaryConditions,
-    SpectralWaveBoundaryConditions,
-    NonSpectralWaveBoundaryConditions,
     FlowBoundaryConditions,
     TideBoundaryConditions,
 )
 
 
 def test_base_wave_boundary_conditions():
-    """Test base WaveBoundaryConditions with general parameters only."""
-    wbc = WaveBoundaryConditions(
+    """Test base WaveBoundaryParams with general parameters only."""
+    wbc = WaveBoundaryParams(
         nmax=0.8,
         wbcevarreduce=1.0,
         bclwonly=False,
@@ -29,8 +31,8 @@ def test_base_wave_boundary_conditions():
 
 
 def test_spectral_wave_boundary_conditions():
-    """Test SpectralWaveBoundaryConditions with both general and spectral parameters."""
-    wbc = SpectralWaveBoundaryConditions(
+    """Test SpectralWaveBoundaryParams with both general and spectral parameters."""
+    wbc = SpectralWaveBoundaryParams(
         # General parameters
         nmax=0.8,
         wbcScaleEnergy=True,
@@ -55,8 +57,8 @@ def test_spectral_wave_boundary_conditions():
 
 
 def test_non_spectral_wave_boundary_conditions():
-    """Test NonSpectralWaveBoundaryConditions with both general and non-spectral parameters."""
-    wbc = NonSpectralWaveBoundaryConditions(
+    """Test NonSpectralWaveBoundaryParams with both general and non-spectral parameters."""
+    wbc = NonSpectralWaveBoundaryParams(
         # General parameters (including taper)
         nmax=0.8,
         wbcScaleEnergy=True,
@@ -79,8 +81,8 @@ def test_non_spectral_wave_boundary_conditions():
 
 
 def test_bichromatic_parameters():
-    """Test NonSpectralWaveBoundaryConditions with bichromatic-specific parameters."""
-    wbc = NonSpectralWaveBoundaryConditions(
+    """Test NonSpectralWaveBoundaryParams with bichromatic-specific parameters."""
+    wbc = NonSpectralWaveBoundaryParams(
         Hrms=1.5,
         Trep=10.0,
         Tlong=80.0,  # Bichromatic-specific
@@ -94,19 +96,19 @@ def test_bichromatic_parameters():
 
 
 def test_spectral_inherits_from_base():
-    """Test that SpectralWaveBoundaryConditions inherits from WaveBoundaryConditions."""
-    assert issubclass(SpectralWaveBoundaryConditions, WaveBoundaryConditions)
-    wbc = SpectralWaveBoundaryConditions()
-    assert isinstance(wbc, WaveBoundaryConditions)
-    assert isinstance(wbc, SpectralWaveBoundaryConditions)
+    """Test that SpectralWaveBoundaryParams inherits from WaveBoundaryParams."""
+    assert issubclass(SpectralWaveBoundaryParams, WaveBoundaryParams)
+    wbc = SpectralWaveBoundaryParams()
+    assert isinstance(wbc, WaveBoundaryParams)
+    assert isinstance(wbc, SpectralWaveBoundaryParams)
 
 
 def test_non_spectral_inherits_from_base():
-    """Test that NonSpectralWaveBoundaryConditions inherits from WaveBoundaryConditions."""
-    assert issubclass(NonSpectralWaveBoundaryConditions, WaveBoundaryConditions)
-    wbc = NonSpectralWaveBoundaryConditions()
-    assert isinstance(wbc, WaveBoundaryConditions)
-    assert isinstance(wbc, NonSpectralWaveBoundaryConditions)
+    """Test that NonSpectralWaveBoundaryParams inherits from WaveBoundaryParams."""
+    assert issubclass(NonSpectralWaveBoundaryParams, WaveBoundaryParams)
+    wbc = NonSpectralWaveBoundaryParams()
+    assert isinstance(wbc, WaveBoundaryParams)
+    assert isinstance(wbc, NonSpectralWaveBoundaryParams)
 
 
 # Note: Physics.wbc field has been removed - wave boundary parameters
@@ -116,48 +118,48 @@ def test_non_spectral_inherits_from_base():
 def test_spectral_validation_ranges():
     """Test validation ranges for spectral parameters."""
     with pytest.raises(ValueError):
-        SpectralWaveBoundaryConditions(rt=1000.0)  # Below minimum 1200.0
+        SpectralWaveBoundaryParams(rt=1000.0)  # Below minimum 1200.0
     with pytest.raises(ValueError):
-        SpectralWaveBoundaryConditions(dtbc=2.5)  # Above maximum 2.0
+        SpectralWaveBoundaryParams(dtbc=2.5)  # Above maximum 2.0
     with pytest.raises(ValueError):
-        SpectralWaveBoundaryConditions(fcutoff=50.0)  # Above maximum 40.0
+        SpectralWaveBoundaryParams(fcutoff=50.0)  # Above maximum 40.0
 
 
 def test_non_spectral_validation_ranges():
     """Test validation ranges for non-spectral parameters."""
     with pytest.raises(ValueError):
-        NonSpectralWaveBoundaryConditions(Hrms=15.0)  # Above maximum 10.0
+        NonSpectralWaveBoundaryParams(Hrms=15.0)  # Above maximum 10.0
     with pytest.raises(ValueError):
-        NonSpectralWaveBoundaryConditions(Trep=0.5)  # Below minimum 1.0
+        NonSpectralWaveBoundaryParams(Trep=0.5)  # Below minimum 1.0
     with pytest.raises(ValueError):
-        NonSpectralWaveBoundaryConditions(m=1)  # Below minimum 2
+        NonSpectralWaveBoundaryParams(m=1)  # Below minimum 2
     with pytest.raises(ValueError):
-        NonSpectralWaveBoundaryConditions(Tlong=15.0)  # Below minimum 20.0
+        NonSpectralWaveBoundaryParams(Tlong=15.0)  # Below minimum 20.0
     # Note: taper is now in base class, not non-spectral specific
 
 
 def test_general_parameter_validation():
     """Test validation ranges for general parameters (in base class)."""
     with pytest.raises(ValueError):
-        WaveBoundaryConditions(nmax=1.5)  # Above maximum 1.0
+        WaveBoundaryParams(nmax=1.5)  # Above maximum 1.0
     with pytest.raises(ValueError):
-        WaveBoundaryConditions(wbcevarreduce=1.5)  # Above maximum 1.0
+        WaveBoundaryParams(wbcevarreduce=1.5)  # Above maximum 1.0
     with pytest.raises(ValueError):
-        WaveBoundaryConditions(swkhmin=-0.02)  # Below minimum -0.01
+        WaveBoundaryParams(swkhmin=-0.02)  # Below minimum -0.01
     with pytest.raises(ValueError):
-        WaveBoundaryConditions(taper=1500.0)  # Above maximum 1000.0
+        WaveBoundaryParams(taper=1500.0)  # Above maximum 1000.0
 
 
 def test_serialization_base():
-    """Test serialization of base WaveBoundaryConditions."""
-    wbc = WaveBoundaryConditions(nmax=0.8, wbcScaleEnergy=True, taper=100.0)
+    """Test serialization of base WaveBoundaryParams."""
+    wbc = WaveBoundaryParams(nmax=0.8, wbcScaleEnergy=True, taper=100.0)
     params = wbc.model_dump(exclude_none=True)
     assert params == {"nmax": 0.8, "wbcScaleEnergy": True, "taper": 100.0}
 
 
 def test_serialization_spectral():
-    """Test serialization of SpectralWaveBoundaryConditions."""
-    wbc = SpectralWaveBoundaryConditions(
+    """Test serialization of SpectralWaveBoundaryParams."""
+    wbc = SpectralWaveBoundaryParams(
         nmax=0.8,
         rt=3600.0,
         dtbc=1.0,
@@ -173,8 +175,8 @@ def test_serialization_spectral():
 
 
 def test_serialization_non_spectral():
-    """Test serialization of NonSpectralWaveBoundaryConditions."""
-    wbc = NonSpectralWaveBoundaryConditions(
+    """Test serialization of NonSpectralWaveBoundaryParams."""
+    wbc = NonSpectralWaveBoundaryParams(
         nmax=0.8,
         Hrms=2.0,
         Trep=12.0,

@@ -174,16 +174,16 @@ def test_boundary_grid_jons_bctype(tmp_path, source_gridded_file, grid, time):
     kwargs = dict(
         source=source_gridded_file,
         coords=dict(x="longitude", y="latitude", t="time"),
-        hm0="phs1",
-        tp="ptp1",
-        mainang="pdp1",
-        gammajsp="ppe1",
-        dspr="pspr1",
+        hm0_var="phs1",
+        tp_var="ptp1",
+        mainang_var="pdp1",
+        gammajsp_var="ppe1",
+        dspr_var="pspr1",
         filelist=False,
     )
     wb = BoundaryGridParamJons(**kwargs)
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert boundary_spec.wbctype == "jons"
+    assert boundary_spec["wbctype"] == "jons"
 
 
 def test_boundary_jons_bctype(tmp_path, source_file, grid, time):
@@ -192,20 +192,20 @@ def test_boundary_jons_bctype(tmp_path, source_file, grid, time):
         source=source_file,
         coords=dict(s="seapoint", x="longitude", y="latitude", t="time"),
         filelist=False,
-        hm0="phs1",
-        tp="ptp1",
-        mainang="pdp1",
-        gammajsp="ppe1",
-        dspr="pspr1",
+        hm0_var="phs1",
+        tp_var="ptp1",
+        mainang_var="pdp1",
+        gammajsp_var="ppe1",
+        dspr_var="pspr1",
     )
     # Jons
     wb = BoundaryStationParamJons(**kwargs)
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert boundary_spec.wbctype == "jons"
+    assert boundary_spec["wbctype"] == "jons"
     # Parametric
     wb = BoundaryStationParamJons(id="parametric", **kwargs)
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert boundary_spec.wbctype == "parametric"
+    assert boundary_spec["wbctype"] == "parametric"
     # Unsupported
     with pytest.raises(ValueError):
         wb = BoundaryStationParamJons(id="unsupported", **kwargs)
@@ -217,15 +217,15 @@ def test_boundary_station_param_jons_bcfile(tmp_path, source_file, grid, time):
         source=source_file,
         coords=dict(s="seapoint", x="longitude", y="latitude", t="time"),
         filelist=False,
-        hm0="phs1",
-        tp="ptp1",
-        mainang="pdp1",
-        gammajsp="ppe1",
-        dspr="pspr1",
+        hm0_var="phs1",
+        tp_var="ptp1",
+        mainang_var="pdp1",
+        gammajsp_var="ppe1",
+        dspr_var="pspr1",
     )
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert boundary_spec.wbctype == "jons"
-    filename = tmp_path / boundary_spec.bcfile
+    assert boundary_spec["wbctype"] == "jons"
+    filename = tmp_path / boundary_spec["bcfile"]
     assert filename.is_file()
     # Assert parameters defined in bcfile
     bcdata = filename.read_text()
@@ -238,15 +238,15 @@ def test_boundary_station_param_jons_filelist(tmp_path, source_file, grid, time)
     wb = BoundaryStationParamJons(
         source=source_file,
         coords=dict(s="seapoint"),
-        hm0="phs1",
-        tp="ptp1",
-        mainang="pdp1",
-        gammajsp="ppe1",
-        dspr="pspr1",
+        hm0_var="phs1",
+        tp_var="ptp1",
+        mainang_var="pdp1",
+        gammajsp_var="ppe1",
+        dspr_var="pspr1",
     )
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert boundary_spec.wbctype == "jons"
-    filelist = tmp_path / boundary_spec.bcfile
+    assert boundary_spec["wbctype"] == "jons"
+    filelist = tmp_path / boundary_spec["bcfile"]
     lines = filelist.read_text().split("\n")
     for line in lines[1:]:
         if not line:
@@ -265,15 +265,15 @@ def test_boundary_station_param_jons_filelist_float(tmp_path, source_file, grid,
     wb = BoundaryStationParamJons(
         source=source_file,
         coords=dict(s="seapoint"),
-        hm0="phs1",
-        tp="ptp1",
-        mainang="pdp1",
-        gammajsp=3.3,
-        dspr="pspr1",
+        hm0_var="phs1",
+        tp_var="ptp1",
+        mainang_var="pdp1",
+        gammajsp_var=3.3,
+        dspr_var="pspr1",
     )
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert boundary_spec.wbctype == "jons"
-    filelist = tmp_path / boundary_spec.bcfile
+    assert boundary_spec["wbctype"] == "jons"
+    filelist = tmp_path / boundary_spec["bcfile"]
     lines = filelist.read_text().split("\n")
     for line in lines[1:]:
         if not line:
@@ -294,8 +294,8 @@ def test_boundary_station_spectra_jons_bcfile(tmp_path, source_wavespectra, grid
         filelist=False,
     )
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert boundary_spec.wbctype == "jons"
-    filename = tmp_path / boundary_spec.bcfile
+    assert boundary_spec["wbctype"] == "jons"
+    filename = tmp_path / boundary_spec["bcfile"]
     assert filename.is_file()
     # Assert parameters defined in bcfile
     bcdata = filename.read_text()
@@ -311,8 +311,8 @@ def test_boundary_station_spectra_jons_filelist(
         source=source_wavespectra,
     )
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert boundary_spec.wbctype == "jons"
-    filelist = tmp_path / boundary_spec.bcfile
+    assert boundary_spec["wbctype"] == "jons"
+    filelist = tmp_path / boundary_spec["bcfile"]
     lines = filelist.read_text().split("\n")
     for line in lines[1:]:
         if not line:
@@ -331,15 +331,15 @@ def test_boundary_point_param_jons_bcfile(tmp_path, source_csv, grid, time):
     wb = BoundaryPointParamJons(
         source=source_csv,
         filelist=False,
-        hm0="phs1",
-        tp="ptp1",
-        mainang="pdp1",
-        gammajsp="ppe1",
-        dspr="pspr1",
+        hm0_var="phs1",
+        tp_var="ptp1",
+        mainang_var="pdp1",
+        gammajsp_var="ppe1",
+        dspr_var="pspr1",
     )
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert boundary_spec.wbctype == "jons"
-    filename = tmp_path / boundary_spec.bcfile
+    assert boundary_spec["wbctype"] == "jons"
+    filename = tmp_path / boundary_spec["bcfile"]
     assert filename.is_file()
     # Assert parameters defined in bcfile
     bcdata = filename.read_text()
@@ -351,15 +351,15 @@ def test_boundary_point_param_jons_filelist(tmp_path, source_csv, grid, time):
     """Test multiple (filelist) jons spectral boundary from timeseries param source."""
     wb = BoundaryPointParamJons(
         source=source_csv,
-        hm0="phs1",
-        tp="ptp1",
-        mainang="pdp1",
-        gammajsp="ppe1",
-        dspr="pspr1",
+        hm0_var="phs1",
+        tp_var="ptp1",
+        mainang_var="pdp1",
+        gammajsp_var="ppe1",
+        dspr_var="pspr1",
     )
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert boundary_spec.wbctype == "jons"
-    filelist = tmp_path / boundary_spec.bcfile
+    assert boundary_spec["wbctype"] == "jons"
+    filelist = tmp_path / boundary_spec["bcfile"]
     lines = filelist.read_text().split("\n")
     for line in lines[1:]:
         if not line:
@@ -381,15 +381,15 @@ def test_boundary_station_param_jonstable(tmp_path, source_file, grid, time):
     wb = BoundaryStationParamJonstable(
         source=source_file,
         coords=dict(s="seapoint"),
-        hm0="phs1",
-        tp="ptp1",
-        mainang="pdp1",
-        gammajsp="ppe1",
-        dspr="pspr1",
+        hm0_var="phs1",
+        tp_var="ptp1",
+        mainang_var="pdp1",
+        gammajsp_var="ppe1",
+        dspr_var="pspr1",
     )
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert boundary_spec.wbctype == "jonstable"
-    bcfile = tmp_path / boundary_spec.bcfile
+    assert boundary_spec["wbctype"] == "jonstable"
+    bcfile = tmp_path / boundary_spec["bcfile"]
     bcdata = bcfile.read_text().split("\n")
     for line in bcdata[1:]:
         if not line:
@@ -405,8 +405,8 @@ def test_boundary_station_spectra_jonstable(tmp_path, source_wavespectra, grid, 
         source=source_wavespectra,
     )
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert boundary_spec.wbctype == "jonstable"
-    filename = tmp_path / boundary_spec.bcfile
+    assert boundary_spec["wbctype"] == "jonstable"
+    filename = tmp_path / boundary_spec["bcfile"]
     assert filename.is_file()
     # Assert all parameters defined in bcfile
     bcdata = filename.read_text().split("\n")
@@ -421,15 +421,15 @@ def test_boundary_point_param_jonstable(tmp_path, source_csv, grid, time):
     """Test multiple (filelist) jons spectral boundary from timeseries param source."""
     wb = BoundaryPointParamJonstable(
         source=source_csv,
-        hm0="phs1",
-        tp="ptp1",
-        mainang="pdp1",
-        gammajsp="ppe1",
-        dspr="pspr1",
+        hm0_var="phs1",
+        tp_var="ptp1",
+        mainang_var="pdp1",
+        gammajsp_var="ppe1",
+        dspr_var="pspr1",
     )
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert boundary_spec.wbctype == "jonstable"
-    bcfile = tmp_path / boundary_spec.bcfile
+    assert boundary_spec["wbctype"] == "jonstable"
+    bcfile = tmp_path / boundary_spec["bcfile"]
     bcdata = bcfile.read_text().split("\n")
     for line in bcdata[1:]:
         if not line:
@@ -443,15 +443,15 @@ def test_boundary_grid_param_jonstable(tmp_path, source_gridded_file, grid, time
     """Test multiple (filelist) jons spectral boundary from param source."""
     wb = BoundaryGridParamJonstable(
         source=source_gridded_file,
-        hm0="phs1",
-        tp="ptp1",
-        mainang="pdp1",
-        gammajsp="ppe1",
-        dspr="pspr1",
+        hm0_var="phs1",
+        tp_var="ptp1",
+        mainang_var="pdp1",
+        gammajsp_var="ppe1",
+        dspr_var="pspr1",
     )
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert boundary_spec.wbctype == "jonstable"
-    bcfile = tmp_path / boundary_spec.bcfile
+    assert boundary_spec["wbctype"] == "jonstable"
+    bcfile = tmp_path / boundary_spec["bcfile"]
     bcdata = bcfile.read_text().split("\n")
     for line in bcdata[1:]:
         if not line:
@@ -471,8 +471,8 @@ def test_boundary_station_spectra_swan_bcfile(tmp_path, source_wavespectra, grid
         filelist=False,
     )
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert boundary_spec.wbctype == "swan"
-    filename = tmp_path / boundary_spec.bcfile
+    assert boundary_spec["wbctype"] == "swan"
+    filename = tmp_path / boundary_spec["bcfile"]
     assert filename.is_file()
     # Assert swan file defined in bcfile
     ds = read_swan(filename)
@@ -487,8 +487,8 @@ def test_boundary_station_spectra_swan_filelist(
         source=source_wavespectra,
     )
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert boundary_spec.wbctype == "swan"
-    filelist = tmp_path / boundary_spec.bcfile
+    assert boundary_spec["wbctype"] == "swan"
+    filelist = tmp_path / boundary_spec["bcfile"]
     lines = filelist.read_text().split("\n")
     for line in lines[1:]:
         if not line:
