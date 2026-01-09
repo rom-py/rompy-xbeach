@@ -8,7 +8,6 @@ This module contains the foundational classes used by all wave boundary types:
 - SpectraMixin, ParamMixin, FilelistMixin: Data processing mixins
 """
 
-from abc import ABC, abstractmethod
 from typing import Literal, Union, Optional
 from pathlib import Path
 import logging
@@ -18,7 +17,6 @@ from pydantic import Field, field_validator
 
 from rompy.utils import load_entry_points
 from rompy.core.types import DatasetCoords, RompyBaseModel
-from rompy.core.time import TimeRange
 
 from rompy_xbeach.data.base import BaseDataStation, BaseDataPoint, BaseDataGrid
 from rompy_xbeach.source import (
@@ -27,7 +25,6 @@ from rompy_xbeach.source import (
     SourceCRSDataset,
     SourceCRSWavespectra,
 )
-from rompy_xbeach.grid import RegularGrid
 
 
 logger = logging.getLogger(__name__)
@@ -397,6 +394,7 @@ class SpectraMixin:
 
 class ParamMixin:
     """Mixin class to get Jonswap statistics from parameter data."""
+
     hm0_var: Union[str, float] = Field(
         description=(
             "Variable name of the significant wave height Hm0 in the source data, "
@@ -464,22 +462,22 @@ class ParamMixin:
 
 class FilelistMixin:
     """Mixin class for FILELIST functionality.
-    
+
     This mixin provides support for FILELIST operations in two contexts:
     1. Writing FILELIST files when generating boundary data from external sources
     2. Fetching FILELIST files when using pre-existing boundary files
-    
+
     For data-generating boundaries:
-    - When filelist=True: Creates a FILELIST file that references individual bcfiles for 
-      each timestep, plus writes the individual bcfiles. The FILELIST file is specified 
+    - When filelist=True: Creates a FILELIST file that references individual bcfiles for
+      each timestep, plus writes the individual bcfiles. The FILELIST file is specified
       as the bcfile parameter in params.txt.
-    - When filelist=False: Creates a single bcfile with wave parameters interpolated 
+    - When filelist=False: Creates a single bcfile with wave parameters interpolated
       at time.start.
-    
+
     For file-based boundaries:
-    - When filelist=True: The source is a FILELIST file and all referenced files will 
+    - When filelist=True: The source is a FILELIST file and all referenced files will
       be fetched from the same directory.
-    
+
     Example FILELIST format (as written to filelist.txt):
     ```
     FILELIST
@@ -553,7 +551,7 @@ class FilelistMixin:
         # This assumes the FILELIST file was copied from its original location
         # and we need to find the original source directory
         # For file-based boundaries, this will be overridden in the specific class
-        if hasattr(self, 'bcfile_source'):
+        if hasattr(self, "bcfile_source"):
             source_dir = AnyPath(self.bcfile_source.source).parent
         else:
             # For data-generating classes, use the parent of the filelist

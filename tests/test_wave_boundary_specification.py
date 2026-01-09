@@ -82,7 +82,7 @@ def test_boundary_ts1(tmp_path):
     # Create a test file
     test_file = tmp_path / "gen.ezs"
     test_file.write_text("test content")
-    
+
     boundary = BoundaryTs1(
         source=XBeachDataBlob(source=test_file),
     )
@@ -96,7 +96,7 @@ def test_boundary_ts1_get(tmp_path):
     source_file = tmp_path / "source" / "gen.ezs"
     source_file.parent.mkdir(parents=True, exist_ok=True)
     source_file.write_text("test content")
-    
+
     boundary = BoundaryTs1(
         source=XBeachDataBlob(source=source_file),
     )
@@ -114,7 +114,7 @@ def test_boundary_ts2(tmp_path):
     # Create a test file
     test_file = tmp_path / "gen.ezs"
     test_file.write_text("test content")
-    
+
     boundary = BoundaryTs2(
         source=XBeachDataBlob(source=test_file),
     )
@@ -127,7 +127,7 @@ def test_boundary_ts_nonh(tmp_path):
     # Create a test file
     test_file = tmp_path / "Boun_u.bcf"
     test_file.write_text("test content")
-    
+
     boundary = BoundaryTsNonh(
         source=XBeachDataBlob(source=test_file),
     )
@@ -140,7 +140,7 @@ def test_boundary_stat_table(tmp_path):
     # Create a test file
     test_file = tmp_path / "stat_table.txt"
     test_file.write_text("test content")
-    
+
     boundary = BoundaryStatTable(
         source=XBeachDataBlob(source=test_file),
     )
@@ -154,7 +154,7 @@ def test_boundary_stat_table_get(tmp_path):
     source_file = tmp_path / "source" / "stat_table.txt"
     source_file.parent.mkdir(parents=True, exist_ok=True)
     source_file.write_text("test content")
-    
+
     boundary = BoundaryStatTable(
         source=XBeachDataBlob(source=source_file),
     )
@@ -191,9 +191,7 @@ def test_boundary_reuse(tmp_path):
     (source_dir / "ebcflist.bcf").write_text("test ebcflist content")
     (source_dir / "qbcflist.bcf").write_text("test qbcflist content")
 
-    boundary = BoundaryReuse(
-        previous_run=XBeachDirectoryBlob(source=str(source_dir))
-    )
+    boundary = BoundaryReuse(previous_run=XBeachDirectoryBlob(source=str(source_dir)))
     assert boundary.model_type == "reuse"
     assert boundary.id == "reuse"
 
@@ -208,9 +206,7 @@ def test_boundary_reuse_get(tmp_path):
     (source_dir / "ebcflist.bcf").write_text("test ebcflist content")
     (source_dir / "qbcflist.bcf").write_text("test qbcflist content")
 
-    boundary = BoundaryReuse(
-        previous_run=XBeachDirectoryBlob(source=str(source_dir))
-    )
+    boundary = BoundaryReuse(previous_run=XBeachDirectoryBlob(source=str(source_dir)))
 
     destdir = tmp_path / "dest"
     destdir.mkdir(parents=True, exist_ok=True)
@@ -300,11 +296,11 @@ def test_boundary_file_jons_filelist(tmp_path):
     # Create source directory with FILELIST and referenced files
     source_dir = tmp_path / "source"
     source_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Create FILELIST
     filelist_content = "FILELIST\n3600 1.0 spec1.txt\n3600 1.0 spec2.txt\n"
     (source_dir / "filelist.txt").write_text(filelist_content)
-    
+
     # Create referenced files
     (source_dir / "spec1.txt").write_text("Hm0 = 2.0\nTp = 12.0\n")
     (source_dir / "spec2.txt").write_text("Hm0 = 2.5\nTp = 11.0\n")
@@ -334,7 +330,9 @@ def test_boundary_file_jonstable(tmp_path):
     # Create source bcfile
     source_dir = tmp_path / "source"
     source_dir.mkdir(parents=True, exist_ok=True)
-    bcfile_content = "2.0 12.0 270.0 3.3 10.0 3600 1.0\n2.5 11.0 265.0 3.3 10.0 3600 1.0\n"
+    bcfile_content = (
+        "2.0 12.0 270.0 3.3 10.0 3600 1.0\n2.5 11.0 265.0 3.3 10.0 3600 1.0\n"
+    )
     (source_dir / "jonstable.txt").write_text(bcfile_content)
 
     boundary = BoundaryFileJonstable(

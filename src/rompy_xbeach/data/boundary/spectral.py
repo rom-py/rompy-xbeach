@@ -148,8 +148,18 @@ class BoundaryJonsBase(FilelistMixin):
         # Add wave boundary parameters
         params.update(
             self.model_dump(
-                exclude={"id", "fnyq", "dfj", "filelist", "source", "coords",
-                         "crop_data", "buffer", "location", "model_type"},
+                exclude={
+                    "id",
+                    "fnyq",
+                    "dfj",
+                    "filelist",
+                    "source",
+                    "coords",
+                    "crop_data",
+                    "buffer",
+                    "location",
+                    "model_type",
+                },
                 exclude_none=True,
             )
         )
@@ -245,9 +255,20 @@ class BoundaryJonstableBase:
         # Add wave boundary parameters
         params.update(
             self.model_dump(
-                exclude={"id", "source", "coords", "crop_data", "buffer",
-                         "location", "model_type", "hm0_var", "tp_var",
-                         "mainang_var", "gammajsp_var", "dspr_var"},
+                exclude={
+                    "id",
+                    "source",
+                    "coords",
+                    "crop_data",
+                    "buffer",
+                    "location",
+                    "model_type",
+                    "hm0_var",
+                    "tp_var",
+                    "mainang_var",
+                    "gammajsp_var",
+                    "dspr_var",
+                },
                 exclude_none=True,
             )
         )
@@ -259,11 +280,11 @@ class BoundaryJonstableBase:
 # =====================================================================================
 class BoundaryFileSpectralBase(SpectralWaveBoundaryParams):
     """Base class for file-based spectral boundaries.
-    
+
     This class provides common functionality for boundary classes that fetch
     pre-existing bcfiles.
     """
-    
+
     bcfile_source: XBeachDataBlob = Field(
         description="Source for the bcfile or FILELIST file",
     )
@@ -294,13 +315,13 @@ class BoundaryFileSpectralBase(SpectralWaveBoundaryParams):
         bcfile = self.bcfile_source.get(destdir)
 
         # If filelist, also fetch all referenced files
-        if hasattr(self, 'filelist') and self.filelist:
+        if hasattr(self, "filelist") and self.filelist:
             self._fetch_filelist_files(destdir, bcfile)
 
         # Return XBeach parameters
         params = {"wbctype": self.id, "bcfile": bcfile.name}
         exclude_fields = {"model_type", "id", "bcfile_source"}
-        if hasattr(self, 'filelist'):
+        if hasattr(self, "filelist"):
             exclude_fields.add("filelist")
         params.update(
             self.model_dump(
@@ -584,8 +605,16 @@ class BoundaryStationSpectraSwan(
         # Add wave boundary parameters
         params.update(
             self.model_dump(
-                exclude={"id", "filelist", "source", "coords", "crop_data",
-                         "buffer", "location", "model_type"},
+                exclude={
+                    "id",
+                    "filelist",
+                    "source",
+                    "coords",
+                    "crop_data",
+                    "buffer",
+                    "location",
+                    "model_type",
+                },
                 exclude_none=True,
             )
         )

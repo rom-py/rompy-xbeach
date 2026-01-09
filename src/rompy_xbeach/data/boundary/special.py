@@ -30,9 +30,7 @@ class BoundaryOff(WaveBoundaryParams):
 
     """
 
-    id: Literal["off"] = Field(
-        default="off", description="Boundary type identifier"
-    )
+    id: Literal["off"] = Field(default="off", description="Boundary type identifier")
     model_type: Literal["off"] = Field(
         default="off",
         description="Model type discriminator",

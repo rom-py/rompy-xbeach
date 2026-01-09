@@ -48,6 +48,7 @@ TideType = Annotated[
     Field(description="Tide input data", discriminator="model_type"),
 ]
 
+
 # TODO: Add the bathy here, need to change the return type of the get method
 class DataInterface(RompyBaseModel):
     """XBeach forcing data interface.

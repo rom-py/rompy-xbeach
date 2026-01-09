@@ -78,8 +78,7 @@ class XBeachDirectoryBlob(RompyBaseModel):
         source_path = AnyPath(v)
         if not source_path.is_dir():
             raise ValueError(
-                f"Source must be a directory containing files to fetch, "
-                f"got: {v}"
+                f"Source must be a directory containing files to fetch, got: {v}"
             )
         return v
 

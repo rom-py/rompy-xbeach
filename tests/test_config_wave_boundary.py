@@ -88,9 +88,7 @@ def test_boundary_reuse_get(tmp_path):
     (source_dir / "ebcflist.bcf").write_text("test ebcflist content")
     (source_dir / "qbcflist.bcf").write_text("test qbcflist content")
 
-    boundary = BoundaryReuse(
-        previous_run=XBeachDirectoryBlob(source=str(source_dir))
-    )
+    boundary = BoundaryReuse(previous_run=XBeachDirectoryBlob(source=str(source_dir)))
 
     destdir = tmp_path / "dest"
     destdir.mkdir(parents=True, exist_ok=True)

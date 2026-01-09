@@ -9,7 +9,7 @@ This module contains boundary classes for non-spectral wave boundary types:
 - ts_nonh: Non-hydrostatic time series from file
 """
 
-from typing import Literal, Optional
+from typing import Literal
 from pathlib import Path
 from pydantic import Field
 
@@ -40,9 +40,7 @@ class BoundaryStat(WaveBoundaryParams):
 
     """
 
-    id: Literal["stat"] = Field(
-        default="stat", description="Boundary type identifier"
-    )
+    id: Literal["stat"] = Field(default="stat", description="Boundary type identifier")
     model_type: Literal["stat"] = Field(
         default="stat",
         description="Model type discriminator",
@@ -202,6 +200,7 @@ class BoundaryStatTable(WaveBoundaryParams):
     ... )
 
     """
+
     id: Literal["stat_table"] = Field(
         default="stat_table", description="Boundary type identifier"
     )
@@ -260,9 +259,7 @@ class BoundaryTs1(WaveBoundaryParams):
 
     """
 
-    id: Literal["ts_1"] = Field(
-        default="ts_1", description="Boundary type identifier"
-    )
+    id: Literal["ts_1"] = Field(default="ts_1", description="Boundary type identifier")
     model_type: Literal["file_ts_1"] = Field(
         default="file_ts_1",
         description="Model type discriminator",
@@ -320,9 +317,7 @@ class BoundaryTs2(WaveBoundaryParams):
 
     """
 
-    id: Literal["ts_2"] = Field(
-        default="ts_2", description="Boundary type identifier"
-    )
+    id: Literal["ts_2"] = Field(default="ts_2", description="Boundary type identifier")
     model_type: Literal["file_ts_2"] = Field(
         default="file_ts_2",
         description="Model type discriminator",
