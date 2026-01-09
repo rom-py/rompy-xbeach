@@ -12,13 +12,12 @@ from rompy_xbeach.config import Config
 config = Config(
     grid=...,           # Grid definition
     bathy=...,          # Bathymetry
-    input=...,          # Data-driven boundary conditions
+    input=...,          # Data-driven boundary conditions (wave, wind, tide)
     physics=...,        # Physical processes
     sediment=...,       # Sediment transport and morphology
     output=...,         # Output configuration
     flow_boundary=...,  # Flow boundary conditions
     tide_boundary=...,  # Tide boundary parameters
-    wave_boundary=...,  # Manual wave boundary specification
     hotstart=...,       # Hotstart initialisation
     mpi=...,            # MPI parallelisation
 )
@@ -174,16 +173,13 @@ bed = BedComposition(D50=[0.0003], D90=[0.0002])  # ValidationError
 
 ### Mutual Exclusivity
 
-The wave boundary source can only be specified once:
+Some configurations are mutually exclusive:
 
 ```python
-from rompy_xbeach.config import Config, DataInterface
+from rompy_xbeach.components.physics.wavemodel import Surfbeat, Nonh
 
-# This raises ValidationError
-config = Config(
-    input=DataInterface(wave=...),  # Data-driven
-    wave_boundary=...,              # Manual - can't have both!
-)
+# Can't use Surfbeat breaker types with Nonh wavemodel
+# Each wavemodel has its own valid breaker formulations
 ```
 
 ## Serialisation

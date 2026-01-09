@@ -62,6 +62,31 @@ API reference for all rompy-xbeach components.
       show_root_heading: true
       show_source: false
 
+::: rompy_xbeach.components.physics.friction.Cf
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.components.physics.friction.Chezy
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.components.physics.friction.Manning
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.components.physics.friction.WhiteColebrook
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.components.physics.friction.WhiteColebrookGrainsize
+    options:
+      show_root_heading: true
+      show_source: false
+
 ### Viscosity
 
 ::: rompy_xbeach.components.physics.friction.Viscosity
@@ -95,6 +120,11 @@ API reference for all rompy-xbeach components.
       show_root_heading: true
       show_source: false
 
+::: rompy_xbeach.components.physics.constants.Coriolis
+    options:
+      show_root_heading: true
+      show_source: false
+
 ---
 
 ## Sediment
@@ -109,6 +139,16 @@ API reference for all rompy-xbeach components.
 ### Transport
 
 ::: rompy_xbeach.components.sediment.transport.SedimentTransport
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.components.sediment.transport.TransportNumerics
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.components.sediment.transport.Quasi3D
     options:
       show_root_heading: true
       show_source: false

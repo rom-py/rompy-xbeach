@@ -80,7 +80,6 @@ Config
 ├── output            # Output configuration
 ├── flow_boundary     # Flow boundary conditions
 ├── tide_boundary     # Tide/surge boundary parameters
-├── wave_boundary     # Manual wave boundary specification
 ├── hotstart          # Hotstart initialisation
 └── mpi               # MPI parallelisation
 ```
@@ -178,34 +177,46 @@ Stationary(breaktype=Baldock(gamma=0.78, alpha=1.0))
 
 This prevents invalid combinations that XBeach would reject at runtime.
 
-### Data Interfaces vs Parameter Components
-
-There's an important distinction:
+### Data Interfaces
 
 **Data interfaces** (`input.wave`, `input.tide`, `input.wind`) fetch external data, generate files, and produce parameters:
 
 ```python
-input=Input(
-    wave=BoundaryJonstable(
-        source=SourceDataset(...),  # External data source
-        hm0_var="hs",               # Variable mapping
-        tp_var="tp",
-    )
+from rompy_xbeach.config import Config, DataInterface
+from rompy_xbeach.data.boundary import BoundaryStationSpectraJonstable
+
+config = Config(
+    grid=grid,
+    bathy=bathy,
+    input=DataInterface(
+        wave=BoundaryStationSpectraJonstable(
+            source=spectra_source,  # External data source
+            hm0_var="hs",           # Variable mapping
+            tp_var="tp",
+        ),
+    ),
 )
 # Generates: jonswap.txt, bcfile entries, and wbctype/dtbc/etc parameters
 ```
 
-**Parameter components** (`wave_boundary`, `flow_boundary`) specify parameters directly:
+For pre-existing boundary files, use file-based boundary classes:
 
 ```python
-wave_boundary=SpectralWaveBoundary(
-    wbctype="jonstable",
-    bcfile="jonswap.txt",  # Pre-existing file
-    dtbc=1.0,
+from rompy_xbeach.data.boundary import BoundaryFileJonstable
+from rompy_xbeach.types import XBeachDataBlob
+
+config = Config(
+    grid=grid,
+    bathy=bathy,
+    input=DataInterface(
+        wave=BoundaryFileJonstable(
+            bcfile_source=XBeachDataBlob(source="jonswap.txt"),
+        ),
+    ),
 )
 ```
 
-Use data interfaces when generating boundary conditions from data sources. Use parameter components when working with pre-existing boundary files.
+All wave boundary configuration goes through `input.wave` — there is no separate `wave_boundary` field.
 
 ## Finding Parameters
 

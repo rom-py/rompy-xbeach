@@ -50,9 +50,15 @@ The [`Physics`](../api-reference/components.md#rompy_xbeach.components.physics.P
 
 | XBeach Parameter | Rompy Location | Description |
 |-----------------|----------------|-------------|
-| `bedfriction` | [`physics.bedfriction`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.bedfriction) | Bed friction formulation |
+| `bedfriction` | [`physics.bedfriction`](../api-reference/components.md#rompy_xbeach.components.physics.Physics.bedfriction) | Bed friction formulation (cf/chezy/manning/white-colebrook/white-colebrook-grainsize) |
 | `bedfriccoef` | [`physics.bedfriction.bedfriccoef`](../api-reference/components.md#rompy_xbeach.components.physics.friction.BedFriction.bedfriccoef) | Friction coefficient |
 | `bedfricfile` | [`physics.bedfriction.bedfricfile`](../api-reference/components.md#rompy_xbeach.components.physics.friction.BedFriction.bedfricfile) | Spatially varying friction file |
+| `mincf` | [`physics.bedfriction.mincf`](../api-reference/components.md#rompy_xbeach.components.physics.friction.Manning.mincf) | Minimum friction coefficient (Manning/WhiteColebrook) |
+| `maxcf` | [`physics.bedfriction.maxcf`](../api-reference/components.md#rompy_xbeach.components.physics.friction.Manning.maxcf) | Maximum friction coefficient (Manning/WhiteColebrook) |
+| `friction_acceleration` | [`physics.bedfriction.friction_acceleration`](../api-reference/components.md#rompy_xbeach.components.physics.friction.BedFriction.friction_acceleration) | Acceleration effect on roughness |
+| `friction_infiltration` | [`physics.bedfriction.friction_infiltration`](../api-reference/components.md#rompy_xbeach.components.physics.friction.BedFriction.friction_infiltration) | Infiltration effect on roughness |
+| `friction_turbulence` | [`physics.bedfriction.friction_turbulence`](../api-reference/components.md#rompy_xbeach.components.physics.friction.BedFriction.friction_turbulence) | Turbulence effect on roughness |
+| `gamma_turb` | [`physics.bedfriction.gamma_turb`](../api-reference/components.md#rompy_xbeach.components.physics.friction.BedFriction.gamma_turb) | Turbulence calibration factor |
 
 ### Viscosity Parameters
 
@@ -60,6 +66,7 @@ The [`Physics`](../api-reference/components.md#rompy_xbeach.components.physics.P
 |-----------------|----------------|-------------|
 | `nuh` | [`physics.viscosity.nuh`](../api-reference/components.md#rompy_xbeach.components.physics.friction.Viscosity.nuh) | Horizontal viscosity coefficient |
 | `nuhfac` | [`physics.viscosity.nuhfac`](../api-reference/components.md#rompy_xbeach.components.physics.friction.Viscosity.nuhfac) | Viscosity calibration factor |
+| `nuhv` | [`physics.viscosity.nuhv`](../api-reference/components.md#rompy_xbeach.components.physics.friction.Viscosity.nuhv) | Longshore viscosity enhancement |
 | `smag` | [`physics.viscosity.smag`](../api-reference/components.md#rompy_xbeach.components.physics.friction.Viscosity.smag) | Enable Smagorinsky model |
 
 ### Wave Numerics
@@ -77,20 +84,28 @@ The [`Physics`](../api-reference/components.md#rompy_xbeach.components.physics.P
 |-----------------|----------------|-------------|
 | `cfl` | [`physics.flow_numerics.cfl`](../api-reference/components.md#rompy_xbeach.components.physics.numerics.FlowNumerics.cfl) | CFL criterion |
 | `eps` | [`physics.flow_numerics.eps`](../api-reference/components.md#rompy_xbeach.components.physics.numerics.FlowNumerics.eps) | Threshold depth |
+| `eps_sd` | [`physics.flow_numerics.eps_sd`](../api-reference/components.md#rompy_xbeach.components.physics.numerics.FlowNumerics.eps_sd) | Threshold velocity difference |
+| `epsi` | [`physics.flow_numerics.epsi`](../api-reference/components.md#rompy_xbeach.components.physics.numerics.FlowNumerics.epsi) | Mean/varying current ratio |
 | `hmin` | [`physics.flow_numerics.hmin`](../api-reference/components.md#rompy_xbeach.components.physics.numerics.FlowNumerics.hmin) | Minimum water depth |
+| `deltahmin` | [`physics.flow_numerics.deltahmin`](../api-reference/components.md#rompy_xbeach.components.physics.numerics.FlowNumerics.deltahmin) | Dimensionless min depth coefficient |
+| `oldhmin` | [`physics.flow_numerics.oldhmin`](../api-reference/components.md#rompy_xbeach.components.physics.numerics.FlowNumerics.oldhmin) | Use old hmin parameter |
 | `umin` | [`physics.flow_numerics.umin`](../api-reference/components.md#rompy_xbeach.components.physics.numerics.FlowNumerics.umin) | Minimum velocity |
 | `secorder` | [`physics.flow_numerics.secorder`](../api-reference/components.md#rompy_xbeach.components.physics.numerics.FlowNumerics.secorder) | Second-order advection |
 | `oldhu` | [`physics.flow_numerics.oldhu`](../api-reference/components.md#rompy_xbeach.components.physics.numerics.FlowNumerics.oldhu) | Old hu/hv formulation |
+| `defuse` | [`physics.flow_numerics.defuse`](../api-reference/components.md#rompy_xbeach.components.physics.numerics.FlowNumerics.defuse) | Enable diffusion in flow solver |
+| `dtset` | [`physics.flow_numerics.dtset`](../api-reference/components.md#rompy_xbeach.components.physics.numerics.FlowNumerics.dtset) | Fixed timestep |
+| `maxdtfac` | [`physics.flow_numerics.maxdtfac`](../api-reference/components.md#rompy_xbeach.components.physics.numerics.FlowNumerics.maxdtfac) | Maximum timestep factor |
 
 ### Physical Constants
 
 | XBeach Parameter | Rompy Location | Description |
 |-----------------|----------------|-------------|
-| `rho` | [`physics.constants.rho`](../api-reference/components.md#rompy_xbeach.components.physics.constants.Constants.rho) | Water density |
-| `rhoa` | [`physics.constants.rhoa`](../api-reference/components.md#rompy_xbeach.components.physics.constants.Constants.rhoa) | Air density |
-| `g` | [`physics.constants.g`](../api-reference/components.md#rompy_xbeach.components.physics.constants.Constants.g) | Gravitational acceleration |
-| `lat` | [`physics.constants.lat`](../api-reference/components.md#rompy_xbeach.components.physics.constants.Constants.lat) | Latitude for Coriolis |
-| `wearth` | [`physics.constants.wearth`](../api-reference/components.md#rompy_xbeach.components.physics.constants.Constants.wearth) | Earth angular velocity |
+| `rho` | [`physics.constants.rho`](../api-reference/components.md#rompy_xbeach.components.physics.constants.PhysicalConstants.rho) | Water density |
+| `rhoa` | [`physics.constants.rhoa`](../api-reference/components.md#rompy_xbeach.components.physics.constants.PhysicalConstants.rhoa) | Air density |
+| `g` | [`physics.constants.g`](../api-reference/components.md#rompy_xbeach.components.physics.constants.PhysicalConstants.g) | Gravitational acceleration |
+| `depthscale` | [`physics.constants.depthscale`](../api-reference/components.md#rompy_xbeach.components.physics.constants.PhysicalConstants.depthscale) | Depth scale for lab tests |
+| `lat` | [`physics.coriolis.lat`](../api-reference/components.md#rompy_xbeach.components.physics.constants.Coriolis.lat) | Latitude for Coriolis |
+| `wearth` | [`physics.coriolis.wearth`](../api-reference/components.md#rompy_xbeach.components.physics.constants.Coriolis.wearth) | Earth angular velocity |
 
 ### Vegetation Parameters
 
@@ -119,23 +134,45 @@ The [`Sediment`](../api-reference/components.md#rompy_xbeach.components.sediment
 | `form` | [`sediment.sedtrans.form`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.form) | Transport formulation |
 | `waveform` | [`sediment.sedtrans.waveform`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.waveform) | Wave shape formulation |
 | `turb` | [`sediment.sedtrans.turb`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.turb) | Turbulence formulation |
+| `turbadv` | [`sediment.sedtrans.turbadv`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.turbadv) | Turbulence advection model |
 | `sws` | [`sediment.sedtrans.sws`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.sws) | Short wave stirring |
 | `lws` | [`sediment.sedtrans.lws`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.lws) | Long wave stirring |
 | `lwt` | [`sediment.sedtrans.lwt`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.lwt) | Long wave turbulence |
 | `BRfac` | [`sediment.sedtrans.BRfac`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.BRfac) | Bore runup factor |
+| `Tbfac` | [`sediment.sedtrans.Tbfac`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.Tbfac) | Bore interval factor |
+| `Tsmin` | [`sediment.sedtrans.Tsmin`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.Tsmin) | Minimum adaptation time |
 | `facua` | [`sediment.sedtrans.facua`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.facua) | Onshore transport factor |
-| `facAs` | [`sediment.sedtrans.facAs`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.facAs) | Skewness factor |
-| `facSk` | [`sediment.sedtrans.facSk`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.facSk) | Asymmetry factor |
+| `facAs` | [`sediment.sedtrans.facAs`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.facAs) | Asymmetry factor |
+| `facSk` | [`sediment.sedtrans.facSk`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.facSk) | Skewness factor |
+| `facsl` | [`sediment.sedtrans.facsl`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.facsl) | Bed slope factor |
+| `facDc` | [`sediment.sedtrans.facDc`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.facDc) | Diffusion coefficient factor |
+| `bed` | [`sediment.sedtrans.bed`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.bed) | Bed transport calibration |
+| `sus` | [`sediment.sedtrans.sus`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.sus) | Suspended transport calibration |
+| `bulk` | [`sediment.sedtrans.bulk`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.bulk) | Bulk transport switch |
+| `ci` | [`sediment.sedtrans.ci`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.ci) | Mass coefficient (inertia) |
+| `cm` | [`sediment.sedtrans.cm`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.cm) | Mass coefficient (shields) |
+| `dilatancy` | [`sediment.sedtrans.dilatancy`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.dilatancy) | Dilatancy switch |
+| `fallvelred` | [`sediment.sedtrans.fallvelred`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.fallvelred) | Fall velocity reduction |
+| `bdslpeffmag` | [`sediment.sedtrans.bdslpeffmag`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.bdslpeffmag) | Bed slope magnitude effect |
+| `bdslpeffdir` | [`sediment.sedtrans.bdslpeffdir`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.bdslpeffdir) | Bed slope direction effect |
+| `bdslpeffini` | [`sediment.sedtrans.bdslpeffini`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.bdslpeffini) | Bed slope initiation effect |
+| `reposeangle` | [`sediment.sedtrans.reposeangle`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.reposeangle) | Angle of internal friction |
+| `tsfac` | [`sediment.sedtrans.tsfac`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.tsfac) | Sediment source term factor |
+| `z0` | [`sediment.sedtrans.z0`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.SedimentTransport.z0) | Zero velocity level |
 
 ### Morphology (XBeach Table 39)
 
 | XBeach Parameter | Rompy Location | Description |
 |-----------------|----------------|-------------|
 | `morfac` | [`sediment.morphology.morfac`](../api-reference/components.md#rompy_xbeach.components.sediment.morphology.Morphology.morfac) | Morphological acceleration |
+| `morfacopt` | [`sediment.morphology.morfacopt`](../api-reference/components.md#rompy_xbeach.components.sediment.morphology.Morphology.morfacopt) | Adjust output times for morfac |
 | `morstart` | [`sediment.morphology.morstart`](../api-reference/components.md#rompy_xbeach.components.sediment.morphology.Morphology.morstart) | Morphology start time |
 | `morstop` | [`sediment.morphology.morstop`](../api-reference/components.md#rompy_xbeach.components.sediment.morphology.Morphology.morstop) | Morphology stop time |
 | `wetslp` | [`sediment.morphology.wetslp`](../api-reference/components.md#rompy_xbeach.components.sediment.morphology.Morphology.wetslp) | Critical wet slope |
 | `dryslp` | [`sediment.morphology.dryslp`](../api-reference/components.md#rompy_xbeach.components.sediment.morphology.Morphology.dryslp) | Critical dry slope |
+| `dzmax` | [`sediment.morphology.dzmax`](../api-reference/components.md#rompy_xbeach.components.sediment.morphology.Morphology.dzmax) | Maximum avalanching change |
+| `hswitch` | [`sediment.morphology.hswitch`](../api-reference/components.md#rompy_xbeach.components.sediment.morphology.Morphology.hswitch) | Wet/dry slope switch depth |
+| `lsgrad` | [`sediment.morphology.lsgrad`](../api-reference/components.md#rompy_xbeach.components.sediment.morphology.Morphology.lsgrad) | Longshore gradient factor |
 | `struct` | [`sediment.morphology.struct`](../api-reference/components.md#rompy_xbeach.components.sediment.morphology.Morphology.struct) | Enable structures |
 | `ne_layer` | [`sediment.morphology.ne_layer`](../api-reference/components.md#rompy_xbeach.components.sediment.morphology.Morphology.ne_layer) | Non-erodible layer file |
 
@@ -150,18 +187,40 @@ The [`Sediment`](../api-reference/components.md#rompy_xbeach.components.sediment
 
 | XBeach Parameter | Rompy Location | Description |
 |-----------------|----------------|-------------|
-| `D50` | [`sediment.bed_composition.D50`](../api-reference/components.md#rompy_xbeach.components.sediment.bed_composition.BedComposition.D50) | Median grain size |
-| `D90` | [`sediment.bed_composition.D90`](../api-reference/components.md#rompy_xbeach.components.sediment.bed_composition.BedComposition.D90) | 90th percentile grain size |
-| `D15` | [`sediment.bed_composition.D15`](../api-reference/components.md#rompy_xbeach.components.sediment.bed_composition.BedComposition.D15) | 15th percentile grain size |
-| `ngd` | [`sediment.bed_composition.ngd`](../api-reference/components.md#rompy_xbeach.components.sediment.bed_composition.BedComposition.ngd) | Number of grain classes |
-| `nd` | [`sediment.bed_composition.nd`](../api-reference/components.md#rompy_xbeach.components.sediment.bed_composition.BedComposition.nd) | Number of bed layers |
-| `rhos` | [`sediment.bed_composition.rhos`](../api-reference/components.md#rompy_xbeach.components.sediment.bed_composition.BedComposition.rhos) | Sediment density |
-| `por` | [`sediment.bed_composition.por`](../api-reference/components.md#rompy_xbeach.components.sediment.bed_composition.BedComposition.por) | Porosity |
-| `dzg1` | [`sediment.bed_composition.dzg1`](../api-reference/components.md#rompy_xbeach.components.sediment.bed_composition.BedComposition.dzg1) | Layer 1 thickness |
-| `dzg2` | [`sediment.bed_composition.dzg2`](../api-reference/components.md#rompy_xbeach.components.sediment.bed_composition.BedComposition.dzg2) | Layer 2 thickness |
-| `dzg3` | [`sediment.bed_composition.dzg3`](../api-reference/components.md#rompy_xbeach.components.sediment.bed_composition.BedComposition.dzg3) | Layer 3 thickness |
-| `sedcal` | [`sediment.bed_composition.sedcal`](../api-reference/components.md#rompy_xbeach.components.sediment.bed_composition.BedComposition.sedcal) | Sediment calibration factor |
-| `ucrcal` | [`sediment.bed_composition.ucrcal`](../api-reference/components.md#rompy_xbeach.components.sediment.bed_composition.BedComposition.ucrcal) | Critical velocity calibration |
+| `D50` | [`sediment.bed_composition.D50`](../api-reference/components.md#rompy_xbeach.components.sediment.composition.BedComposition.D50) | Median grain size |
+| `D90` | [`sediment.bed_composition.D90`](../api-reference/components.md#rompy_xbeach.components.sediment.composition.BedComposition.D90) | 90th percentile grain size |
+| `D15` | [`sediment.bed_composition.D15`](../api-reference/components.md#rompy_xbeach.components.sediment.composition.BedComposition.D15) | 15th percentile grain size |
+| `ngd` | [`sediment.bed_composition.ngd`](../api-reference/components.md#rompy_xbeach.components.sediment.composition.BedComposition.ngd) | Number of grain classes |
+| `nd` | [`sediment.bed_composition.nd`](../api-reference/components.md#rompy_xbeach.components.sediment.composition.BedComposition.nd) | Number of bed layers |
+| `rhos` | [`sediment.bed_composition.rhos`](../api-reference/components.md#rompy_xbeach.components.sediment.composition.BedComposition.rhos) | Sediment density |
+| `por` | [`sediment.bed_composition.por`](../api-reference/components.md#rompy_xbeach.components.sediment.composition.BedComposition.por) | Porosity |
+| `dzg1` | [`sediment.bed_composition.dzg1`](../api-reference/components.md#rompy_xbeach.components.sediment.composition.BedComposition.dzg1) | Layer 1 thickness |
+| `dzg2` | [`sediment.bed_composition.dzg2`](../api-reference/components.md#rompy_xbeach.components.sediment.composition.BedComposition.dzg2) | Layer 2 thickness |
+| `dzg3` | [`sediment.bed_composition.dzg3`](../api-reference/components.md#rompy_xbeach.components.sediment.composition.BedComposition.dzg3) | Layer 3 thickness |
+| `sedcal` | [`sediment.bed_composition.sedcal`](../api-reference/components.md#rompy_xbeach.components.sediment.composition.BedComposition.sedcal) | Sediment calibration factor |
+| `ucrcal` | [`sediment.bed_composition.ucrcal`](../api-reference/components.md#rompy_xbeach.components.sediment.composition.BedComposition.ucrcal) | Critical velocity calibration |
+| `ws_nonh` | [`sediment.bed_composition.ws_nonh`](../api-reference/components.md#rompy_xbeach.components.sediment.composition.BedComposition.ws_nonh) | Fall velocity (nonh mode) |
+
+### Transport Numerics
+
+| XBeach Parameter | Rompy Location | Description |
+|-----------------|----------------|-------------|
+| `cmax` | [`sediment.transport_numerics.cmax`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.TransportNumerics.cmax) | Maximum concentration |
+| `dtlimts` | [`sediment.transport_numerics.dtlimts`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.TransportNumerics.dtlimts) | Timestep limiter factor |
+| `oldTsmin` | [`sediment.transport_numerics.oldTsmin`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.TransportNumerics.oldTsmin) | Use old Tsmin parameter |
+| `sourcesink` | [`sediment.transport_numerics.sourcesink`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.TransportNumerics.sourcesink) | Source-sink bed update |
+| `thetanum` | [`sediment.transport_numerics.thetanum`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.TransportNumerics.thetanum) | Upwind/central scheme |
+
+### Quasi-3D Transport
+
+| XBeach Parameter | Rompy Location | Description |
+|-----------------|----------------|-------------|
+| `q3d` | [`sediment.quasi3d.q3d`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.Quasi3D.q3d) | Enable quasi-3D transport |
+| `kmax` | [`sediment.quasi3d.kmax`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.Quasi3D.kmax) | Number of sigma layers |
+| `sigfac` | [`sediment.quasi3d.sigfac`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.Quasi3D.sigfac) | Layer distribution factor |
+| `vicmol` | [`sediment.quasi3d.vicmol`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.Quasi3D.vicmol) | Molecular viscosity |
+| `vonkar` | [`sediment.quasi3d.vonkar`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.Quasi3D.vonkar) | Von Karman constant |
+| `rwave` | [`sediment.quasi3d.rwave`](../api-reference/components.md#rompy_xbeach.components.sediment.transport.Quasi3D.rwave) | Wave roughness factor |
 
 ### Groundwater Flow (XBeach Table 41)
 
@@ -203,17 +262,37 @@ Boundary conditions are configured at the `Config` level, not within Physics or 
 
 ### Wave Boundary Parameters
 
+Wave boundary parameters are specified directly on the wave boundary data classes via `Config.input.wave`. See [Wave Boundaries](../data-interfaces/boundaries.md) for full documentation.
+
+**Common Parameters (All Boundaries):**
+
 | XBeach Parameter | Rompy Location | Description |
-|-----------------|----------------|--------------|
-| `wbctype` | [`wave_boundary.wbc.wbctype`](../api-reference/components.md#rompy_xbeach.components.boundary.specification.SpectralWaveBoundary) | Wave boundary type |
-| `bcfile` | [`wave_boundary.wbc.bcfile`](../api-reference/components.md#rompy_xbeach.components.boundary.specification.SpectralWaveBoundary) | Boundary condition file |
-| `dtbc` | [`wave_boundary.wbc.dtbc`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.SpectralWaveBoundaryConditions) | Boundary update interval |
-| `thetamin` | [`wave_boundary.wbc.thetamin`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.WaveBoundaryConditions) | Minimum wave direction |
-| `thetamax` | [`wave_boundary.wbc.thetamax`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.WaveBoundaryConditions) | Maximum wave direction |
-| `dtheta` | [`wave_boundary.wbc.dtheta`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.WaveBoundaryConditions) | Directional resolution |
-| `thetanaut` | [`wave_boundary.wbc.thetanaut`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.WaveBoundaryConditions) | Nautical convention |
-| `ARC` | [`wave_boundary.wbc.ARC`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.WaveBoundaryConditions) | Active reflection compensation |
-| `freewave` | [`wave_boundary.wbc.freewave`](../api-reference/components.md#rompy_xbeach.components.boundary.parameters.WaveBoundaryConditions) | Free wave boundary |
+|-----------------|----------------|-------------|
+| `wbctype` | `input.wave` (class determines type) | Wave boundary type |
+| `bcfile` | `input.wave.get()` (generated) | Boundary condition file |
+| `thetamin` | [`input.wave.thetamin`](../api-reference/data.md#rompy_xbeach.data.boundary.WaveBoundaryParams) | Minimum wave direction |
+| `thetamax` | [`input.wave.thetamax`](../api-reference/data.md#rompy_xbeach.data.boundary.WaveBoundaryParams) | Maximum wave direction |
+| `dtheta` | [`input.wave.dtheta`](../api-reference/data.md#rompy_xbeach.data.boundary.WaveBoundaryParams) | Directional resolution |
+| `thetanaut` | [`input.wave.thetanaut`](../api-reference/data.md#rompy_xbeach.data.boundary.WaveBoundaryParams) | Nautical convention |
+| `ARC` | [`input.wave.ARC`](../api-reference/data.md#rompy_xbeach.data.boundary.WaveBoundaryParams) | Active reflection compensation |
+| `freewave` | [`input.wave.freewave`](../api-reference/data.md#rompy_xbeach.data.boundary.WaveBoundaryParams) | Free wave boundary |
+| `nmax` | [`input.wave.nmax`](../api-reference/data.md#rompy_xbeach.data.boundary.WaveBoundaryParams) | Maximum cg/c ratio |
+| `taper` | [`input.wave.taper`](../api-reference/data.md#rompy_xbeach.data.boundary.WaveBoundaryParams) | Spin-up time |
+
+**Spectral Parameters (Spectral Boundaries Only):**
+
+| XBeach Parameter | Rompy Location | Description |
+|-----------------|----------------|-------------|
+| `rt` | [`input.wave.rt`](../api-reference/data.md#rompy_xbeach.data.boundary.SpectralWaveBoundaryParams) | Wave spectrum duration |
+| `dtbc` | [`input.wave.dtbc`](../api-reference/data.md#rompy_xbeach.data.boundary.SpectralWaveBoundaryParams) | Boundary update interval |
+| `random` | [`input.wave.random`](../api-reference/data.md#rompy_xbeach.data.boundary.SpectralWaveBoundaryParams) | Random seed switch |
+| `fcutoff` | [`input.wave.fcutoff`](../api-reference/data.md#rompy_xbeach.data.boundary.SpectralWaveBoundaryParams) | Low-frequency cutoff |
+| `correcthm0` | [`input.wave.correcthm0`](../api-reference/data.md#rompy_xbeach.data.boundary.SpectralWaveBoundaryParams) | Hm0 correction switch |
+| `sprdthr` | [`input.wave.sprdthr`](../api-reference/data.md#rompy_xbeach.data.boundary.SpectralWaveBoundaryParams) | Spreading threshold |
+| `trepfac` | [`input.wave.trepfac`](../api-reference/data.md#rompy_xbeach.data.boundary.SpectralWaveBoundaryParams) | Representative period factor |
+| `nspr` | [`input.wave.nspr`](../api-reference/data.md#rompy_xbeach.data.boundary.SpectralWaveBoundaryParams) | Long wave direction switch |
+| `wbcRemoveStokes` | [`input.wave.wbcRemoveStokes`](../api-reference/data.md#rompy_xbeach.data.boundary.WaveBoundaryParams) | Remove Stokes drift |
+| `wbcScaleEnergy` | [`input.wave.wbcScaleEnergy`](../api-reference/data.md#rompy_xbeach.data.boundary.WaveBoundaryParams) | Scale energy to match Hm0 |
 
 ---
 

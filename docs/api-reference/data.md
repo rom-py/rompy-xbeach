@@ -74,6 +74,62 @@ For using pre-existing boundary files:
       show_root_heading: true
       show_source: false
 
+### Non-Spectral Boundaries
+
+::: rompy_xbeach.data.boundary.BoundaryStat
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.data.boundary.BoundaryBichrom
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.data.boundary.BoundaryStatTable
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.data.boundary.BoundaryTs1
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.data.boundary.BoundaryTs2
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.data.boundary.BoundaryTsNonh
+    options:
+      show_root_heading: true
+      show_source: false
+
+### Special Boundaries
+
+::: rompy_xbeach.data.boundary.BoundaryOff
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.data.boundary.BoundaryReuse
+    options:
+      show_root_heading: true
+      show_source: false
+
+### Base Parameter Classes
+
+::: rompy_xbeach.data.boundary.WaveBoundaryParams
+    options:
+      show_root_heading: true
+      show_source: false
+
+::: rompy_xbeach.data.boundary.SpectralWaveBoundaryParams
+    options:
+      show_root_heading: true
+      show_source: false
+
 ---
 
 ## Tide / Water Level

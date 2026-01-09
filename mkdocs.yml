@@ -10,10 +10,9 @@ nav:
   - Getting Started:
       - Installation: getting-started/installation.md
       - Quickstart: getting-started/quickstart.md
-  - User Guide:
+  - Concepts:
       - Architecture: user-guide/architecture.md
       - Configuration: user-guide/configuration.md
-      - Parameter Reference: user-guide/parameter-reference.md
   - Data Interfaces:
       - Overview: data-interfaces/index.md
       - Grid: data-interfaces/grid.md
@@ -37,6 +36,7 @@ nav:
       - Forcing: examples/forcing-demo.ipynb
       - Full Example (Procedural): examples/example_procedural.ipynb
       - Full Example (Declarative): examples/example_declarative.ipynb
+  - Parameter Reference: user-guide/parameter-reference.md
   - API Reference:
       - Config: api-reference/config.md
       - Components: api-reference/components.md
