@@ -9,14 +9,17 @@ from typing import Literal
 from pathlib import Path
 from pydantic import Field
 
-from rompy.core.types import RompyBaseModel
 from rompy.core.time import TimeRange
 
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.types import XBeachDirectoryBlob
+from rompy_xbeach.data.boundary.base import (
+    WaveBoundaryParams,
+    SpectralWaveBoundaryParams,
+)
 
 
-class BoundaryOff(RompyBaseModel):
+class BoundaryOff(WaveBoundaryParams):
     """No wave forcing.
 
     Use this when you don't want any wave forcing in the model.
@@ -58,7 +61,7 @@ class BoundaryOff(RompyBaseModel):
         return {"wbctype": self.id}
 
 
-class BoundaryReuse(RompyBaseModel):
+class BoundaryReuse(SpectralWaveBoundaryParams):
     """Reuse previous boundary conditions.
 
     Makes XBeach reuse wave time series from a previous simulation.
@@ -114,9 +117,16 @@ class BoundaryReuse(RompyBaseModel):
         Returns
         -------
         dict
-            XBeach parameters with wbctype='reuse'.
+            XBeach parameters with wbctype='reuse' and wave boundary settings.
 
         """
         # Fetch the required bcf files from previous run directory
         self.previous_run.get(destdir, patterns=["ebcflist.bcf", "qbcflist.bcf"])
-        return {"wbctype": self.id}
+        params = {"wbctype": self.id}
+        params.update(
+            self.model_dump(
+                exclude={"model_type", "id", "previous_run"},
+                exclude_none=True,
+            )
+        )
+        return params
