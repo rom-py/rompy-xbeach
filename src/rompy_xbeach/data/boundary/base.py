@@ -468,14 +468,42 @@ class ParamMixin:
 
 
 class FilelistMixin:
-    """Mixin class to write a filelist for multiple boundary files."""
+    """Mixin class for FILELIST functionality.
+    
+    This mixin provides support for FILELIST operations in two contexts:
+    1. Writing FILELIST files when generating boundary data from external sources
+    2. Fetching FILELIST files when using pre-existing boundary files
+    
+    For data-generating boundaries:
+    - When filelist=True: Creates a FILELIST file that references individual bcfiles for 
+      each timestep, plus writes the individual bcfiles. The FILELIST file is specified 
+      as the bcfile parameter in params.txt.
+    - When filelist=False: Creates a single bcfile with wave parameters interpolated 
+      at time.start.
+    
+    For file-based boundaries:
+    - When filelist=True: The source is a FILELIST file and all referenced files will 
+      be fetched from the same directory.
+    
+    Example FILELIST format (as written to filelist.txt):
+    ```
+    FILELIST
+    1800 0.2 jonswap1.inp
+    1800 0.2 jonswap1.inp
+    1350 0.2 jonswap2.inp
+    1500 0.2 jonswap3.inp
+    1200 0.2 jonswap2.inp
+    3600 0.2 jonswap4.inp
+    ```
+    Each line contains: duration (seconds), timestep (seconds), and filename.
+    """
 
-    filelist: Optional[bool] = Field(
-        default=True,
+    filelist: bool = Field(
+        default=False,
         description=(
-            "If True, create one bcfile for each timestep in the filtered dataset and "
-            "return a FILELIST.txt file with the list of bcfiles, otherwise return a "
-            "single bcfile with the wave parameters interpolated at time.start"
+            "Controls FILELIST behavior. For data-generating boundaries: creates multiple "
+            "bcfiles with a FILELIST index if True, single bcfile if False. "
+            "For file-based boundaries: interprets source as FILELIST if True."
         ),
     )
 
@@ -508,3 +536,45 @@ class FilelistMixin:
             for bcfile, duration in zip(bcfiles, durations):
                 f.write(f"{duration:g} {dtbc:g} {bcfile.name}\n")
         return filename
+
+    def _fetch_filelist_files(self, destdir: Path, filelist_path: Path) -> None:
+        """Fetch all files referenced in a FILELIST file.
+
+        This method is used when reading pre-existing FILELIST files.
+        It parses the FILELIST and fetches all referenced bcfiles from the same
+        directory as the FILELIST file.
+
+        Parameters
+        ----------
+        destdir : Path
+            Destination directory where files will be copied.
+        filelist_path : Path
+            Path to the FILELIST file (already fetched to destdir).
+
+        """
+        from cloudpathlib import AnyPath
+
+        # Get the source directory (where referenced files are located)
+        # This assumes the FILELIST file was copied from its original location
+        # and we need to find the original source directory
+        # For file-based boundaries, this will be overridden in the specific class
+        if hasattr(self, 'bcfile_source'):
+            source_dir = AnyPath(self.bcfile_source.source).parent
+        else:
+            # For data-generating classes, use the parent of the filelist
+            source_dir = filelist_path.parent
+
+        # Parse the FILELIST to get referenced files
+        with open(filelist_path) as f:
+            lines = f.readlines()
+
+        # Skip the FILELIST header line
+        for line in lines[1:]:
+            parts = line.strip().split()
+            if len(parts) >= 3:
+                # Format: <duration> <dtbc> <filename>
+                filename = parts[2]
+                source_file = source_dir / filename
+                dest_file = destdir / filename
+                if not dest_file.exists():
+                    dest_file.write_bytes(source_file.read_bytes())

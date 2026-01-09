@@ -72,6 +72,9 @@ xbeach = "rompy_xbeach.config:Config"
 "file_ts_nonh:wave" = "rompy_xbeach.data.boundary:BoundaryTsNonh"
 "off:wave" = "rompy_xbeach.data.boundary:BoundaryOff"
 "reuse:wave" = "rompy_xbeach.data.boundary:BoundaryReuse"
+"file_jons:wave" = "rompy_xbeach.data.boundary:BoundaryFileJons"
+"file_jonstable:wave" = "rompy_xbeach.data.boundary:BoundaryFileJonstable"
+"file_swan:wave" = "rompy_xbeach.data.boundary:BoundaryFileSwan"
 
 [project.entry-points."xbeach.source"]
 "geotiff:crs" = "rompy_xbeach.source:SourceGeotiff"

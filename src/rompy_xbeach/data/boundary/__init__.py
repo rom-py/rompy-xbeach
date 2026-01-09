@@ -15,6 +15,11 @@ Spectral Boundaries (from external data):
 - BoundaryGridParamJonstable: JONSTABLE from gridded parameters
 - BoundaryStationSpectraSwan: SWAN from station spectra
 
+Spectral Boundaries (from pre-existing bcfiles):
+- BoundaryFileJons: JONSWAP from existing bcfile(s)
+- BoundaryFileJonstable: JONSTABLE from existing bcfile
+- BoundaryFileSwan: SWAN from existing bcfile(s)
+
 Non-Spectral Boundaries:
 - BoundaryStat: Stationary parametric waves (no file needed)
 - BoundaryBichrom: Bichromatic waves (no file needed)
@@ -52,6 +57,9 @@ from rompy_xbeach.data.boundary.spectral import (
     BoundaryPointParamJonstable,
     BoundaryGridParamJonstable,
     BoundaryStationSpectraSwan,
+    BoundaryFileJons,
+    BoundaryFileJonstable,
+    BoundaryFileSwan,
 )
 
 from rompy_xbeach.data.boundary.nonspectral import (
@@ -94,6 +102,10 @@ __all__ = [
     "BoundaryGridParamJonstable",
     # SWAN classes
     "BoundaryStationSpectraSwan",
+    # File-based spectral classes
+    "BoundaryFileJons",
+    "BoundaryFileJonstable",
+    "BoundaryFileSwan",
     # Non-spectral classes
     "BoundaryStat",
     "BoundaryBichrom",

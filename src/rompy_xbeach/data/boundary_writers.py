@@ -36,7 +36,7 @@ JONS_MAPPING = dict(
 )
 
 
-class BoundaryFileWriterBase(RompyBaseModel, ABC):
+class BoundaryWriterBase(RompyBaseModel, ABC):
     """Base class for wave boundary file writers.
 
     This class defines the interface for writing XBeach boundary condition files.
@@ -100,7 +100,7 @@ class BoundaryFileWriterBase(RompyBaseModel, ABC):
 
 
 # Spectral boundary file writers
-class BoundaryFileSpectral(BoundaryFileWriterBase, ABC):
+class SpectralWriter(BoundaryWriterBase, ABC):
     """Base class for spectral wave boundary file writers.
 
     Handles common file naming for spectral boundary types (JONSWAP, SWAN, etc.).
@@ -116,7 +116,7 @@ class BoundaryFileSpectral(BoundaryFileWriterBase, ABC):
     )
 
 
-class BoundaryFileJons(BoundaryFileSpectral):
+class JonsWriter(SpectralWriter):
     """File writer for single JONSWAP spectrum boundary conditions.
 
     Writes a JONSWAP parameter file with format:
@@ -192,7 +192,7 @@ class BoundaryFileJons(BoundaryFileSpectral):
     _serializable_fields: tuple[str, ...] = ()
 
     @model_validator(mode="after")
-    def validate_dfj(self) -> "BoundaryFileJons":
+    def validate_dfj(self) -> "JonsWriter":
         if self.dfj is not None:
             logger.warning(
                 "It is advised not to specify the keyword dfj and allow XBeach "
@@ -226,7 +226,7 @@ class BoundaryFileJons(BoundaryFileSpectral):
         return bcfile
 
 
-class BoundaryFileJonstable(BoundaryFileSpectral):
+class JonstableWriter(SpectralWriter):
     """File writer for time-varying JONSWAP spectrum boundary conditions.
 
     Writes a JONSTABLE file with format:
@@ -270,7 +270,7 @@ class BoundaryFileJonstable(BoundaryFileSpectral):
     _serializable_fields: tuple[str, ...] = ("dtbc",)
 
     @model_validator(mode="after")
-    def lists_are_the_same_sizes(self) -> "BoundaryFileJonstable":
+    def lists_are_the_same_sizes(self) -> "JonstableWriter":
         for param in ["tp", "mainang", "gammajsp", "s", "duration", "dtbc"]:
             param_size = len(getattr(self, param))
             if param_size != len(self):
@@ -315,7 +315,7 @@ class BoundaryFileJonstable(BoundaryFileSpectral):
         return bcfile
 
 
-class BoundaryFileSWAN(BoundaryFileSpectral):
+class SwanWriter(SpectralWriter):
     """File writer for SWAN spectrum boundary conditions.
 
     Writes a SWAN spectral file using wavespectra library.
@@ -386,27 +386,27 @@ class BoundaryFileSWAN(BoundaryFileSpectral):
         return bcfile
 
 
-class BoundaryFileVardens(BoundaryFileSpectral):
+class VardensWriter(SpectralWriter):
     """File writer for VARDENS spectrum boundary conditions."""
 
     pass
 
 
 # Non-spectral boundary file writers
-class BoundaryFileStationary(BoundaryFileWriterBase):
+class StationaryWriter(BoundaryWriterBase):
     """File writer for stationary boundary conditions."""
 
     pass
 
 
-class BoundaryFileTimeSeries(BoundaryFileWriterBase):
+class TimeSeriesWriter(BoundaryWriterBase):
     """File writer for time series boundary conditions."""
 
     pass
 
 
 # Special case boundary file writers
-class BoundaryFileBichrom(BoundaryFileWriterBase):
+class BichromWriter(BoundaryWriterBase):
     """File writer for bichromatic boundary conditions."""
 
     pass

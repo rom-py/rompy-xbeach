@@ -23,10 +23,11 @@ from rompy.core.time import TimeRange
 
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.data.boundary_writers import (
-    BoundaryFileJons,
-    BoundaryFileJonstable,
-    BoundaryFileSWAN,
+    JonsWriter,
+    JonstableWriter,
+    SwanWriter,
 )
+from rompy_xbeach.types import XBeachDataBlob
 from rompy_xbeach.data.boundary.base import (
     SpectralWaveBoundaryParams,
     BoundaryBaseGrid,
@@ -43,7 +44,7 @@ logger = logging.getLogger(__name__)
 
 
 # =====================================================================================
-# JONS Base Class (Mixin - does not inherit from ABC directly)
+# JONS Mixin Class
 # =====================================================================================
 class BoundaryJonsBase(FilelistMixin):
     """Base class for JONS wave boundary from data sources.
@@ -77,7 +78,7 @@ class BoundaryJonsBase(FilelistMixin):
         """Calculate the Jonswap parameters from the data."""
         pass
 
-    def _instantiate_boundary(self, data: xr.Dataset) -> BoundaryFileJons:
+    def _instantiate_boundary(self, data: xr.Dataset) -> JonsWriter:
         """Instantiate the boundary file writer object.
 
         Parameters
@@ -96,7 +97,7 @@ class BoundaryJonsBase(FilelistMixin):
             elif param in data and np.isnan(data[param]):
                 raise ValueError(f"Parameter {param} is NaN for {data.time}")
         bcfile = f"{self.id}-{t:%Y%m%dT%H%M%S}.txt"
-        return BoundaryFileJons(bcfile=bcfile, fnyq=self.fnyq, dfj=self.dfj, **kwargs)
+        return JonsWriter(bcfile=bcfile, fnyq=self.fnyq, dfj=self.dfj, **kwargs)
 
     def get(
         self, destdir: str | Path, grid: RegularGrid, time: Optional[TimeRange] = None
@@ -155,7 +156,7 @@ class BoundaryJonsBase(FilelistMixin):
 
 
 # =====================================================================================
-# JONSTABLE Base Class (Mixin - does not inherit from ABC directly)
+# JONSTABLE Mixin Class
 # =====================================================================================
 class BoundaryJonstableBase:
     """Base class for JONSTABLE wave boundary from data sources.
@@ -182,7 +183,7 @@ class BoundaryJonstableBase:
         """Calculate the Jonswap parameters from the data."""
         pass
 
-    def _instantiate_boundary(self, data: xr.Dataset) -> BoundaryFileJonstable:
+    def _instantiate_boundary(self, data: xr.Dataset) -> JonstableWriter:
         """Instantiate the boundary file writer object.
 
         Parameters
@@ -210,7 +211,7 @@ class BoundaryJonstableBase:
                 raise ValueError(
                     f"Parameter {key} has NaN for one or more times ({list(zip(times, val))})"
                 )
-        return BoundaryFileJonstable(bcfile=bcfile, **kwargs)
+        return JonstableWriter(bcfile=bcfile, **kwargs)
 
     def get(
         self, destdir: str | Path, grid: RegularGrid, time: Optional[TimeRange] = None
@@ -246,6 +247,63 @@ class BoundaryJonstableBase:
                 exclude={"id", "source", "coords", "crop_data", "buffer",
                          "location", "model_type", "hm0_var", "tp_var",
                          "mainang_var", "gammajsp_var", "dspr_var"},
+                exclude_none=True,
+            )
+        )
+        return params
+
+
+# =====================================================================================
+# File-based Spectral Mixin Class (pre-existing bcfiles)
+# =====================================================================================
+class BoundaryFileSpectralBase(SpectralWaveBoundaryParams):
+    """Base class for file-based spectral boundaries.
+    
+    This class provides common functionality for boundary classes that fetch
+    pre-existing bcfiles.
+    """
+    
+    bcfile_source: XBeachDataBlob = Field(
+        description="Source for the bcfile or FILELIST file",
+    )
+
+    def get(
+        self, destdir: str | Path, grid: RegularGrid = None, time: TimeRange = None
+    ) -> dict:
+        """Fetch bcfile(s) and return XBeach parameters.
+
+        Parameters
+        ----------
+        destdir : str | Path
+            Destination directory for boundary files.
+        grid : RegularGrid, optional
+            Grid instance (not used).
+        time : TimeRange, optional
+            Time range (not used).
+
+        Returns
+        -------
+        dict
+            XBeach parameters including wbctype, bcfile, and wave boundary settings.
+
+        """
+        destdir = Path(destdir)
+
+        # Fetch the main bcfile
+        bcfile = self.bcfile_source.get(destdir)
+
+        # If filelist, also fetch all referenced files
+        if hasattr(self, 'filelist') and self.filelist:
+            self._fetch_filelist_files(destdir, bcfile)
+
+        # Return XBeach parameters
+        params = {"wbctype": self.id, "bcfile": bcfile.name}
+        exclude_fields = {"model_type", "id", "bcfile_source"}
+        if hasattr(self, 'filelist'):
+            exclude_fields.add("filelist")
+        params.update(
+            self.model_dump(
+                exclude=exclude_fields,
                 exclude_none=True,
             )
         )
@@ -299,6 +357,37 @@ class BoundaryGridParamJons(
 
     model_type: Literal["grid_param_jons"] = Field(
         default="grid_param_jons",
+        description="Model type discriminator",
+    )
+
+
+class BoundaryFileJons(FilelistMixin, BoundaryFileSpectralBase):
+    """JONSWAP boundary from pre-existing bcfile(s).
+
+    Use this class when you have existing JONSWAP boundary files created outside
+    of rompy (e.g., manually or from another tool).
+
+    If `filelist=True`, the source bcfile is expected to be a FILELIST file, and
+    all files referenced within it will also be fetched from the same directory.
+
+    Examples
+    --------
+    >>> from rompy_xbeach.types import XBeachDataBlob
+    >>> # Single bcfile
+    >>> boundary = BoundaryFileJons(
+    ...     bcfile_source=XBeachDataBlob(source="/path/to/bcfile"),
+    ... )
+    >>> # FILELIST with multiple bcfiles
+    >>> boundary = BoundaryFileJons(
+    ...     bcfile_source=XBeachDataBlob(source="/path/to/bcfile"),
+    ...     filelist=True,
+    ... )
+
+    """
+
+    id: Literal["jons"] = Field(default="jons", description="Boundary type identifier")
+    model_type: Literal["file_jons"] = Field(
+        default="file_jons",
         description="Model type discriminator",
     )
 
@@ -360,6 +449,32 @@ class BoundaryGridParamJonstable(
     )
 
 
+class BoundaryFileJonstable(BoundaryFileSpectralBase):
+    """JONSTABLE boundary from pre-existing bcfile.
+
+    Use this class when you have an existing JONSTABLE boundary file created
+    outside of rompy (e.g., manually or from another tool).
+
+    JONSTABLE files are always single files (no FILELIST support needed).
+
+    Examples
+    --------
+    >>> from rompy_xbeach.types import XBeachDataBlob
+    >>> boundary = BoundaryFileJonstable(
+    ...     bcfile_source=XBeachDataBlob(source="/path/to/jonstable.txt"),
+    ... )
+
+    """
+
+    id: Literal["jonstable"] = Field(
+        default="jonstable", description="Boundary type identifier"
+    )
+    model_type: Literal["file_jonstable"] = Field(
+        default="file_jonstable",
+        description="Model type discriminator",
+    )
+
+
 # =====================================================================================
 # SWAN Concrete Class
 # =====================================================================================
@@ -382,7 +497,7 @@ class BoundaryStationSpectraSwan(
         description="Model type discriminator",
     )
 
-    def _instantiate_boundary(self, data: xr.Dataset) -> BoundaryFileSWAN:
+    def _instantiate_boundary(self, data: xr.Dataset) -> SwanWriter:
         """Instantiate the boundary file writer object.
 
         Parameters
@@ -397,7 +512,7 @@ class BoundaryStationSpectraSwan(
         bcfile = f"{self.id}-{t:%Y%m%dT%H%M%S}.txt"
         if data.lon.size > 1 or data.lat.size > 1:
             raise ValueError("Data must be a single point")
-        return BoundaryFileSWAN(
+        return SwanWriter(
             bcfile=bcfile,
             freq=data.freq.squeeze().values,
             dir=data.dir.squeeze().values,
@@ -458,3 +573,34 @@ class BoundaryStationSpectraSwan(
             )
         )
         return params
+
+
+class BoundaryFileSwan(FilelistMixin, BoundaryFileSpectralBase):
+    """SWAN spectral boundary from pre-existing bcfile(s).
+
+    Use this class when you have existing SWAN spectral boundary files created
+    outside of rompy (e.g., manually or from another tool).
+
+    If `filelist=True`, the source bcfile is expected to be a FILELIST file, and
+    all files referenced within it will also be fetched from the same directory.
+
+    Examples
+    --------
+    >>> from rompy_xbeach.types import XBeachDataBlob
+    >>> # Single bcfile
+    >>> boundary = BoundaryFileSwan(
+    ...     bcfile_source=XBeachDataBlob(source="/path/to/swan_spectrum.txt"),
+    ... )
+    >>> # FILELIST with multiple bcfiles
+    >>> boundary = BoundaryFileSwan(
+    ...     bcfile_source=XBeachDataBlob(source="/path/to/filelist.txt"),
+    ...     filelist=True,
+    ... )
+
+    """
+
+    id: Literal["swan"] = Field(default="swan", description="Boundary type identifier")
+    model_type: Literal["file_swan"] = Field(
+        default="file_swan",
+        description="Model type discriminator",
+    )

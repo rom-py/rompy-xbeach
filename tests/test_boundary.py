@@ -19,9 +19,9 @@ from rompy_xbeach.data.boundary import (
     BoundaryStationSpectraSwan,
 )
 from rompy_xbeach.data.boundary_writers import (
-    BoundaryFileWriterBase,
-    BoundaryFileJons,
-    BoundaryFileJonstable,
+    BoundaryWriterBase,
+    JonsWriter,
+    JonstableWriter,
 )
 
 
@@ -77,15 +77,15 @@ def source_wavespectra():
 # =====================================================================================
 # Boundary Components
 # =====================================================================================
-def test_boundary_file_writer_base_abstract():
-    """Test that BoundaryFileWriterBase cannot be instantiated directly."""
+def test_boundary_writer_base_abstract():
+    """Test that BoundaryWriterBase cannot be instantiated directly."""
     with pytest.raises(TypeError):
-        BoundaryFileWriterBase()
+        BoundaryWriterBase()
 
 
-def test_boundary_file_jons_defaults():
+def test_jons_writer_defaults():
     """Test default values for JONSWAP file writer."""
-    bf = BoundaryFileJons()
+    bf = JonsWriter()
     assert bf.bcfile == "spectrum.txt"
     assert bf.hm0 is None
     assert bf.tp is None
@@ -96,24 +96,24 @@ def test_boundary_file_jons_defaults():
     assert bf.dfj is None
 
 
-def test_boundary_file_jons_valid_ranges():
+def test_jons_writer_valid_ranges():
     """Test validation ranges for JONSWAP parameters."""
     with pytest.raises(ValueError):
-        BoundaryFileJons(fnyq=1.0, dfj=0.00099)
-        BoundaryFileJons(fnyq=1.0, dfj=0.051)
+        JonsWriter(fnyq=1.0, dfj=0.00099)
+        JonsWriter(fnyq=1.0, dfj=0.051)
 
 
-def test_boundary_file_jons_write(tmp_path):
+def test_jons_writer_write(tmp_path):
     """Test writing JONSWAP boundary file."""
-    bf = BoundaryFileJons(hm0=1.0, tp=12.0, bcfile="jons.txt")
+    bf = JonsWriter(hm0=1.0, tp=12.0, bcfile="jons.txt")
     bcfile = bf.write(tmp_path)
     assert bcfile.is_file()
 
 
-def test_boundary_file_jonstable_same_sizes():
+def test_jonstable_writer_same_sizes():
     """Test that JONSTABLE requires all parameter lists to be same size."""
     with pytest.raises(ValueError):
-        BoundaryFileJonstable(
+        JonstableWriter(
             hm0=[1.0, 2.0],
             tp=[10.0, 10.0],
             mainang=[180, 180],
@@ -124,10 +124,10 @@ def test_boundary_file_jonstable_same_sizes():
         )
 
 
-def test_boundary_file_jonstable_valid_ranges():
+def test_jonstable_writer_valid_ranges():
     """Test validation ranges for JONSTABLE parameters."""
     with pytest.raises(ValueError):
-        BoundaryFileJonstable(
+        JonstableWriter(
             hm0=[1.0, 5000.0],
             tp=[10.0, 10.0],
             mainang=[180, 180],
@@ -138,9 +138,9 @@ def test_boundary_file_jonstable_valid_ranges():
         )
 
 
-def test_boundary_file_jonstable_write(tmp_path):
+def test_jonstable_writer_write(tmp_path):
     """Test writing JONSTABLE boundary file."""
-    bf = BoundaryFileJonstable(
+    bf = JonstableWriter(
         hm0=[1.0, 2.0],
         tp=[10.0, 10.0],
         mainang=[180, 180],
@@ -243,6 +243,7 @@ def test_boundary_station_param_jons_filelist(tmp_path, source_file, grid, time)
         mainang_var="pdp1",
         gammajsp_var="ppe1",
         dspr_var="pspr1",
+        filelist=True,
     )
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
     assert boundary_spec["wbctype"] == "jons"
@@ -270,6 +271,7 @@ def test_boundary_station_param_jons_filelist_float(tmp_path, source_file, grid,
         mainang_var="pdp1",
         gammajsp_var=3.3,
         dspr_var="pspr1",
+        filelist=True,
     )
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
     assert boundary_spec["wbctype"] == "jons"
@@ -309,6 +311,7 @@ def test_boundary_station_spectra_jons_filelist(
     """Test multiple (filelist) jons spectral boundary from spectra source."""
     wb = BoundaryStationSpectraJons(
         source=source_wavespectra,
+        filelist=True,
     )
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
     assert boundary_spec["wbctype"] == "jons"
@@ -356,6 +359,7 @@ def test_boundary_point_param_jons_filelist(tmp_path, source_csv, grid, time):
         mainang_var="pdp1",
         gammajsp_var="ppe1",
         dspr_var="pspr1",
+        filelist=True,
     )
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
     assert boundary_spec["wbctype"] == "jons"
@@ -485,6 +489,7 @@ def test_boundary_station_spectra_swan_filelist(
     """Test multiple (filelist) jons spectral boundary from param source."""
     wb = BoundaryStationSpectraSwan(
         source=source_wavespectra,
+        filelist=True,
     )
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
     assert boundary_spec["wbctype"] == "swan"

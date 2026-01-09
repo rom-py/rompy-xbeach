@@ -242,3 +242,172 @@ def test_boundary_stat_with_wave_params():
     assert params["thetamin"] == -60
     assert params["thetamax"] == 60
     assert params["dtheta"] == 10
+
+
+# =====================================================================================
+# File-based Spectral Boundary Tests
+# =====================================================================================
+def test_boundary_file_jons(tmp_path):
+    """Test BoundaryFileJons with single bcfile."""
+    from rompy_xbeach.types import XBeachDataBlob
+    from rompy_xbeach.data.boundary import BoundaryFileJons
+
+    # Create source bcfile
+    source_dir = tmp_path / "source"
+    source_dir.mkdir(parents=True, exist_ok=True)
+    bcfile_content = "Hm0 = 2.0\nTp = 12.0\nmainang = 270.0\n"
+    (source_dir / "spectrum.txt").write_text(bcfile_content)
+
+    boundary = BoundaryFileJons(
+        bcfile_source=XBeachDataBlob(source=str(source_dir / "spectrum.txt")),
+    )
+    assert boundary.model_type == "file_jons"
+    assert boundary.id == "jons"
+    assert boundary.filelist is False
+
+
+def test_boundary_file_jons_get(tmp_path):
+    """Test BoundaryFileJons.get() returns correct XBeach parameters."""
+    from rompy_xbeach.types import XBeachDataBlob
+    from rompy_xbeach.data.boundary import BoundaryFileJons
+
+    # Create source bcfile
+    source_dir = tmp_path / "source"
+    source_dir.mkdir(parents=True, exist_ok=True)
+    bcfile_content = "Hm0 = 2.0\nTp = 12.0\nmainang = 270.0\n"
+    (source_dir / "spectrum.txt").write_text(bcfile_content)
+
+    boundary = BoundaryFileJons(
+        bcfile_source=XBeachDataBlob(source=str(source_dir / "spectrum.txt")),
+        nmax=0.8,
+    )
+
+    destdir = tmp_path / "dest"
+    destdir.mkdir(parents=True, exist_ok=True)
+    params = boundary.get(destdir)
+
+    assert params["wbctype"] == "jons"
+    assert params["bcfile"] == "spectrum.txt"
+    assert params["nmax"] == 0.8
+    assert (destdir / "spectrum.txt").exists()
+
+
+def test_boundary_file_jons_filelist(tmp_path):
+    """Test BoundaryFileJons with FILELIST."""
+    from rompy_xbeach.types import XBeachDataBlob
+    from rompy_xbeach.data.boundary import BoundaryFileJons
+
+    # Create source directory with FILELIST and referenced files
+    source_dir = tmp_path / "source"
+    source_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Create FILELIST
+    filelist_content = "FILELIST\n3600 1.0 spec1.txt\n3600 1.0 spec2.txt\n"
+    (source_dir / "filelist.txt").write_text(filelist_content)
+    
+    # Create referenced files
+    (source_dir / "spec1.txt").write_text("Hm0 = 2.0\nTp = 12.0\n")
+    (source_dir / "spec2.txt").write_text("Hm0 = 2.5\nTp = 11.0\n")
+
+    boundary = BoundaryFileJons(
+        bcfile_source=XBeachDataBlob(source=str(source_dir / "filelist.txt")),
+        filelist=True,
+    )
+
+    destdir = tmp_path / "dest"
+    destdir.mkdir(parents=True, exist_ok=True)
+    params = boundary.get(destdir)
+
+    assert params["wbctype"] == "jons"
+    assert params["bcfile"] == "filelist.txt"
+    # Verify all files were copied
+    assert (destdir / "filelist.txt").exists()
+    assert (destdir / "spec1.txt").exists()
+    assert (destdir / "spec2.txt").exists()
+
+
+def test_boundary_file_jonstable(tmp_path):
+    """Test BoundaryFileJonstable with single bcfile."""
+    from rompy_xbeach.types import XBeachDataBlob
+    from rompy_xbeach.data.boundary import BoundaryFileJonstable
+
+    # Create source bcfile
+    source_dir = tmp_path / "source"
+    source_dir.mkdir(parents=True, exist_ok=True)
+    bcfile_content = "2.0 12.0 270.0 3.3 10.0 3600 1.0\n2.5 11.0 265.0 3.3 10.0 3600 1.0\n"
+    (source_dir / "jonstable.txt").write_text(bcfile_content)
+
+    boundary = BoundaryFileJonstable(
+        bcfile_source=XBeachDataBlob(source=str(source_dir / "jonstable.txt")),
+    )
+    assert boundary.model_type == "file_jonstable"
+    assert boundary.id == "jonstable"
+
+
+def test_boundary_file_jonstable_get(tmp_path):
+    """Test BoundaryFileJonstable.get() returns correct XBeach parameters."""
+    from rompy_xbeach.types import XBeachDataBlob
+    from rompy_xbeach.data.boundary import BoundaryFileJonstable
+
+    # Create source bcfile
+    source_dir = tmp_path / "source"
+    source_dir.mkdir(parents=True, exist_ok=True)
+    bcfile_content = "2.0 12.0 270.0 3.3 10.0 3600 1.0\n"
+    (source_dir / "jonstable.txt").write_text(bcfile_content)
+
+    boundary = BoundaryFileJonstable(
+        bcfile_source=XBeachDataBlob(source=str(source_dir / "jonstable.txt")),
+        rt=3600.0,
+    )
+
+    destdir = tmp_path / "dest"
+    destdir.mkdir(parents=True, exist_ok=True)
+    params = boundary.get(destdir)
+
+    assert params["wbctype"] == "jonstable"
+    assert params["bcfile"] == "jonstable.txt"
+    assert params["rt"] == 3600.0
+    assert (destdir / "jonstable.txt").exists()
+
+
+def test_boundary_file_swan(tmp_path):
+    """Test BoundaryFileSwan with single bcfile."""
+    from rompy_xbeach.types import XBeachDataBlob
+    from rompy_xbeach.data.boundary import BoundaryFileSwan
+
+    # Create source bcfile
+    source_dir = tmp_path / "source"
+    source_dir.mkdir(parents=True, exist_ok=True)
+    (source_dir / "swan_spectrum.txt").write_text("SWAN spectrum content")
+
+    boundary = BoundaryFileSwan(
+        bcfile_source=XBeachDataBlob(source=str(source_dir / "swan_spectrum.txt")),
+    )
+    assert boundary.model_type == "file_swan"
+    assert boundary.id == "swan"
+    assert boundary.filelist is False
+
+
+def test_boundary_file_swan_get(tmp_path):
+    """Test BoundaryFileSwan.get() returns correct XBeach parameters."""
+    from rompy_xbeach.types import XBeachDataBlob
+    from rompy_xbeach.data.boundary import BoundaryFileSwan
+
+    # Create source bcfile
+    source_dir = tmp_path / "source"
+    source_dir.mkdir(parents=True, exist_ok=True)
+    (source_dir / "swan_spectrum.txt").write_text("SWAN spectrum content")
+
+    boundary = BoundaryFileSwan(
+        bcfile_source=XBeachDataBlob(source=str(source_dir / "swan_spectrum.txt")),
+        dthetas_xb=10.0,
+    )
+
+    destdir = tmp_path / "dest"
+    destdir.mkdir(parents=True, exist_ok=True)
+    params = boundary.get(destdir)
+
+    assert params["wbctype"] == "swan"
+    assert params["bcfile"] == "swan_spectrum.txt"
+    assert params["dthetas_xb"] == 10.0
+    assert (destdir / "swan_spectrum.txt").exists()
