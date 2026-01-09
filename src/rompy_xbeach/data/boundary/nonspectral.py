@@ -17,13 +17,13 @@ from rompy.core.time import TimeRange
 
 from rompy_xbeach.grid import RegularGrid
 from rompy_xbeach.types import XBeachDataBlob
-from rompy_xbeach.data.boundary.base import NonSpectralWaveBoundaryParams
+from rompy_xbeach.data.boundary.base import WaveBoundaryParams
 
 
 # =====================================================================================
 # Stationary Parametric Waves (no file needed)
 # =====================================================================================
-class BoundaryStat(NonSpectralWaveBoundaryParams):
+class BoundaryStat(WaveBoundaryParams):
     """Stationary parametric wave boundary conditions.
 
     Defines wave conditions using bulk parameters (Hrms, Trep, dir0, m) without
@@ -103,7 +103,7 @@ class BoundaryStat(NonSpectralWaveBoundaryParams):
 # =====================================================================================
 # Bichromatic Waves (no file needed)
 # =====================================================================================
-class BoundaryBichrom(NonSpectralWaveBoundaryParams):
+class BoundaryBichrom(WaveBoundaryParams):
     """Bichromatic wave boundary conditions.
 
     Defines bichromatic wave conditions using bulk parameters including the
@@ -189,7 +189,7 @@ class BoundaryBichrom(NonSpectralWaveBoundaryParams):
 # =====================================================================================
 # File-based Non-Spectral Boundaries
 # =====================================================================================
-class BoundaryStatTable(NonSpectralWaveBoundaryParams):
+class BoundaryStatTable(WaveBoundaryParams):
     """Time-varying parametric wave boundary from stat_table file.
 
     Requires a file with time-varying Hrms, Tp, direction, etc. in JONSWAP table format.
@@ -245,7 +245,7 @@ class BoundaryStatTable(NonSpectralWaveBoundaryParams):
         return params
 
 
-class BoundaryTs1(NonSpectralWaveBoundaryParams):
+class BoundaryTs1(WaveBoundaryParams):
     """Time series wave boundary at single location (ts_1).
 
     Requires a bc/gen.ezs file with columns: time, zs, E.
@@ -305,7 +305,7 @@ class BoundaryTs1(NonSpectralWaveBoundaryParams):
         return params
 
 
-class BoundaryTs2(NonSpectralWaveBoundaryParams):
+class BoundaryTs2(WaveBoundaryParams):
     """Time series wave boundary at two locations (ts_2).
 
     Requires a bc/gen.ezs file with columns: time, zs, E.
@@ -365,7 +365,7 @@ class BoundaryTs2(NonSpectralWaveBoundaryParams):
         return params
 
 
-class BoundaryTsNonh(NonSpectralWaveBoundaryParams):
+class BoundaryTsNonh(WaveBoundaryParams):
     """Non-hydrostatic time series wave boundary (ts_nonh).
 
     Requires a Boun_u.bcf file with columns: scalar/vector, t, U, Zs, W.

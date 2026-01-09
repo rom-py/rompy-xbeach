@@ -332,67 +332,6 @@ class SpectralWaveBoundaryParams(WaveBoundaryParams):
     )
 
 
-class NonSpectralWaveBoundaryParams(WaveBoundaryParams):
-    """Non-spectral wave boundary condition parameters.
-
-    These parameters are specific to non-spectral boundary conditions (wbctype = stat,
-    ts_1, ts_2, ts_nonh, stat_table, bichrom). They define wave conditions without
-    full spectral information.
-
-    Inherits all general wave boundary parameters from WaveBoundaryParams.
-    """
-
-    Hrms: Optional[float] = Field(
-        default=None,
-        description=(
-            "Hrms wave height for instat = stat, bichrom, ts_1 or ts_2 "
-            "(XBeach default: 1.0)"
-        ),
-        ge=0.0,
-        le=10.0,
-        examples=[1.0],
-    )
-    Trep: Optional[float] = Field(
-        default=None,
-        description=(
-            "Representative wave period for instat = stat, bichrom, ts_1 or ts_2 "
-            "(XBeach default: 10.0)"
-        ),
-        ge=1.0,
-        le=20.0,
-        examples=[10.0],
-    )
-    Tlong: Optional[float] = Field(
-        default=None,
-        description=(
-            "Wave group period for case instat = bichrom (XBeach default: 80.0)"
-        ),
-        ge=20.0,
-        le=300.0,
-        examples=[80.0],
-    )
-    dir0: Optional[float] = Field(
-        default=None,
-        description=(
-            "Mean wave direction for instat = stat, bichrom, ts_1 or ts_2, "
-            "nautical convention (XBeach default: 270.0)"
-        ),
-        ge=-360.0,
-        le=360.0,
-        examples=[270.0],
-    )
-    m: Optional[int] = Field(
-        default=None,
-        description=(
-            "Power in cos^m directional distribution for instat = stat, bichrom, "
-            "ts_1 or ts_2 (XBeach default: 10)"
-        ),
-        ge=2,
-        le=128,
-        examples=[10],
-    )
-
-
 # =====================================================================================
 # Data Interface Base Classes
 # =====================================================================================

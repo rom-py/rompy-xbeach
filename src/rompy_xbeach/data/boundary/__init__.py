@@ -31,7 +31,6 @@ Special Boundaries:
 from rompy_xbeach.data.boundary.base import (
     WaveBoundaryParams,
     SpectralWaveBoundaryParams,
-    NonSpectralWaveBoundaryParams,
     BoundaryBase,
     BoundaryBaseGrid,
     BoundaryBaseStation,
@@ -74,7 +73,6 @@ __all__ = [
     # Base classes and utilities
     "WaveBoundaryParams",
     "SpectralWaveBoundaryParams",
-    "NonSpectralWaveBoundaryParams",
     "BoundaryBase",
     "BoundaryBaseGrid",
     "BoundaryBaseStation",
