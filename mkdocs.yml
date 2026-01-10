@@ -13,6 +13,12 @@ nav:
   - Concepts:
       - Architecture: user-guide/architecture.md
       - Configuration: user-guide/configuration.md
+  - Components:
+      - Overview: components/index.md
+      - Physics: components/physics.md
+      - Sediment: components/sediment.md
+      - Output: components/output.md
+      - Boundary Conditions: components/boundary_conditions.md
   - Data Interfaces:
       - Overview: data-interfaces/index.md
       - Grid: data-interfaces/grid.md
@@ -20,12 +26,6 @@ nav:
       - Bathymetry: data-interfaces/bathy.md
       - Wave Boundaries: data-interfaces/boundaries.md
       - Forcing: data-interfaces/forcing.md
-  - Components:
-      - Overview: components/index.md
-      - Physics: components/physics.md
-      - Sediment: components/sediment.md
-      - Output: components/output.md
-      - Boundary Conditions: components/boundary_conditions.md
   - Examples:
       - examples/index.md
       - Grid: examples/grid-demo.ipynb

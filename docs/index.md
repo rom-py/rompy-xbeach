@@ -71,21 +71,13 @@ Rompy-xbeach addresses these by:
 
     [:octicons-arrow-right-24: Installation](getting-started/installation.md)
 
--   :material-book-open-variant:{ .lg .middle } **User Guide**
+-   :material-book-open-variant:{ .lg .middle } **Concepts**
 
     ---
 
     Learn the architecture and how to configure XBeach models
 
     [:octicons-arrow-right-24: Architecture](user-guide/architecture.md)
-
--   :material-database:{ .lg .middle } **Data Interfaces**
-
-    ---
-
-    Bridge external data sources with XBeach model inputs
-
-    [:octicons-arrow-right-24: Data Interfaces](data-interfaces/index.md)
 
 -   :material-puzzle:{ .lg .middle } **Components**
 
@@ -95,14 +87,13 @@ Rompy-xbeach addresses these by:
 
     [:octicons-arrow-right-24: Components](components/index.md)
 
--   :material-api:{ .lg .middle } **API Reference**
+-   :material-database:{ .lg .middle } **Data Interfaces**
 
     ---
 
-    Complete API documentation generated from source code
+    Bridge external data sources with XBeach model inputs
 
-    [:octicons-arrow-right-24: API Reference](api-reference/config.md)
-
+    [:octicons-arrow-right-24: Data Interfaces](data-interfaces/index.md)
 
 -   :material-notebook:{ .lg .middle } **Examples**
 
@@ -112,13 +103,29 @@ Rompy-xbeach addresses these by:
 
     [:octicons-arrow-right-24: Examples](examples/index.md)
 
-<!-- -   :material-account-group:{ .lg .middle } **Developer**
+-   :material-table:{ .lg .middle } **Parameter Reference**
+
+    ---
+
+    Map XBeach parameters to their rompy-xbeach locations
+
+    [:octicons-arrow-right-24: Parameter Reference](user-guide/parameter-reference.md)
+
+-   :material-api:{ .lg .middle } **API Reference**
+
+    ---
+
+    Complete API documentation generated from source code
+
+    [:octicons-arrow-right-24: API Reference](api-reference/config.md)
+
+-   :material-account-group:{ .lg .middle } **Developer**
 
     ---
 
     Contributing guidelines and development setup
 
-    [:octicons-arrow-right-24: Contributing](developer/contributing.md) -->
+    [:octicons-arrow-right-24: Contributing](developer/contributing.md)
 
 </div>
 
