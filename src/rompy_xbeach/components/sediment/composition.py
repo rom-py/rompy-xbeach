@@ -4,8 +4,9 @@ This module contains models for bed composition parameters including grain size
 distributions, sediment density, porosity, and layer thickness.
 """
 
-from typing import Optional, List
-from pydantic import Field, model_validator
+from pathlib import Path
+from typing import Optional, Union
+from pydantic import Field, field_validator, model_validator
 
 from rompy_xbeach.types import XBeachBaseModel
 
@@ -55,7 +56,7 @@ class BedComposition(XBeachBaseModel):
         ge=3,
         le=1000,
     )
-    D50: Optional[List[float]] = Field(
+    D50: Optional[Union[float, list[float]]] = Field(
         default=None,
         description=(
             "Median grain diameter (m) for each sediment class. "
@@ -64,7 +65,7 @@ class BedComposition(XBeachBaseModel):
             "Provide a list if ngd > 1."
         ),
     )
-    D90: Optional[List[float]] = Field(
+    D90: Optional[Union[float, list[float]]] = Field(
         default=None,
         description=(
             "90th percentile grain diameter (m) for each sediment class. "
@@ -73,7 +74,7 @@ class BedComposition(XBeachBaseModel):
             "Provide a list if ngd > 1."
         ),
     )
-    D15: Optional[List[float]] = Field(
+    D15: Optional[Union[float, list[float]]] = Field(
         default=None,
         description=(
             "15th percentile grain diameter (m) for each sediment class. "
@@ -116,14 +117,14 @@ class BedComposition(XBeachBaseModel):
         ge=0.01,
         le=1.0,
     )
-    sedcal: Optional[List[float]] = Field(
+    sedcal: Optional[Union[float, list[float]]] = Field(
         default=None,
         description=(
             "Sediment transport calibration factor for each sediment class "
             "(XBeach default: 1.0 for each class)"
         ),
     )
-    ucrcal: Optional[List[float]] = Field(
+    ucrcal: Optional[Union[float, list[float]]] = Field(
         default=None,
         description=(
             "Critical velocity calibration factor for each sediment class "
@@ -140,6 +141,16 @@ class BedComposition(XBeachBaseModel):
         ge=0.0,
         le=1.0,
     )
+
+    @field_validator("D50", "D90", "D15", "sedcal", "ucrcal", mode="before")
+    @classmethod
+    def convert_float_to_list(cls, v):
+        """Convert single float values to a list for consistency."""
+        if v is None:
+            return v
+        if isinstance(v, (int, float)):
+            return [float(v)]
+        return v
 
     @model_validator(mode="after")
     def validate_grain_size_lists(self) -> "BedComposition":
@@ -166,3 +177,19 @@ class BedComposition(XBeachBaseModel):
                         f"D90[{i}] ({d90}) must be greater than D50[{i}] ({d50})"
                     )
         return self
+
+    def get(self, destdir: Union[str, Path]) -> dict:
+        """Return params dict with list fields converted to space-separated strings.
+
+        XBeach expects grain size parameters (D50, D90, D15, sedcal, ucrcal) as
+        space-separated values when multiple sediment classes are used.
+        """
+        params = super().get(destdir)
+
+        # Convert list fields to space-separated strings
+        list_fields = ["D50", "D90", "D15", "sedcal", "ucrcal"]
+        for field in list_fields:
+            if field in params and isinstance(params[field], list):
+                params[field] = " ".join(str(v) for v in params[field])
+
+        return params
