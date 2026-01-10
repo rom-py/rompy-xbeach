@@ -145,21 +145,11 @@ class BoundaryJonsBase(FilelistMixin):
 
         # Return XBeach parameters
         params = {"wbctype": self.id, "bcfile": bcfile.name}
-        # Add wave boundary parameters
+        # Add wave boundary parameters (mixin fields excluded, data interface fields
+        # are excluded by the model_serializer in BoundaryBase classes)
         params.update(
             self.model_dump(
-                exclude={
-                    "id",
-                    "fnyq",
-                    "dfj",
-                    "filelist",
-                    "source",
-                    "coords",
-                    "crop_data",
-                    "buffer",
-                    "location",
-                    "model_type",
-                },
+                exclude={"id", "model_type", "filelist", "fnyq", "dfj"},
                 exclude_none=True,
             )
         )
@@ -252,23 +242,11 @@ class BoundaryJonstableBase:
 
         # Return XBeach parameters
         params = {"wbctype": self.id, "bcfile": bcfile.name}
-        # Add wave boundary parameters
+        # Add wave boundary parameters (mixin fields excluded, data interface fields
+        # are excluded by the model_serializer in BoundaryBase classes)
         params.update(
             self.model_dump(
-                exclude={
-                    "id",
-                    "source",
-                    "coords",
-                    "crop_data",
-                    "buffer",
-                    "location",
-                    "model_type",
-                    "hm0_var",
-                    "tp_var",
-                    "mainang_var",
-                    "gammajsp_var",
-                    "dspr_var",
-                },
+                exclude={"id", "model_type", "hm0_var", "tp_var", "mainang_var", "gammajsp_var", "dspr_var"},
                 exclude_none=True,
             )
         )
@@ -602,19 +580,11 @@ class BoundaryStationSpectraSwan(
 
         # Return XBeach parameters
         params = {"wbctype": self.id, "bcfile": bcfile.name}
-        # Add wave boundary parameters
+        # Add wave boundary parameters (mixin fields excluded, data interface fields
+        # are excluded by the model_serializer in BoundaryBase classes)
         params.update(
             self.model_dump(
-                exclude={
-                    "id",
-                    "filelist",
-                    "source",
-                    "coords",
-                    "crop_data",
-                    "buffer",
-                    "location",
-                    "model_type",
-                },
+                exclude={"id", "model_type", "filelist"},
                 exclude_none=True,
             )
         )

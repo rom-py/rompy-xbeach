@@ -8,12 +8,12 @@ This module contains the foundational classes used by all wave boundary types:
 - SpectraMixin, ParamMixin, FilelistMixin: Data processing mixins
 """
 
-from typing import Literal, Union, Optional
+from typing import Literal, Union, Optional, Any
 from pathlib import Path
 import logging
 import numpy as np
 import xarray as xr
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_serializer
 
 from rompy.utils import load_entry_points
 from rompy.core.types import DatasetCoords, RompyBaseModel
@@ -333,12 +333,23 @@ class SpectralWaveBoundaryParams(WaveBoundaryParams):
 # Data Interface Base Classes
 # =====================================================================================
 class BoundaryBase:
-    """Base class for wave boundary data interfaces."""
+    """Base class for wave boundary data interfaces.
+
+    This class provides a custom serializer that returns an empty dict, ensuring
+    that data interface fields from parent classes (BaseDataStation, BaseDataGrid,
+    BaseDataPoint) are not serialized to params.txt. Only wave boundary parameters
+    from WaveBoundaryParams/SpectralWaveBoundaryParams should be serialized.
+    """
 
     location: Literal["offshore"] = Field(
         default="offshore",
         description="Location to extract the data from the source dataset",
     )
+
+    @model_serializer(mode="wrap")
+    def _serialize(self, handler) -> dict[str, Any]:
+        """Return empty dict - data interface fields should not be serialized."""
+        return {}
 
 
 class BoundaryBaseGrid(BoundaryBase, BaseDataGrid):
