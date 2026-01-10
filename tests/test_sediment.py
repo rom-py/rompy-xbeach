@@ -381,8 +381,8 @@ def test_sediment_with_bed_composition():
 
     # Check bed composition params
     assert params["ngd"] == 1
-    assert params["D50"] == [0.0002]
-    assert params["D90"] == [0.0003]
+    assert params["D50"] == "0.0002"  # Serialized as space-separated string for XBeach
+    assert params["D90"] == "0.0003"  # Serialized as space-separated string for XBeach
     assert params["rhos"] == 2650.0
     assert params["por"] == 0.4
     assert params["dzg1"] == 0.1

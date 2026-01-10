@@ -1,4 +1,14 @@
-"""XBeach wave boundary conditions."""
+"""XBeach forcing file writers.
+
+This module contains helper classes for writing XBeach forcing files:
+- BaseFile: Abstract base class for time-series file writing
+- Wind: Simple constant wind parameters
+- WindFile: Time-varying wind file writer
+- TideFile: Time-varying tide/water level file writer
+
+These classes are used internally by the data interface classes in
+rompy_xbeach.data.wind and rompy_xbeach.data.waterlevel.
+"""
 
 import logging
 from abc import ABC

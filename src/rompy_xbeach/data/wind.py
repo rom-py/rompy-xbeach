@@ -12,7 +12,7 @@ from rompy.core.time import TimeRange
 
 from rompy_xbeach.data.base import BaseDataGrid, BaseDataStation, BaseDataPoint
 from rompy_xbeach.grid import RegularGrid
-from rompy_xbeach.components.forcing import WindFile
+from rompy_xbeach.data.forcing import WindFile
 
 
 logger = logging.getLogger(__name__)

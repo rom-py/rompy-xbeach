@@ -22,7 +22,7 @@ from pydantic import Field, model_validator
 from rompy.core.time import TimeRange
 
 from rompy_xbeach.grid import RegularGrid
-from rompy_xbeach.data.boundary_writers import (
+from rompy_xbeach.data.boundary.writers import (
     JonsWriter,
     JonstableWriter,
     SwanWriter,

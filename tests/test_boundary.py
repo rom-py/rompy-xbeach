@@ -18,7 +18,7 @@ from rompy_xbeach.data.boundary import (
     BoundaryGridParamJonstable,
     BoundaryStationSpectraSwan,
 )
-from rompy_xbeach.data.boundary_writers import (
+from rompy_xbeach.data.boundary.writers import (
     BoundaryWriterBase,
     JonsWriter,
     JonstableWriter,
