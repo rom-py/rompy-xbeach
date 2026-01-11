@@ -246,7 +246,15 @@ class BoundaryJonstableBase:
         # are excluded by the model_serializer in BoundaryBase classes)
         params.update(
             self.model_dump(
-                exclude={"id", "model_type", "hm0_var", "tp_var", "mainang_var", "gammajsp_var", "dspr_var"},
+                exclude={
+                    "id",
+                    "model_type",
+                    "hm0_var",
+                    "tp_var",
+                    "mainang_var",
+                    "gammajsp_var",
+                    "dspr_var",
+                },
                 exclude_none=True,
             )
         )
