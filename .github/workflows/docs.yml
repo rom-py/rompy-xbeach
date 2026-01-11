@@ -82,10 +82,17 @@ jobs:
 
       - name: Sync notebooks
         run: |
-          mkdir -p docs/examples
+          mkdir -p docs/examples/components docs/examples/data-interfaces
+          # Copy main workflow notebooks
           cp rompy-notebooks/notebooks/xbeach/*.ipynb docs/examples/ || true
           cp rompy-notebooks/notebooks/xbeach/*.yml docs/examples/ || true
+          # Copy component tutorials
+          cp rompy-notebooks/notebooks/xbeach/components/*.ipynb docs/examples/components/ || true
+          # Copy data interface tutorials
+          cp rompy-notebooks/notebooks/xbeach/data-interface/*.ipynb docs/examples/data-interfaces/ || true
           ls -la docs/examples/
+          ls -la docs/examples/components/
+          ls -la docs/examples/data-interfaces/
 
       - name: Build documentation
         run: mkdocs build
