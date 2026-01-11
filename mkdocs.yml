@@ -28,14 +28,23 @@ nav:
       - Forcing: data-interfaces/forcing.md
   - Examples:
       - examples/index.md
-      - Grid: examples/grid-demo.ipynb
-      - Bathymetry: examples/bathy-demo.ipynb
-      - Wave Boundary: examples/wave-boundary-demo.ipynb
-      - Physics: examples/physics-demo.ipynb
-      - Output: examples/output-demo.ipynb
-      - Forcing: examples/forcing-demo.ipynb
-      - Full Example (Procedural): examples/example_procedural.ipynb
-      - Full Example (Declarative): examples/example_declarative.ipynb
+      - Getting Started:
+          - Procedural Workflow: examples/example-procedural.ipynb
+          - Declarative Workflow: examples/example-declarative.ipynb
+      - Data Interfaces:
+          - Grid: examples/data-interfaces/tutorial-grid.ipynb
+          - Sources: examples/data-interfaces/tutorial-source.ipynb
+          - Bathymetry: examples/data-interfaces/tutorial-bathy.ipynb
+          - Wave Boundary: examples/data-interfaces/tutorial-wave-boundary.ipynb
+          - Forcing: examples/data-interfaces/tutorial-forcing.ipynb
+          - Timeseries Forcing: examples/data-interfaces/tutorial-timeseries-forcing.ipynb
+      - Components:
+          - Physics: examples/components/tutorial_01_physics.ipynb
+          - Sediment: examples/components/tutorial_02_sediment.ipynb
+          - Output: examples/components/tutorial_03_output.ipynb
+          - Boundary Conditions: examples/components/tutorial_04_boundary-conditions.ipynb
+          - Hotstart: examples/components/tutorial_05_hotstart.ipynb
+          - MPI: examples/components/tutorial_06_mpi.ipynb
   - Parameter Reference: user-guide/parameter-reference.md
   - API Reference:
       - Config: api-reference/config.md
