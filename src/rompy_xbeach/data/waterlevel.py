@@ -1,11 +1,12 @@
 """XBeach water level and tide forcing."""
 
-from typing import Literal, Optional
+from typing import Literal, Optional, Union
 from pathlib import Path
 import logging
 import pandas as pd
 from pydantic import Field, model_validator, field_validator
 
+from rompy.core.types import RompyBaseModel
 from rompy.core.time import TimeRange
 
 from rompy_xbeach.source import SourceCRSOceantide, SourceTideConsPointCSV
@@ -53,6 +54,9 @@ class ZS0Mixin:
         return v
 
 
+# ======================================================================================
+# Water level
+# ======================================================================================
 class WaterLevelBase(ZS0Mixin):
     """Mixin class for Water level forcing from timeseries data."""
 
@@ -67,9 +71,14 @@ class WaterLevelBase(ZS0Mixin):
     def h(self):
         return self.variables[0]
 
-    def get(
-        self, destdir: str | Path, grid: RegularGrid, time: Optional[TimeRange] = None
-    ) -> dict:
+    def _get_dataset(self, destdir: str | Path, grid: RegularGrid, time: TimeRange):
+        """Get the dataset from the source."""
+        return super().get(destdir, grid, time=time).squeeze()
+
+    def _filename(self, time):
+        return f"{self.id}-{time.start:%Y%m%dT%H%M%S}-{time.end:%Y%m%dT%H%M%S}.txt"
+
+    def get(self, destdir: str | Path, grid: RegularGrid, time: TimeRange) -> dict:
         """Generate the tide file.
 
         Parameters
@@ -88,20 +97,19 @@ class WaterLevelBase(ZS0Mixin):
 
         """
         # Select the cons data at the grid location
-        ds = super().get(destdir, grid, time=None)
+        ds = self._get_dataset(destdir, grid, time)
+        times = ds.time.to_index().to_pydatetime()
 
         # Write the data
-        filename = f"{self.id}-{time.start:%Y%m%dT%H%M%S}-{time.end:%Y%m%dT%H%M%S}.txt"
-        times = ds.time.to_index().to_pydatetime()
-        logger.debug(f"Creating wind file {filename} with times {times}")
+        logger.debug(f"Creating waterlevel file {self._filename(time)} with times {times}")
         tf = TideFile(
-            filename=filename,
+            filename=self._filename(time),
             tsec=[(t - times[0]).total_seconds() for t in times],
             zs=ds[self.h].squeeze().values,
         )
         tf.write(destdir)
 
-        return {"zs0file": filename, "tideloc": self.tideloc, "tidelen": ds.time.size}
+        return {"zs0file": self._filename(time), "tideloc": self.tideloc, "tidelen": ds.time.size}
 
 
 class WaterLevelGrid(WaterLevelBase, BaseDataGrid):
@@ -131,6 +139,9 @@ class WaterLevelPoint(WaterLevelBase, BaseDataPoint):
     )
 
 
+# ======================================================================================
+# Tide cons
+# ======================================================================================
 class TideConsBase(ZS0Mixin):
     """Mixin class to generate timeseries from cons using oceantide."""
 
@@ -148,9 +159,16 @@ class TideConsBase(ZS0Mixin):
         self.variables = ["h"]
         return self
 
-    def get(
-        self, destdir: str | Path, grid: RegularGrid, time: Optional[TimeRange] = None
-    ) -> dict:
+    def _get_dataset(self, destdir: str | Path, grid: RegularGrid, time: TimeRange):
+        """Get the dataset from the source."""
+        ds = super().get(destdir, grid, time=None)
+        times = pd.date_range(time.start, time.end, freq=self.freq)
+        return ds.tide.predict(times=times, components=["h"], time_chunk=None).squeeze()
+
+    def _filename(self, time):
+        return f"{self.id}-{time.start:%Y%m%dT%H%M%S}-{time.end:%Y%m%dT%H%M%S}.txt"
+
+    def get(self, destdir: str | Path, grid: RegularGrid, time: TimeRange) -> dict:
         """Generate the tide file.
 
         Parameters
@@ -169,23 +187,19 @@ class TideConsBase(ZS0Mixin):
 
         """
         # Select the cons data at the grid location
-        ds = super().get(destdir, grid, time=None)
-
-        # Calculate the surface elevation
-        times = pd.date_range(time.start, time.end, freq=self.freq)
-        ds = ds.tide.predict(times=times, components=["h"], time_chunk=None)
+        ds = self._get_dataset(destdir, grid, time)
+        times = ds.time.to_index().to_pydatetime()
 
         # Write the data
-        filename = f"{self.id}-{time.start:%Y%m%dT%H%M%S}-{time.end:%Y%m%dT%H%M%S}.txt"
-        logger.debug(f"Creating wind file {filename} with times {times}")
+        logger.debug(f"Creating waterlevel file {self._filename(time)} with times {times}")
         tf = TideFile(
-            filename=filename,
+            filename=self._filename(time),
             tsec=[(t - times[0]).total_seconds() for t in times],
             zs=ds.h.squeeze().values,
         )
         tf.write(destdir)
 
-        return {"zs0file": filename, "tideloc": self.tideloc, "tidelen": ds.time.size}
+        return {"zs0file": self._filename(time), "tideloc": self.tideloc, "tidelen": ds.time.size}
 
 
 class TideConsGrid(TideConsBase, BaseDataGrid):
@@ -210,3 +224,60 @@ class TideConsPoint(TideConsBase, BaseDataPoint):
     source: SourceTideConsPointCSV = Field(
         description="Source of the tide data",
     )
+
+
+# ======================================================================================
+# Combined
+# ======================================================================================
+class CombinedWaterLevel(ZS0Mixin, RompyBaseModel):
+    """Mixin class to generate combined timeseries from water level and tide cons."""
+
+    waterlevel: Union[WaterLevelGrid, WaterLevelStation, WaterLevelPoint] = Field(
+        description="Water level forcing (e.g., surge/SSH from hindcast)"
+    )
+    tide: Union[TideConsGrid, TideConsPoint] = Field(
+        description="Tide forcing from constituents"
+    )
+
+    def get(
+        self, destdir: str | Path, grid: RegularGrid, time: TimeRange
+    ) -> dict:
+        """Generate the combined tide + water level file.
+
+        Parameters
+        ----------
+        destdir : str | Path
+            Destination directory for the output file.
+        grid : RegularGrid
+            Grid instance to use for selecting the boundary points.
+        time : TimeRange
+            The time range for the forcing data.
+
+        Returns
+        -------
+        dict
+            XBeach namelist parameters for tide forcing.
+
+        """
+        # Get tide timeseries from constituents (defines the time grid)
+        ds_tide = self.tide._get_dataset(destdir, grid, time)
+        times = ds_tide.time.to_index().to_pydatetime()
+
+        # Get water level timeseries and interpolate to tide times
+        ds_waterlevel = self.waterlevel._get_dataset(destdir, grid, time)
+        wl_interp = ds_waterlevel[self.waterlevel.h].interp(time=times)
+
+        # Combine the datasets
+        combined = ds_tide.h + wl_interp
+
+        # Write the data
+        filename = self.tide._filename(time)
+        logger.debug(f"Creating combined waterlevel file {filename}")
+        tf = TideFile(
+            filename=filename,
+            tsec=[(t - times[0]).total_seconds() for t in times],
+            zs=combined.values,
+        )
+        tf.write(destdir)
+
+        return {"zs0file": filename, "tideloc": self.tideloc, "tidelen": combined.time.size}

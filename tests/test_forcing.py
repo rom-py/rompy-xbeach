@@ -26,6 +26,7 @@ from rompy_xbeach.data.waterlevel import (
     WaterLevelGrid,
     WaterLevelStation,
     WaterLevelPoint,
+    CombinedWaterLevel,
 )
 
 
@@ -279,6 +280,30 @@ def test_water_level_forcing(
 
     forcing = forcing_class(**kwargs)
     namelist = forcing.get(destdir=tmp_path, grid=grid, time=time)
+
+    filename = tmp_path / namelist["zs0file"]
+    assert filename.is_file()
+    data = np.loadtxt(filename)
+    assert namelist["tidelen"] == data.shape[0]
+    assert namelist["tideloc"] == 1
+
+
+def test_combined_water_level(
+    tmp_path, source_tide_grid, source_water_level_grid, grid, time
+):
+    """Test combined water level from tide constituents and SSH hindcast."""
+    tide = TideConsGrid(
+        source=source_tide_grid,
+        coords={"x": "lon", "y": "lat"},
+    )
+    waterlevel = WaterLevelGrid(
+        source=source_water_level_grid,
+        coords={"x": "lon", "y": "lat"},
+        variables=["ssh"],
+    )
+
+    combined = CombinedWaterLevel(tide=tide, waterlevel=waterlevel)
+    namelist = combined.get(destdir=tmp_path, grid=grid, time=time)
 
     filename = tmp_path / namelist["zs0file"]
     assert filename.is_file()

@@ -20,6 +20,19 @@ def source():
     yield SourceGeotiff(filename=HERE / "data/bathy.tif")
 
 
+@pytest.fixture(scope="module")
+def grid():
+    yield RegularGrid(
+        ori=GeoPoint(x=115.594239, y=-32.641104, crs="epsg:4326"),
+        alfa=347.0,
+        dx=10,
+        dy=15,
+        nx=230,
+        ny=220,
+        crs="28350",
+    )
+
+
 def test_geotiff(tif_path):
     source = SourceGeotiff(filename=tif_path)
     dset = source._open()
@@ -63,35 +76,17 @@ def test_xbeach_data_grid_rio_accessor(source):
     assert hasattr(data.ds.rio, "y_dim")
 
 
-def test_xbeach_bathy_get(source, tmp_path):
+def test_xbeach_bathy_get(source, grid, tmp_path):
     data = XBeachBathy(
         source=source,
         posdwn=False,
         left=5,
         right=5,
     )
-    grid = RegularGrid(
-        ori=GeoPoint(x=115.594239, y=-32.641104, crs="epsg:4326"),
-        alfa=347.0,
-        dx=10,
-        dy=15,
-        nx=230,
-        ny=220,
-        crs="28350",
-    )
     xfile, yfile, datafile, grid = data.get(destdir=tmp_path, grid=grid)
 
 
-def test_xbeach_bathy_extend_seaward_linear(source, tmp_path):
-    grid = RegularGrid(
-        ori=GeoPoint(x=115.594239, y=-32.641104, crs="epsg:4326"),
-        alfa=347.0,
-        dx=10,
-        dy=15,
-        nx=230,
-        ny=220,
-        crs="28350",
-    )
+def test_xbeach_bathy_extend_seaward_linear(source, grid, tmp_path):
     data1 = XBeachBathy(
         source=source,
         posdwn=False,
@@ -112,16 +107,7 @@ def test_xbeach_bathy_extend_seaward_linear(source, tmp_path):
     xfile1, yfile2, datafile2, grid2 = data1.get(destdir=tmp_path, grid=grid)
 
 
-def test_xbeach_bathy_fillna(source, tmp_path):
-    grid = RegularGrid(
-        ori=GeoPoint(x=115.594239, y=-32.641104, crs="epsg:4326"),
-        alfa=347.0,
-        dx=10,
-        dy=15,
-        nx=230,
-        ny=220,
-        crs="28350",
-    )
+def test_xbeach_bathy_fillna(source, grid, tmp_path):
     data = XBeachBathy(
         source=source, posdwn=False, left=5, right=5, interpolate_na=False
     )
