@@ -1,6 +1,6 @@
 """XBeach water level and tide forcing."""
 
-from typing import Literal, Optional, Union
+from typing import Literal, Union
 from pathlib import Path
 import logging
 import pandas as pd
@@ -101,7 +101,9 @@ class WaterLevelBase(ZS0Mixin):
         times = ds.time.to_index().to_pydatetime()
 
         # Write the data
-        logger.debug(f"Creating waterlevel file {self._filename(time)} with times {times}")
+        logger.debug(
+            f"Creating waterlevel file {self._filename(time)} with times {times}"
+        )
         tf = TideFile(
             filename=self._filename(time),
             tsec=[(t - times[0]).total_seconds() for t in times],
@@ -109,7 +111,11 @@ class WaterLevelBase(ZS0Mixin):
         )
         tf.write(destdir)
 
-        return {"zs0file": self._filename(time), "tideloc": self.tideloc, "tidelen": ds.time.size}
+        return {
+            "zs0file": self._filename(time),
+            "tideloc": self.tideloc,
+            "tidelen": ds.time.size,
+        }
 
 
 class WaterLevelGrid(WaterLevelBase, BaseDataGrid):
@@ -191,7 +197,9 @@ class TideConsBase(ZS0Mixin):
         times = ds.time.to_index().to_pydatetime()
 
         # Write the data
-        logger.debug(f"Creating waterlevel file {self._filename(time)} with times {times}")
+        logger.debug(
+            f"Creating waterlevel file {self._filename(time)} with times {times}"
+        )
         tf = TideFile(
             filename=self._filename(time),
             tsec=[(t - times[0]).total_seconds() for t in times],
@@ -199,7 +207,11 @@ class TideConsBase(ZS0Mixin):
         )
         tf.write(destdir)
 
-        return {"zs0file": self._filename(time), "tideloc": self.tideloc, "tidelen": ds.time.size}
+        return {
+            "zs0file": self._filename(time),
+            "tideloc": self.tideloc,
+            "tidelen": ds.time.size,
+        }
 
 
 class TideConsGrid(TideConsBase, BaseDataGrid):
@@ -239,9 +251,7 @@ class CombinedWaterLevel(ZS0Mixin, RompyBaseModel):
         description="Tide forcing from constituents"
     )
 
-    def get(
-        self, destdir: str | Path, grid: RegularGrid, time: TimeRange
-    ) -> dict:
+    def get(self, destdir: str | Path, grid: RegularGrid, time: TimeRange) -> dict:
         """Generate the combined tide + water level file.
 
         Parameters
@@ -280,4 +290,8 @@ class CombinedWaterLevel(ZS0Mixin, RompyBaseModel):
         )
         tf.write(destdir)
 
-        return {"zs0file": filename, "tideloc": self.tideloc, "tidelen": combined.time.size}
+        return {
+            "zs0file": filename,
+            "tideloc": self.tideloc,
+            "tidelen": combined.time.size,
+        }

@@ -11,6 +11,7 @@ XBeach supports several types of forcing:
 | **Wind** | `wind.txt` | [`WindStation`](../api-reference/data.md#rompy_xbeach.data.wind.WindStation), [`WindGrid`](../api-reference/data.md#rompy_xbeach.data.wind.WindGrid), [`WindPoint`](../api-reference/data.md#rompy_xbeach.data.wind.WindPoint) |
 | **Tide (constituents)** | `zs0file.txt` | [`TideConsGrid`](../api-reference/data.md#rompy_xbeach.data.waterlevel.TideConsGrid), [`TideConsPoint`](../api-reference/data.md#rompy_xbeach.data.waterlevel.TideConsPoint) |
 | **Water level (timeseries)** | `zs0file.txt` | [`WaterLevelStation`](../api-reference/data.md#rompy_xbeach.data.waterlevel.WaterLevelStation), [`WaterLevelGrid`](../api-reference/data.md#rompy_xbeach.data.waterlevel.WaterLevelGrid), [`WaterLevelPoint`](../api-reference/data.md#rompy_xbeach.data.waterlevel.WaterLevelPoint) |
+| **Combined (tide + surge)** | `zs0file.txt` | [`CombinedWaterLevel`](../api-reference/data.md#rompy_xbeach.data.waterlevel.CombinedWaterLevel) |
 
 ## Wind Forcing
 
@@ -232,6 +233,73 @@ tsec    zs
 Where:
 - `tsec` — Time in seconds from simulation start
 - `zs` — Water surface elevation (m)
+
+## Combined Water Level
+
+For scenarios requiring both tidal and non-tidal water level components (e.g., tide + storm surge from a hindcast), use `CombinedWaterLevel`:
+
+```python
+from rompy_xbeach.source import SourceCRSFile, SourceCRSOceantide
+from rompy_xbeach.data.waterlevel import CombinedWaterLevel, TideConsGrid, WaterLevelGrid
+
+# Tide from constituents
+tide_source = SourceCRSOceantide(
+    reader="read_otis_binary",
+    kwargs=dict(
+        gfile="grid_file",
+        hfile="elevation_file",
+        ufile="transport_file",
+    ),
+    crs="EPSG:4326",
+)
+tide = TideConsGrid(
+    source=tide_source,
+    coords=dict(x="lon", y="lat"),
+)
+
+# Sea surface height from hindcast
+ssh_source = SourceCRSFile(
+    uri="ssh_hindcast.nc",
+    crs="EPSG:4326",
+)
+surge = WaterLevelGrid(
+    source=ssh_source,
+    coords=dict(x="lon", y="lat"),
+    variables=["ssh"],
+)
+
+# Combined water level (tide + surge)
+combined = CombinedWaterLevel(
+    tide=tide,
+    waterlevel=surge,
+)
+
+params = combined.get(destdir=destdir, grid=grid, time=times)
+```
+
+### How It Works
+
+1. **Tide timeseries** is generated from constituents at the specified frequency (defines the output time grid)
+2. **Water level timeseries** is extracted from the hindcast and interpolated to the tide times
+3. **Combined elevation** is computed by adding both components
+4. **Output file** is written in standard XBeach tide format
+
+### Use Cases
+
+- **Storm surge modelling**: Combine astronomical tide with surge from a hydrodynamic model
+- **Climate scenarios**: Add sea level rise to tidal predictions
+- **Hindcast validation**: Compare model results against tide gauge data that includes both components
+
+### Supported Combinations
+
+| Tide Source | Water Level Source |
+|-------------|-------------------|
+| `TideConsGrid` | `WaterLevelGrid` |
+| `TideConsGrid` | `WaterLevelStation` |
+| `TideConsGrid` | `WaterLevelPoint` |
+| `TideConsPoint` | `WaterLevelGrid` |
+| `TideConsPoint` | `WaterLevelStation` |
+| `TideConsPoint` | `WaterLevelPoint` |
 
 ## Source Objects
 
