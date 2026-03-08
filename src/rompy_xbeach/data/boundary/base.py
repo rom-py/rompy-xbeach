@@ -348,8 +348,18 @@ class BoundaryBase:
 
     @model_serializer(mode="wrap")
     def _serialize(self, handler) -> dict[str, Any]:
-        """Return empty dict - data interface fields should not be serialized."""
-        return {}
+        """Only keep fields defined on WaveBoundaryParams or SpectralWaveBoundaryParams.
+
+        This ensures data-interface fields from parent classes (BaseDataStation,
+        BaseDataGrid, etc.) are excluded from serialization without hardcoding
+        field names — any changes to rompy core classes are handled automatically.
+        """
+        data = handler(self)
+        wave_param_fields = (
+            set(WaveBoundaryParams.model_fields.keys())
+            | set(SpectralWaveBoundaryParams.model_fields.keys())
+        )
+        return {k: v for k, v in data.items() if k in wave_param_fields}
 
 
 class BoundaryBaseGrid(BoundaryBase, BaseDataGrid):
