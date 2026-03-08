@@ -17,6 +17,7 @@ classifiers = [
 ]
 license = {text = "BSD 3-Clause License"}
 dependencies = [
+  "pydantic-numpy",
   "rioxarray",
   "rompy",
   "oceantide",
