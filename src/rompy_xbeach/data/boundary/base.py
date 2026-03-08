@@ -355,9 +355,8 @@ class BoundaryBase:
         field names — any changes to rompy core classes are handled automatically.
         """
         data = handler(self)
-        wave_param_fields = (
-            set(WaveBoundaryParams.model_fields.keys())
-            | set(SpectralWaveBoundaryParams.model_fields.keys())
+        wave_param_fields = set(WaveBoundaryParams.model_fields.keys()) | set(
+            SpectralWaveBoundaryParams.model_fields.keys()
         )
         return {k: v for k, v in data.items() if k in wave_param_fields}
 
