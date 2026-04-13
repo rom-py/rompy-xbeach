@@ -150,7 +150,11 @@ class BedFriction(FrictionModifiers):
 
     bedfriccoef: Optional[float] = Field(
         default=None,
-        description="Bed friction coefficient (XBeach default: 0.01)",
+        description=(
+            "Bed friction coefficient. The default value depends on the formulation: "
+            "chezy=55 m^(1/2)/s, cf=0.003 (-), manning=0.02 s/m^(1/3), "
+            "white-colebrook=0.01 m."
+        ),
         ge=0.0,
     )
     bedfricfile: Optional[XBeachDataBlob] = Field(
@@ -194,7 +198,8 @@ class Cf(BedFriction):
     """Dimensionless friction coefficient formulation.
 
     Uses a constant dimensionless friction coefficient (c_f) to calculate
-    bed shear stress.
+    bed shear stress. XBeach default bedfriccoef: 0.003 (range: 0.001-0.1).
+
     """
 
     model_type: Literal["cf"] = Field(
@@ -208,6 +213,7 @@ class Chezy(BedFriction):
 
     Uses the Chezy coefficient (C) to calculate bed shear stress.
     A typical Chezy value is in the order of 55 m^(1/2)/s.
+    XBeach default bedfriccoef: 55 m^(1/2)/s (range: 20-100).
     """
 
     model_type: Literal["chezy"] = Field(
@@ -222,6 +228,9 @@ class Manning(BedFriction):
     Uses the Manning coefficient (n) to calculate bed shear stress.
     Manning can be seen as a depth-dependent Chezy value.
     A typical Manning value is in the order of 0.02 s/m^(1/3).
+    XBeach default bedfriccoef: 0.02 s/m^(1/3) (range: 0.01-0.05).
+
+    This is the **default XBeach bed friction formulation**.
     """
 
     model_type: Literal["manning"] = Field(
@@ -253,6 +262,7 @@ class WhiteColebrook(BedFriction):
     Uses the geometrical roughness of Nikuradse (k_s) to calculate bed shear stress.
     The White-Colebrook formulation has a log relation with the water depth.
     A typical k_s value is in the order of 0.01 - 0.15 m.
+    XBeach default bedfriccoef: 0.01 m (range: 3.5e-5-0.9).
     """
 
     model_type: Literal["white-colebrook"] = Field(
