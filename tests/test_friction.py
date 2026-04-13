@@ -10,6 +10,7 @@ from rompy_xbeach.components.physics.friction import (
     WhiteColebrookGrainsize,
 )
 from rompy_xbeach.components.physics import Physics
+from rompy_xbeach.components.physics.wavemodel import Surfbeat
 
 
 # =============================================================================
@@ -26,7 +27,7 @@ def test_cf_with_coefficient():
 
 def test_cf_in_physics():
     """Test Cf formulation in Physics context."""
-    physics = Physics(bedfriction=Cf(bedfriccoef=0.005))
+    physics = Physics(wavemodel=Surfbeat(), bedfriction=Cf(bedfriccoef=0.005))
     params = physics.params
     assert params["bedfriction"] == "cf"
     assert params["bedfriccoef"] == 0.005
@@ -57,7 +58,7 @@ def test_chezy_with_coefficient():
 
 def test_chezy_in_physics():
     """Test Chezy formulation in Physics context."""
-    physics = Physics(bedfriction=Chezy(bedfriccoef=55.0))
+    physics = Physics(wavemodel=Surfbeat(), bedfriction=Chezy(bedfriccoef=55.0))
     params = physics.params
     assert params["bedfriction"] == "chezy"
     assert params["bedfriccoef"] == 55.0
@@ -75,7 +76,7 @@ def test_manning_with_coefficient():
 
 def test_manning_in_physics():
     """Test Manning formulation in Physics context."""
-    physics = Physics(bedfriction=Manning(bedfriccoef=0.02))
+    physics = Physics(wavemodel=Surfbeat(), bedfriction=Manning(bedfriccoef=0.02))
     params = physics.params
     assert params["bedfriction"] == "manning"
     assert params["bedfriccoef"] == 0.02
@@ -104,7 +105,7 @@ def test_white_colebrook_with_coefficient():
 
 def test_white_colebrook_in_physics():
     """Test White-Colebrook formulation in Physics context."""
-    physics = Physics(bedfriction=WhiteColebrook(bedfriccoef=0.05))
+    physics = Physics(wavemodel=Surfbeat(), bedfriction=WhiteColebrook(bedfriccoef=0.05))
     params = physics.params
     assert params["bedfriction"] == "white-colebrook"
     assert params["bedfriccoef"] == 0.05
@@ -124,7 +125,7 @@ def test_white_colebrook_grainsize():
 
 def test_white_colebrook_grainsize_in_physics():
     """Test White-Colebrook grain size formulation in Physics context."""
-    physics = Physics(bedfriction=WhiteColebrookGrainsize())
+    physics = Physics(wavemodel=Surfbeat(), bedfriction=WhiteColebrookGrainsize())
     params = physics.params
     assert params["bedfriction"] == "white-colebrook-grainsize"
     assert "bedfriccoef" not in params
@@ -150,7 +151,7 @@ def test_bedfriccoef_range_validation():
 # =============================================================================
 def test_friction_serialization_in_physics():
     """Test that friction models serialize correctly in Physics context."""
-    physics = Physics(bedfriction=Manning(bedfriccoef=0.025))
+    physics = Physics(wavemodel=Surfbeat(), bedfriction=Manning(bedfriccoef=0.025))
     params = physics.params
 
     # Should have bedfriction as the discriminator value
@@ -177,7 +178,7 @@ def test_friction_get_without_file(tmp_path):
 # =============================================================================
 def test_manning_with_mincf():
     """Test Manning formulation with mincf parameter."""
-    physics = Physics(bedfriction=Manning(bedfriccoef=0.02, mincf=0.001))
+    physics = Physics(wavemodel=Surfbeat(), bedfriction=Manning(bedfriccoef=0.02, mincf=0.001))
     params = physics.params
     assert params["bedfriction"] == "manning"
     assert params["bedfriccoef"] == 0.02
@@ -186,7 +187,7 @@ def test_manning_with_mincf():
 
 def test_white_colebrook_with_mincf():
     """Test White-Colebrook formulation with mincf parameter."""
-    physics = Physics(bedfriction=WhiteColebrook(bedfriccoef=0.05, mincf=0.002))
+    physics = Physics(wavemodel=Surfbeat(), bedfriction=WhiteColebrook(bedfriccoef=0.05, mincf=0.002))
     params = physics.params
     assert params["bedfriction"] == "white-colebrook"
     assert params["bedfriccoef"] == 0.05
@@ -196,6 +197,7 @@ def test_white_colebrook_with_mincf():
 def test_white_colebrook_grainsize_with_xbeachg_params():
     """Test White-Colebrook grain size with XBeach-G specific parameters."""
     physics = Physics(
+        wavemodel=Surfbeat(),
         bedfriction=WhiteColebrookGrainsize(
             friction_acceleration="mccall",
             friction_infiltration=True,
@@ -213,6 +215,7 @@ def test_xbeachg_params_apply_to_all_formulations():
     """Test that XBeach-G friction parameters apply to all formulations."""
     # Test with Manning
     physics_manning = Physics(
+        wavemodel=Surfbeat(),
         bedfriction=Manning(
             bedfriccoef=0.02,
             friction_acceleration="nielsen",
@@ -228,6 +231,7 @@ def test_xbeachg_params_apply_to_all_formulations():
 
     # Test with Chezy
     physics_chezy = Physics(
+        wavemodel=Surfbeat(),
         bedfriction=Chezy(
             bedfriccoef=55.0,
             friction_acceleration="mccall",
@@ -239,6 +243,7 @@ def test_xbeachg_params_apply_to_all_formulations():
 
     # Test with WhiteColebrook
     physics_wc = Physics(
+        wavemodel=Surfbeat(),
         bedfriction=WhiteColebrook(
             bedfriccoef=0.05,
             friction_infiltration=True,

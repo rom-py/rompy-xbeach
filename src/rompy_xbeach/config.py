@@ -109,8 +109,8 @@ class Config(XBeachBaseConfig):
         default=None,
         description="Input data including wave, wind, and tide boundary conditions",
     )
-    physics: Physics = Field(
-        default_factory=Physics,
+    physics: Optional[Physics] = Field(
+        default=None,
         description="Physical processes configuration",
     )
     sediment: Optional[Sediment] = Field(
@@ -172,7 +172,7 @@ class Config(XBeachBaseConfig):
                 if v is not None:
                     dir_params[k] = v
 
-        if self.physics.swave is False and dir_params:
+        if self.physics and self.physics.swave is False and dir_params:
             logger.warning(
                 f"Wave directional parameters ({', '.join(dir_params.keys())}) are set "
                 "but swave=0. These parameters only apply when short waves are enabled "

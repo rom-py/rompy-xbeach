@@ -13,6 +13,7 @@ from rompy_xbeach.data.boundary import (
     BoundaryReuse,
 )
 from rompy_xbeach.components.physics import Physics
+from rompy_xbeach.components.physics.wavemodel import Surfbeat
 
 
 HERE = Path(__file__).parent
@@ -122,7 +123,7 @@ def test_warn_wave_direction_params_without_swave(grid, bathy, caplog):
     Config(
         grid=grid,
         bathy=bathy,
-        physics=Physics(swave=False),
+        physics=Physics(wavemodel=Surfbeat(), swave=False),
         input=DataInterface(
             wave=BoundaryStat(
                 Hrms=2.0,
