@@ -128,18 +128,20 @@ Attempting to set `nhbreaker` on `Surfbeat` is a type error — the parameter do
 Many XBeach features can be enabled with defaults or customised:
 
 ```python
+from rompy_xbeach.components.physics.wavemodel import Surfbeat
+
 # Enable with XBeach defaults
-physics=Physics(vegetation=True)
+physics=Physics(wavemodel=Surfbeat(), vegetation=True)
 
 # Enable with custom parameters
 from rompy_xbeach.components.physics.vegetation import Vegetation
-physics=Physics(vegetation=Vegetation(nsec=2, ah=[1.5], Cd=[1.0]))
+physics=Physics(wavemodel=Surfbeat(), vegetation=Vegetation(nsec=2, ah=[1.5], Cd=[1.0]))
 
 # Disable explicitly
-physics=Physics(vegetation=False)
+physics=Physics(wavemodel=Surfbeat(), vegetation=False)
 
 # Omit entirely (uses XBeach default, typically disabled)
-physics=Physics()
+physics=Physics(wavemodel=Surfbeat())
 ```
 
 This pattern applies to: `vegetation`, `viscosity`, `wind`, `bedfriction`, `ships`, `hotstart`.

@@ -42,12 +42,24 @@ class Physics(XBeachBaseModel):
     to very specific, like ship motions and point discharge. Each process can be
     switched on or off. The commonly used processes are turned on by default.
 
-    This class allows configuration of all physical process switches in XBeach. All
-    fields default to None, meaning XBeach's default values will be used unless
-    explicitly specified.
+    This class allows configuration of all physical process switches in XBeach. Most
+    fields default to None, meaning XBeach's built-in defaults will be used unless
+    explicitly specified. The exception is ``wavemodel``, which is **required** —
+    XBeach will not run without a wave model specified.
 
     See https://xbeach.readthedocs.io/en/latest/xbeach_manual.html#physical-processes
     for more information.
+
+    Example
+    -------
+    Minimal valid Physics requires a wavemodel:
+
+    .. code-block:: python
+
+        from rompy_xbeach.components.physics import Physics
+        from rompy_xbeach.components.physics.wavemodel import Surfbeat
+
+        physics = Physics(wavemodel=Surfbeat())
 
     """
 
@@ -55,11 +67,10 @@ class Physics(XBeachBaseModel):
         default="physics",
         description="Model type discriminator",
     )
-    wavemodel: Optional[Union[Stationary, Surfbeat, Nonh]] = Field(
-        default=None,
+    wavemodel: Union[Stationary, Surfbeat, Nonh] = Field(
         description=(
-            "Wave model configuration: Stationary, Surfbeat or Nonh "
-            "(XBeach default: surfbeat)"
+            "Wave model configuration: Stationary, Surfbeat or Nonh. "
+            "This field is required — XBeach will not run without a wave model."
         ),
         discriminator="model_type",
     )

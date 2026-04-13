@@ -4,6 +4,10 @@ The `Physics` component controls physical processes in XBeach: wave propagation,
 
 ## Overview
 
+!!! important "wavemodel is required"
+    `Physics` requires a `wavemodel` — XBeach will not run without one. All other
+    fields are optional and fall back to XBeach's built-in defaults when omitted.
+
 ```python
 from rompy_xbeach.components.physics import Physics
 from rompy_xbeach.components.physics.wavemodel import Surfbeat, Roelvink1

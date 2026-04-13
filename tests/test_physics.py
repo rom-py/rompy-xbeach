@@ -2,6 +2,7 @@
 
 import pytest
 import logging
+from pydantic import ValidationError
 from rompy_xbeach.components.physics import Physics
 from rompy_xbeach.components.physics.wavemodel import Stationary, Surfbeat, Nonh
 
@@ -9,11 +10,17 @@ from rompy_xbeach.components.physics.wavemodel import Stationary, Surfbeat, Nonh
 # =====================================================================================
 # Basic instantiation tests
 # =====================================================================================
+def test_physics_requires_wavemodel():
+    """Test that Physics raises ValidationError when wavemodel is not provided."""
+    with pytest.raises(ValidationError):
+        Physics()
+
+
 def test_physics_default():
-    """Test Physics with default values."""
-    physics = Physics()
+    """Test Physics with wavemodel and default values for all other fields."""
+    physics = Physics(wavemodel=Surfbeat())
     assert physics.model_type == "physics"
-    assert physics.wavemodel is None
+    assert isinstance(physics.wavemodel, Surfbeat)
     assert physics.advection is None
     assert physics.flow is None
 
@@ -33,6 +40,7 @@ def test_physics_with_wavemodel():
 def test_physics_with_boolean_switches():
     """Test Physics with boolean switches."""
     physics = Physics(
+        wavemodel=Surfbeat(),
         flow=True,
         swave=True,
         wind=True,
@@ -45,6 +53,7 @@ def test_physics_with_boolean_switches():
 def test_physics_disable_processes():
     """Test Physics with processes disabled."""
     physics = Physics(
+        wavemodel=Surfbeat(),
         wind=False,
         swave=False,
         flow=False,
@@ -57,11 +66,11 @@ def test_physics_disable_processes():
 # =====================================================================================
 # Params property tests
 # =====================================================================================
-def test_params_empty():
-    """Test params property with empty Physics."""
-    physics = Physics()
+def test_params_wavemodel_only():
+    """Test params property with only wavemodel set (all others default to None)."""
+    physics = Physics(wavemodel=Surfbeat())
     params = physics.params
-    assert len(params) == 0
+    assert params == {"wavemodel": "surfbeat"}
 
 
 def test_params_with_wavemodel():
@@ -74,6 +83,7 @@ def test_params_with_wavemodel():
 def test_params_with_boolean_switches():
     """Test params property with boolean switches."""
     physics = Physics(
+        wavemodel=Surfbeat(),
         swave=True,
         lwave=True,
         flow=False,
@@ -89,6 +99,7 @@ def test_params_with_boolean_switches():
 def test_params_excludes_none():
     """Test that params excludes None values."""
     physics = Physics(
+        wavemodel=Surfbeat(),
         swave=True,
         lwave=None,
         flow=None,
@@ -102,6 +113,7 @@ def test_params_excludes_none():
 def test_params_all_boolean_fields():
     """Test params with all boolean fields set."""
     physics = Physics(
+        wavemodel=Surfbeat(),
         advection=True,
         avalanching=True,
         cyclic=False,
@@ -159,6 +171,7 @@ def test_get_method_without_destdir():
 def test_get_method_with_destdir(tmp_path):
     """Test get() method with destdir (should be ignored)."""
     physics = Physics(
+        wavemodel=Surfbeat(),
         wind=True,
         flow=True,
     )
@@ -257,6 +270,7 @@ def test_physics_stationary_simulation():
 def test_physics_with_vegetation():
     """Test Physics configuration with vegetation."""
     physics = Physics(
+        wavemodel=Surfbeat(),
         vegetation=True,
         flow=True,
         swave=True,
@@ -271,6 +285,7 @@ def test_physics_with_vegetation():
 def test_physics_with_groundwater():
     """Test Physics configuration with groundwater flow."""
     physics = Physics(
+        wavemodel=Surfbeat(),
         gwflow=True,
         flow=True,
     )
@@ -283,6 +298,7 @@ def test_physics_with_groundwater():
 def test_physics_with_ships():
     """Test Physics configuration with ship waves."""
     physics = Physics(
+        wavemodel=Surfbeat(),
         ships=True,
         flow=True,
         swave=True,
@@ -298,25 +314,26 @@ def test_physics_with_ships():
 # Edge cases
 # =====================================================================================
 def test_physics_minimal_configuration():
-    """Test Physics with minimal configuration."""
-    physics = Physics()
+    """Test Physics with minimal configuration (wavemodel required, all else defaulted)."""
+    physics = Physics(wavemodel=Surfbeat())
     params = physics.params
 
-    # Should be empty dict
-    assert params == {}
+    # Only wavemodel in output; all other optional fields omitted
+    assert params == {"wavemodel": "surfbeat"}
 
 
 def test_physics_single_parameter():
-    """Test Physics with single parameter."""
-    physics = Physics(flow=True)
+    """Test Physics with wavemodel plus one additional parameter."""
+    physics = Physics(wavemodel=Surfbeat(), flow=True)
     params = physics.params
-    assert len(params) == 1
+    assert len(params) == 2
     assert params["flow"] == 1
 
 
 def test_physics_mixed_true_false():
     """Test Physics with mixed True/False values."""
     physics = Physics(
+        wavemodel=Surfbeat(),
         flow=True,
         wind=False,
         swave=True,
@@ -336,6 +353,7 @@ def test_physics_mixed_true_false():
 def test_bool_serialization_to_int():
     """Test that boolean values are correctly serialized to integers."""
     physics = Physics(
+        wavemodel=Surfbeat(),
         flow=True,
         wind=False,
     )
@@ -376,19 +394,19 @@ def test_wavemodel_invalid_value():
 def test_boolean_fields_accept_bool_only():
     """Test that boolean fields accept boolean values."""
     # Valid boolean values
-    physics = Physics(flow=True)
+    physics = Physics(wavemodel=Surfbeat(), flow=True)
     assert physics.flow is True
 
-    physics = Physics(flow=False)
+    physics = Physics(wavemodel=Surfbeat(), flow=False)
     assert physics.flow is False
 
     # Pydantic v2 allows type coercion for booleans
     # Integer 1 is coerced to True
-    physics = Physics(flow=1)
+    physics = Physics(wavemodel=Surfbeat(), flow=1)
     assert physics.flow is True
 
     # Integer 0 is coerced to False
-    physics = Physics(flow=0)
+    physics = Physics(wavemodel=Surfbeat(), flow=0)
     assert physics.flow is False
 
 
@@ -398,7 +416,7 @@ def test_boolean_fields_accept_bool_only():
 def test_log_default_enabled_processes(caplog):
     """Test that DEBUG messages are logged for default-enabled processes not set."""
     with caplog.at_level(logging.DEBUG):
-        Physics()
+        Physics(wavemodel=Surfbeat())
 
     # Check that DEBUG messages are logged for all default-enabled processes
     default_enabled_params = [
@@ -422,7 +440,7 @@ def test_log_default_enabled_processes(caplog):
 def test_no_log_when_default_enabled_process_is_set(caplog):
     """Test that no DEBUG message is logged when default-enabled process is explicitly set."""
     with caplog.at_level(logging.DEBUG):
-        Physics(flow=False, swave=True)
+        Physics(wavemodel=Surfbeat(), flow=False, swave=True)
 
     # flow and swave should not trigger DEBUG logs since they're explicitly set
     # But other default-enabled params should still log
@@ -437,7 +455,7 @@ def test_no_log_when_default_enabled_process_is_set(caplog):
 def test_no_log_for_default_disabled_processes(caplog):
     """Test that no DEBUG messages are logged for processes that default to disabled."""
     with caplog.at_level(logging.DEBUG):
-        Physics()
+        Physics(wavemodel=Surfbeat())
 
     # These parameters default to 0 (disabled) in XBeach, so no DEBUG should be logged
     default_disabled_params = [
@@ -506,20 +524,20 @@ def test_nonh_wavemodel_with_swave_false_no_warning(caplog):
 
 
 def test_swave_true_without_nonh_wavemodel_no_warning(caplog):
-    """Test that swave=True without Nonh wavemodel does not log a warning."""
+    """Test that swave=True with a non-Nonh wavemodel does not log a warning."""
     import logging
 
     with caplog.at_level(logging.WARNING):
         # Surfbeat wavemodel
         physics1 = Physics(wavemodel=Surfbeat(), swave=True)
-        # No wavemodel specified (default)
-        physics2 = Physics(swave=True)
+        # Stationary wavemodel
+        physics2 = Physics(wavemodel=Stationary(), swave=True)
 
     assert "swave" not in caplog.text
     assert physics1.swave is True
     assert isinstance(physics1.wavemodel, Surfbeat)
     assert physics2.swave is True
-    assert physics2.wavemodel is None
+    assert isinstance(physics2.wavemodel, Stationary)
 
 
 # =====================================================================================

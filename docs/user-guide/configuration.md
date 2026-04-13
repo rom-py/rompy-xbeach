@@ -108,18 +108,20 @@ This enables type-safe deserialisation of discriminated unions.
 Many XBeach features use the `Union[bool, Component]` pattern:
 
 ```python
+from rompy_xbeach.components.physics.wavemodel import Surfbeat
+
 # Enable with defaults
-physics = Physics(vegetation=True)
+physics = Physics(wavemodel=Surfbeat(), vegetation=True)
 
 # Enable with custom parameters
 from rompy_xbeach.components.physics.vegetation import Vegetation
-physics = Physics(vegetation=Vegetation(nsec=2, ah=[1.5]))
+physics = Physics(wavemodel=Surfbeat(), vegetation=Vegetation(nsec=2, ah=[1.5]))
 
 # Disable explicitly
-physics = Physics(vegetation=False)
+physics = Physics(wavemodel=Surfbeat(), vegetation=False)
 
 # Omit (uses XBeach default)
-physics = Physics()
+physics = Physics(wavemodel=Surfbeat())
 ```
 
 This pattern applies to:

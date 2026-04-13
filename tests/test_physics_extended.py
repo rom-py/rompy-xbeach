@@ -179,6 +179,7 @@ def test_physics_with_all_new_components():
     are now handled through Config.wave_boundary or input.wave.wbc
     """
     physics = Physics(
+        wavemodel=Nonh(solver="tridiag"),
         viscosity=Viscosity(
             smag=True,
             nuh=0.1,
