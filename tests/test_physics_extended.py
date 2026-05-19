@@ -107,14 +107,19 @@ def test_wave_boundary_params():
         wbcScaleEnergy=True,
         cyclicdiradjust=False,
     )
+    assert wave_bc.bclwonly is True
+    assert wave_bc.wbcRemoveStokes is False
+    assert wave_bc.wbcScaleEnergy is True
+    assert wave_bc.cyclicdiradjust is False
+
     data = wave_bc.model_dump(exclude_none=True)
     assert data["nmax"] == 0.7
     assert data["wbcevarreduce"] == 0.8
-    assert data["bclwonly"] is True
+    assert data["bclwonly"] == 1
     assert data["swkhmin"] == 0.01
-    assert data["wbcRemoveStokes"] is False
-    assert data["wbcScaleEnergy"] is True
-    assert data["cyclicdiradjust"] is False
+    assert data["wbcRemoveStokes"] == 0
+    assert data["wbcScaleEnergy"] == 1
+    assert data["cyclicdiradjust"] == 0
 
 
 def test_nonh_wavemodel():

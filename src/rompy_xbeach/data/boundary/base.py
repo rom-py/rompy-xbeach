@@ -221,6 +221,12 @@ class WaveBoundaryParams(RompyBaseModel):
         ),
     )
 
+    @model_serializer(mode="wrap")
+    def _serialize_xbeach_params(self, handler) -> dict[str, Any]:
+        """Convert booleans to integers for XBeach params.txt compatibility."""
+        data = handler(self)
+        return {k: int(v) if isinstance(v, bool) else v for k, v in data.items()}
+
 
 class SpectralWaveBoundaryParams(WaveBoundaryParams):
     """Spectral wave boundary condition parameters.

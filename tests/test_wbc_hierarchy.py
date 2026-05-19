@@ -157,7 +157,7 @@ def test_serialization_base():
     """Test serialization of base WaveBoundaryParams."""
     wbc = WaveBoundaryParams(nmax=0.8, wbcScaleEnergy=True, taper=100.0)
     params = wbc.model_dump(exclude_none=True)
-    assert params == {"nmax": 0.8, "wbcScaleEnergy": True, "taper": 100.0}
+    assert params == {"nmax": 0.8, "wbcScaleEnergy": 1, "taper": 100.0}
 
 
 def test_serialization_spectral():
@@ -173,7 +173,7 @@ def test_serialization_spectral():
         "nmax": 0.8,
         "rt": 3600.0,
         "dtbc": 1.0,
-        "random": True,
+        "random": 1,
     }
 
 
