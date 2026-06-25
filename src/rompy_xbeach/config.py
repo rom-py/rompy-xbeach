@@ -263,4 +263,11 @@ class Config(XBeachBaseConfig):
         # MPI configuration
         self._params.update(self.mpi.get(staging_dir))
 
+        # XBeach expects booleans as 0/1. Normalise here, at the single point where
+        # all component params are aggregated, so data interfaces (wave, wind, tide)
+        # that don't go through the XBeachBaseModel serializer are also covered.
+        self._params = {
+            k: int(v) if isinstance(v, bool) else v for k, v in self._params.items()
+        }
+
         return self._params

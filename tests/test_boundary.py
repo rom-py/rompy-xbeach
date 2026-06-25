@@ -504,3 +504,42 @@ def test_boundary_station_spectra_swan_filelist(
         # Assert swan file defined in bcfile
         ds = read_swan(filename)
         assert hasattr(ds, "spec")
+
+
+# =====================================================================================
+# Data-interface field leakage guard
+# =====================================================================================
+def test_data_interface_fields_not_serialized(tmp_path, source_file, grid, time):
+    """Data interface fields must not leak into the XBeach params dict.
+
+    Concrete data-driven boundary classes inherit many fields from the rompy data
+    interfaces (source, coords, etc.). These must be stripped from the serialized
+    params (by BoundaryBase._serialize), otherwise they end up in params.txt.
+    """
+    wb = BoundaryStationParamJons(
+        source=source_file,
+        coords=dict(s="seapoint", x="longitude", y="latitude", t="time"),
+        filelist=False,
+        hm0_var="phs1",
+        tp_var="ptp1",
+        mainang_var="pdp1",
+        gammajsp_var="ppe1",
+        dspr_var="pspr1",
+        wbcScaleEnergy=True,
+    )
+    boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
+    leaked = {
+        "source",
+        "coords",
+        "location",
+        "variables",
+        "time_buffer",
+        "buffer",
+        "crop_data",
+        "filter",
+        "sel_method",
+        "sel_method_kwargs",
+    } & set(boundary_spec)
+    assert not leaked, f"Data interface fields leaked into params: {sorted(leaked)}"
+    # Wave parameters must still be present
+    assert "wbcScaleEnergy" in boundary_spec
