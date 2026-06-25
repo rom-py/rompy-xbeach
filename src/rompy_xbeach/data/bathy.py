@@ -154,7 +154,7 @@ class SeawardExtensionLinear(SeawardExtensionBase):
 
         # Initialise an extension array that includes the offshore grid column
         ext = np.full((int(grid.ny), nx + 1), np.nan)
-        ext[:, 0] = 25
+        ext[:, 0] = self.depth
         ext[:, -1] = data_posdwn[:, 0]
 
         # Linearly interpolate the data between the existing and extended boundary

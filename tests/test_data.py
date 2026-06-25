@@ -107,6 +107,32 @@ def test_xbeach_bathy_extend_seaward_linear(source, grid, tmp_path):
     xfile1, yfile2, datafile2, grid2 = data1.get(destdir=tmp_path, grid=grid)
 
 
+def test_seaward_extension_uses_configured_depth(grid):
+    """The seaward boundary column must equal the configured depth.
+
+    Regression test: the offshore boundary value used to be hardcoded to 25,
+    so any non-default ``depth`` was silently ignored.
+    """
+    # Synthetic positive-down bathy: offshore (column 0) is the shallowest
+    data = np.tile(np.linspace(5.0, 12.0, 8), (int(grid.ny), 1))
+
+    for depth in (25.0, 50.0):
+        ext = SeawardExtensionLinear(depth=depth, slope=0.05)
+        data_ext, grid_ext = ext.get(data=data, grid=grid, posdwn=True)
+        # The new offshore boundary column equals the configured depth
+        np.testing.assert_allclose(data_ext[:, 0], depth)
+        # The grid was actually extended seaward
+        assert grid_ext.nx > grid.nx
+
+
+def test_seaward_extension_depth_respects_sign_convention(grid):
+    """With posdwn=False the offshore boundary is the negated depth."""
+    data = np.tile(-np.linspace(5.0, 12.0, 8), (int(grid.ny), 1))
+    ext = SeawardExtensionLinear(depth=40.0, slope=0.05)
+    data_ext, _ = ext.get(data=data, grid=grid, posdwn=False)
+    np.testing.assert_allclose(data_ext[:, 0], -40.0)
+
+
 def test_xbeach_bathy_fillna(source, grid, tmp_path):
     data = XBeachBathy(
         source=source, posdwn=False, left=5, right=5, interpolate_na=False

@@ -198,7 +198,7 @@ class JonsWriter(SpectralWriter):
                 "It is advised not to specify the keyword dfj and allow XBeach "
                 "to calculate the default value"
             )
-            if not (self.dfj / 1000 <= self.dfj <= self.fnyq / 20):
+            if not (self.fnyq / 1000 <= self.dfj <= self.fnyq / 20):
                 raise ValueError("dfj must be in the range fnyq/1000 to fnyq/20")
         return self
 
