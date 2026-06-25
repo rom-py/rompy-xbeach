@@ -17,6 +17,7 @@ from pydantic import Field, field_validator, model_serializer
 
 from rompy.utils import load_entry_points
 from rompy.core.types import DatasetCoords, RompyBaseModel
+from rompy.core.source import SourceFile, SourceIntake
 
 from rompy_xbeach.data.base import BaseDataStation, BaseDataPoint, BaseDataGrid
 from rompy_xbeach.source import (
@@ -24,13 +25,17 @@ from rompy_xbeach.source import (
     SourceCRSIntake,
     SourceCRSDataset,
     SourceCRSWavespectra,
+    SourceDataset,
 )
 
 
 logger = logging.getLogger(__name__)
 
 
-SOURCE_TIMESERIES_TYPES = Union[load_entry_points("rompy.source", "timeseries")]
+SOURCE_TIMESERIES_TYPES = Union[
+    load_entry_points("rompy.source", "timeseries")
+    + (SourceFile, SourceIntake, SourceDataset)
+]
 
 SOURCE_PARAM_TYPES = Union[
     SourceCRSFile,
