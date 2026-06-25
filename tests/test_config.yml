@@ -28,21 +28,19 @@ bathy:
     model_type: linear
     depth: 25
     slope: 0.3
-# Model input data
+# Wave boundary via input.wave (stationary parametric)
 input:
   wave:
-    model_type: station_param_jonstable
-    source:
-      model_type: file
-      uri: ./data/smc-params-20230101.nc
-      crs: 4326
-    coords:
-      s: seapoint
-    hm0: phs1
-    tp: ptp1
-    mainang: pdir1
-    gammajsp: ppe1
-    dspr: pspr1
+    model_type: stat
+    Hrms: 2.0
+    Trep: 12.0
+    dir0: 270.0
+    m: 10
+    nmax: 0.8
+    thetamin: -80
+    thetamax: 80
+    dtheta: 10.0
+    order: 1
   wind:
     model_type: wind_station
     source:
@@ -68,45 +66,135 @@ input:
     coords:
       x: lon
       y: lat
-# Wave boundary conditions
-front: abs_2d #1
-back: abs_2d #2
-left: neumann #0
-right: neumann #0
-rugdepth: 0.011
+# ========
+# Physics
+# ========
+physics:
+  wavemodel:
+    model_type: surfbeat
+    break:
+      model_type: roelvink1
+      alpha: 1.0
+      delta: 0.0
+      gamma: 0.55
+      n: 10
+      wavfric:
+        wavfriccoef: 0.1
+  roller:
+    beta: 0.1
+  vegetation:
+    nveg: 2
+    veggiefile:
+      source: ./data/wind.csv
+  bedfriction:
+    model_type: cf
+    bedfriccoef: 0.01
+  wci:
+    cats: 4.0
+    hwci: 0.1
+    hwcimax: 100.0
+  wave_numerics:
+    scheme: warmbeam
+    maxiter: 500
+    maxerror: 0.0005
+    wavint: 600.0
+  flow_numerics:
+    eps: 0.01
+    epsi: 0.2
+    eps_sd: 0.5
+    hmin: 0.01
+    deltahmin: 0.01
+    umin: 0.1
+    secorder: 1
+    oldhu: 1
+    cfl: 0.8
+  constants:
+    rho: 1025
+    g: 9.81
+    depthscale: 1.0
+# =========
+# Sediment
+# =========
+sediment:
+  groundwater:
+    aquiferbot: -10.0
+    aquiferbotfile: null
+    dwetlayer: 0.1
+    gw0: 0.0
+    gw0file: null
+    gwReturb: 100.0
+    gwfastsolve: 0
+    gwheadmodel: parabolic
+    gwhorinfil: 0
+    gwnonh: 0
+    gwscheme: laminar
+    kx: 0.0001
+    ky: 0.0001
+    kz: 0.0001
+  bed_update:
+    frac_dz: 0.7
+    split: 1.01
+    merge: 0.01
+    nd_var: 2
+  morphology:
+    morfac: 1.0
+  sedtrans:
+    BRfac: 1.0
+    Tbfac: 1.0
+  q3d:
+    deltar: 0.025
+    kmax: 100
+    rwave: 2.0
+    sigfac: 1.3
+    vicmol: 0.00001
+    vonkar: 0.4
+# Flow boundary conditions
+flow_boundary:
+  front: abs_2d
+  back: abs_2d
+  left: neumann
+  right: neumann
+  lateralwave: wavecrest
+# Tide boundary conditions
+tide_boundary:
+  tideloc: 0
+  zs0: 0.0
+  paulrevere: land
 tunits: seconds since 1970-01-01 00:00:00.00 +00
-break: roelvink_daly
-scheme: warmbeam
-order: 1
-lateralwave: wavecrest
-random: 1
-zs0: null
-hmin: 0.01
-wci: 0
-alpha: 1
-delta: 0.0
-n: 10
-rho: 1025
-g: 9.81
-thetamin: -80
-thetamax: 80
-dtheta: 10.0
-beta: 0.1
-roller: 1
-gamma: 0.55
-gammax: 1.0
-sedtrans: 0
-morfac: 0.0
-morphology: 0
-cf: 0.01
-paulrevere: land
-eps: 0.01
-epsi: 0.001
-cfl: 0.8
-umin: 0.1
-oldhu: 1
-# Model output
-tstart: 0.0
-tintm: 3600.0
-outputformat: netcdf
-ncfilename: xboutput_test.nc
+mpi:
+  mpiboundary: auto
+output:
+  outputformat: netcdf
+  ncfilename: xboutput_test.nc
+  timings: True
+  tstart: 0.
+  tintm: 3600.0
+  rugdepth: 0.011
+  tspoint:
+    source: ./data/ssh.csv
+  meanvars:
+    - H
+    - thetamean
+    - hh
+    - u
+    - v
+    - D
+    - R
+    - k
+    - ue
+    - ve
+    - urms
+    - Qb
+    - zb
+    - zs
+  globalvars:
+    - H
+  points:
+    - [0.0, 800.0]
+    - [2000.0, 1600.0]
+  rugauges:
+    - [0.0, 800.0]
+  pointvars:
+    - H
+    - ue
+    - ve

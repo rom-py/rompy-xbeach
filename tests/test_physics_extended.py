@@ -1,0 +1,296 @@
+"""Tests for extended Physics component parameters."""
+
+import pytest
+from rompy_xbeach.components.physics import Physics
+from rompy_xbeach.data.boundary.base import WaveBoundaryParams
+from rompy_xbeach.components.physics.constants import Coriolis, PhysicalConstants
+from rompy_xbeach.components.physics.friction import (
+    Viscosity,
+    HorizontalViscosity,
+    Manning,
+)
+from rompy_xbeach.components.physics.wci import WaveCurrentInteraction
+from rompy_xbeach.components.physics.numerics import (
+    FlowNumerics,
+    WaveNumerics,
+)
+from rompy_xbeach.components.physics.wavemodel import Nonh
+
+
+def test_viscosity():
+    """Test Viscosity model (formerly HorizontalViscosity)."""
+    visc = Viscosity(
+        smag=True,
+        nuh=0.1,
+        nuhv=2.0,
+    )
+    params = visc.params
+    assert params["viscosity"] == 1  # Automatically enabled
+    assert params["smag"] == 1
+    assert params["nuh"] == 0.1
+    assert params["nuhv"] == 2.0
+
+
+def test_viscosity_backwards_compat():
+    """Test HorizontalViscosity alias still works."""
+    visc = HorizontalViscosity(smag=False, nuh=0.5)
+    assert visc.viscosity is True
+    assert visc.smag is False
+
+
+def test_gamma_turb_in_friction():
+    """Test gamma_turb is now in friction classes."""
+    friction = Manning(bedfriccoef=0.02, gamma_turb=1.5)
+    params = friction.params
+    assert params["gamma_turb"] == 1.5
+
+
+def test_wave_current_interaction():
+    """Test WaveCurrentInteraction model."""
+    wci = WaveCurrentInteraction(
+        cats=10.0,
+        hwci=0.2,
+        hwcimax=50.0,
+    )
+    params = wci.params
+    assert params["cats"] == 10.0
+    assert params["hwci"] == 0.2
+    assert params["hwcimax"] == 50.0
+
+
+def test_flow_numerics():
+    """Test FlowNumerics model."""
+    flow_num = FlowNumerics(
+        eps=0.01,
+        eps_sd=0.3,
+        hmin=0.1,
+        deltahmin=0.2,
+        oldhmin=False,
+        umin=0.05,
+        secorder=True,
+        oldhu=False,
+    )
+    params = flow_num.params
+    assert params["eps"] == 0.01
+    assert params["eps_sd"] == 0.3
+    assert params["hmin"] == 0.1
+    assert params["deltahmin"] == 0.2
+    assert params["oldhmin"] == 0
+    assert params["umin"] == 0.05
+    assert params["secorder"] == 1
+    assert params["oldhu"] == 0
+
+
+def test_wave_numerics():
+    """Test WaveNumerics model."""
+    wave_num = WaveNumerics(
+        scheme="warmbeam",
+        maxiter=100,
+        maxerror=0.0001,
+        wavint=300.0,
+    )
+    params = wave_num.params
+    assert params["scheme"] == "warmbeam"
+    assert params["maxiter"] == 100
+    assert params["maxerror"] == 0.0001
+    assert params["wavint"] == 300.0
+
+
+def test_wave_boundary_params():
+    """Test WaveBoundaryParams model."""
+    wave_bc = WaveBoundaryParams(
+        nmax=0.7,
+        wbcevarreduce=0.8,
+        bclwonly=True,
+        swkhmin=0.01,
+        wbcRemoveStokes=False,
+        wbcScaleEnergy=True,
+        cyclicdiradjust=False,
+    )
+    data = wave_bc.model_dump(exclude_none=True)
+    assert data["nmax"] == 0.7
+    assert data["wbcevarreduce"] == 0.8
+    assert data["bclwonly"] is True
+    assert data["swkhmin"] == 0.01
+    assert data["wbcRemoveStokes"] is False
+    assert data["wbcScaleEnergy"] is True
+    assert data["cyclicdiradjust"] is False
+
+
+def test_nonh_wavemodel():
+    """Test Nonh wave model (non-hydrostatic parameters)."""
+    nonh = Nonh(
+        solver="tridiag",
+        solver_acc=0.01,
+        solver_maxit=50,
+        solver_urelax=0.9,
+        Topt=12.0,
+        dispc=1.0,
+        kdmin=0.01,
+        nhlay=0.5,
+        maxbrsteep=0.5,
+        secbrsteep=0.3,
+        reformsteep=0.15,
+        nhbreaker=2,
+    )
+    params = nonh.params
+    assert params["solver"] == "tridiag"
+    assert params["solver_acc"] == 0.01
+    assert params["solver_maxit"] == 50
+    assert params["solver_urelax"] == 0.9
+    assert params["Topt"] == 12.0
+    assert params["dispc"] == 1.0
+    assert params["kdmin"] == 0.01
+    assert params["nhlay"] == 0.5
+    assert params["maxbrsteep"] == 0.5
+    assert params["secbrsteep"] == 0.3
+    assert params["reformsteep"] == 0.15
+    assert params["nhbreaker"] == 2
+
+
+def test_physical_constants():
+    """Test PhysicalConstants model."""
+    constants = PhysicalConstants(
+        g=9.81,
+        rho=1025.0,
+        depthscale=1.0,
+    )
+    params = constants.params
+    assert params["g"] == 9.81
+    assert params["rho"] == 1025.0
+    assert params["depthscale"] == 1.0
+
+
+def test_coriolis():
+    """Test Coriolis model."""
+    coriolis = Coriolis(
+        lat=-33.0,
+        wearth=0.04167,
+    )
+    params = coriolis.params
+    assert params["lat"] == -33.0
+    assert params["wearth"] == 0.04167
+
+
+def test_physics_with_all_new_components():
+    """Test Physics with all new component fields.
+
+    Note: wbc field has been removed from Physics - wave boundary parameters
+    are now handled through Config.wave_boundary or input.wave.wbc
+    """
+    physics = Physics(
+        wavemodel=Nonh(solver="tridiag"),
+        viscosity=Viscosity(
+            smag=True,
+            nuh=0.1,
+            nuhv=1.5,
+        ),
+        bedfriction=Manning(
+            bedfriccoef=0.02,
+            gamma_turb=1.0,
+        ),
+        wci=WaveCurrentInteraction(
+            cats=5.0,
+            hwci=0.15,
+            hwcimax=80.0,
+        ),
+        flow_numerics=FlowNumerics(
+            eps=0.005,
+            hmin=0.05,
+            deltahmin=0.1,
+            umin=0.01,
+        ),
+        wave_numerics=WaveNumerics(
+            scheme="warmbeam",
+            maxiter=500,
+            maxerror=0.0005,
+        ),
+        constants=PhysicalConstants(
+            g=9.81,
+            rho=1025.0,
+        ),
+        coriolis=Coriolis(
+            lat=-33.5,
+        ),
+    )
+
+    # Use get() method which flattens nested components
+    params = physics.get(destdir="/tmp")
+
+    # Check viscosity params (now includes viscosity=1 automatically)
+    assert params["viscosity"] == 1
+    assert params["smag"] == 1
+    assert params["nuh"] == 0.1
+    assert params["nuhv"] == 1.5
+
+    # Check gamma_turb is now in bedfriction
+    assert params["gamma_turb"] == 1.0
+
+    # Check WCI params
+    assert params["cats"] == 5.0
+    assert params["hwci"] == 0.15
+    assert params["hwcimax"] == 80.0
+
+    # Check flow numerics
+    assert params["eps"] == 0.005
+    assert params["hmin"] == 0.05
+    assert params["deltahmin"] == 0.1
+    assert params["umin"] == 0.01
+
+    # Check wave numerics
+    assert params["scheme"] == "warmbeam"
+    assert params["maxiter"] == 500
+    assert params["maxerror"] == 0.0005
+
+    # Note: Wave boundary params (nmax, wbcScaleEnergy) no longer in Physics
+    # They are now handled through Config.wave_boundary or input.wave.wbc
+
+    # Check constants
+    assert params["g"] == 9.81
+    assert params["rho"] == 1025.0
+
+    # Check Coriolis
+    assert params["lat"] == -33.5
+
+
+def test_physics_with_nonh_wavemodel():
+    """Test Physics with Nonh wave model."""
+    physics = Physics(
+        swave=False,  # Required when using Nonh
+        wavemodel=Nonh(
+            solver="tridiag",
+            maxbrsteep=0.4,
+            nhbreaker=2,
+        ),
+    )
+
+    # Use get() method which flattens nested components
+    params = physics.get(destdir="/tmp")
+    assert params["wavemodel"] == "nonh"
+    assert params["swave"] == 0
+    assert params["solver"] == "tridiag"
+    assert params["maxbrsteep"] == 0.4
+    assert params["nhbreaker"] == 2
+
+
+def test_validation_ranges():
+    """Test that validation ranges work correctly."""
+    # Test valid ranges
+    visc = Viscosity(nuh=0.5, nuhv=10.0)
+    assert visc.nuh == 0.5
+
+    # Test invalid ranges
+    with pytest.raises(ValueError):
+        Viscosity(nuh=2.0)  # > 1.0
+
+    with pytest.raises(ValueError):
+        WaveCurrentInteraction(cats=100.0)  # > 50.0
+
+    with pytest.raises(ValueError):
+        FlowNumerics(eps=0.5)  # > 0.1
+
+    with pytest.raises(ValueError):
+        PhysicalConstants(g=10.0)  # > 9.9
+
+    with pytest.raises(ValueError):
+        Coriolis(lat=100.0)  # > 90.0

@@ -24,6 +24,7 @@ try:
     from rompy_binary_datasources.source import SourceDataset
 except ImportError:
     from rompy.utils import create_import_error_class
+
     SourceDataset = create_import_error_class("SourceDataset")
 
 

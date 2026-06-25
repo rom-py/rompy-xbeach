@@ -1,0 +1,459 @@
+"""XBeach wavemodel parameter configurations.
+
+This module contains all models used by the Physics.wavemodel field, including:
+
+- Breaker formulation models (used by wave models)
+- Wave model configurations (Stationary, Surfbeat, Nonh)
+
+"""
+
+from pathlib import Path
+from typing import Literal, Optional, Union
+from pydantic import Field, model_validator
+
+from rompy_xbeach.types import XBeachBaseModel, XBeachDataBlob
+
+
+# =============================================================================
+# Roller model
+# =============================================================================
+
+
+class Roller(XBeachBaseModel):
+    """Roller model configuration.
+
+    When used in Physics.roller field, this enables the roller model (roller=1)
+    and allows specification of roller-specific parameters.
+
+    """
+
+    roller: Literal[True] = Field(
+        default=True,
+        description="Enable roller model",
+    )
+    beta: Optional[float] = Field(
+        default=None,
+        description="Breaker slope coefficient in roller model (XBeach default: 0.08)",
+        ge=0.05,
+        le=0.3,
+    )
+    rfb: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Switch to feed back maximum wave surface slope in roller energy balance "
+            "(XBeach default: 0)"
+        ),
+    )
+
+
+# =============================================================================
+# Breaker Formulation Models
+# =============================================================================
+
+
+class ShortWaveFriction(XBeachBaseModel):
+    """Short wave friction model configuration.
+
+    XBeach allows the user to specify a short wave friction coefficient that is used
+    to calculate the dissipation of short wave energy due to bottom friction. This
+    friction coefficient can be specified as a constant value or spatially varying
+    through a file.
+
+    When used in Physics.wavfriction field, this allows specification of short wave
+    friction parameters.
+
+    See https://xbeach.readthedocs.io/en/latest/xbeach_manual.html#bottom-friction
+    for more information.
+
+    """
+
+    wavfriccoef: Optional[float] = Field(
+        default=None,
+        description=(
+            "Wave friction coefficient used in Reniers formulation for dissipation "
+            "(XBeach default: -123)"
+        ),
+        ge=0.0,
+    )
+    wavfricfile: Optional[XBeachDataBlob] = Field(
+        default=None,
+        description=(
+            "Name of file with spatially varying wave friction coefficients. "
+            "If specified, overrides wavfriccoef."
+        ),
+    )
+
+    def get(self, destdir: str | Path) -> dict:
+        """Fetch external friction file if specified, and return the params dict.
+
+        Parameters
+        ----------
+        destdir : str | Path
+            Destination directory for fetching files.
+
+        Returns
+        -------
+        dict
+            Parameters dictionary with file paths updated to workspace directory.
+
+        """
+        params = super().get(destdir)
+
+        if self.wavfricfile:
+            params["wavfricfile"] = self.wavfricfile.get(destdir).name
+
+        return params
+
+    @model_validator(mode="after")
+    def check_mutually_exclusive(self):
+        if self.wavfriccoef is not None and self.wavfricfile is not None:
+            raise ValueError("Only one of wavfriccoef or wavfricfile can be specified.")
+        return self
+
+
+class WaveDissipation(XBeachBaseModel):
+    """Base class for wave dissipation formulations with common breaking parameters.
+
+    These parameters apply to all breaker formulations and control the dissipation
+    process characteristics such as delay, viscosity effects, and wave runup.
+
+    """
+
+    breakerdelay: Optional[float] = Field(
+        default=None,
+        description="Switch to enable breaker delay model (XBeach default: 1.0)",
+        ge=0.0,
+        le=3.0,
+    )
+    breakviscfac: Optional[float] = Field(
+        default=None,
+        description="Factor to increase viscosity during breaking (XBeach default: 1.5)",
+        ge=1.0,
+        le=3.0,
+    )
+    breakvisclen: Optional[float] = Field(
+        default=None,
+        description=(
+            "Ratio between local depth and length scale in extra breaking viscosity "
+            "(XBeach default: 1.0)"
+        ),
+        ge=0.75,
+        le=3.0,
+    )
+    delta: Optional[float] = Field(
+        default=None,
+        description="Fraction of wave height to add to water depth (XBeach default: 0.0)",
+        ge=0.0,
+        le=1.0,
+    )
+    facrun: Optional[float] = Field(
+        default=None,
+        description=(
+            "Calibration coefficient for short wave runup (XBeach default: 1.0)"
+        ),
+        ge=0.0,
+        le=2.0,
+    )
+    facsd: Optional[float] = Field(
+        default=None,
+        description=(
+            "Fraction of the local wave length to use for shoaling delay depth "
+            "(XBeach default: 1.0)"
+        ),
+        ge=0.0,
+        le=2.0,
+    )
+    fwcutoff: Optional[float] = Field(
+        default=None,
+        description=(
+            "Depth greater than which the bed friction factor is not applied "
+            "(XBeach default: 1000.0 m)"
+        ),
+        ge=0.0,
+        le=1000.0,
+    )
+    gammax: Optional[float] = Field(
+        default=None,
+        description=(
+            "Maximum ratio of wave height to water depth (XBeach default: 2.0)"
+        ),
+        ge=0.4,
+        le=5.0,
+    )
+    shoaldelay: Optional[bool] = Field(
+        default=None,
+        description=("Switch to enable shoaling delay (XBeach default: 0)"),
+    )
+    wavfric: Optional[ShortWaveFriction] = Field(
+        default=None,
+        description="Short wave friction specification",
+    )
+
+
+class Janssen(WaveDissipation):
+    """Janssen & Battjes (2007) breaker model configuration."""
+
+    model_type: Literal["janssen"] = Field(
+        default="janssen",
+        description="Model type discriminator",
+    )
+
+
+class Baldock(WaveDissipation):
+    """Baldock breaker model configuration."""
+
+    model_type: Literal["baldock"] = Field(
+        default="baldock",
+        description="Model type discriminator",
+    )
+    gamma: Optional[float] = Field(
+        default=None,
+        description="Breaker parameter gamma (XBeach default: 0.46)",
+        ge=0.4,
+        le=0.9,
+    )
+
+
+class Roelvink1(WaveDissipation):
+    """Roelvink (1993a) breaker model configuration."""
+
+    model_type: Literal["roelvink1"] = Field(
+        default="roelvink1",
+        description="Model type discriminator",
+    )
+    alpha: Optional[float] = Field(
+        default=None,
+        description="Wave dissipation coefficient (XBeach default: 1.38)",
+        ge=0.5,
+        le=2.0,
+    )
+    gamma: Optional[float] = Field(
+        default=None,
+        description="Breaker parameter gamma (XBeach default: 0.46)",
+        ge=0.4,
+        le=0.9,
+    )
+    n: Optional[float] = Field(
+        default=None,
+        description="Power in roelvink dissipation model (Xbeach default: 10.0)",
+        ge=5.0,
+        le=20.0,
+    )
+
+
+class Roelvink2(Roelvink1):
+    """Roelvink (1993a) extended breaker model configuration."""
+
+    model_type: Literal["roelvink2"] = Field(
+        default="roelvink2",
+        description="Model type discriminator",
+    )
+
+
+class RoelvinkDaly(WaveDissipation):
+    """Daly et al. (2010) breaker model configuration."""
+
+    model_type: Literal["roelvink_daly"] = Field(
+        default="roelvink_daly",
+        description="Model type discriminator",
+    )
+    gamma2: Optional[float] = Field(
+        default=None,
+        description="End of breaking parameter (XBeach default: 0.34)",
+        ge=0.0,
+        le=0.5,
+    )
+
+
+# =============================================================================
+# Wave Model Configurations
+# =============================================================================
+
+
+class Stationary(XBeachBaseModel):
+    """Stationary wave model configuration.
+
+    Efficiently solves wave-averaged equations but neglects infragravity waves.
+    Useful for conditions where incident waves are relatively small and/or short.
+
+    """
+
+    model_type: Literal["stationary"] = Field(
+        default="stationary",
+        description="Model type discriminator",
+    )
+    breaktype: Optional[Union[Baldock, Janssen]] = Field(
+        default=None,
+        description="Type of breaker formulation for the stationary wave model",
+        discriminator="model_type",
+        alias="break",
+    )
+
+
+class Surfbeat(XBeachBaseModel):
+    """Surfbeat (instationary) wave model configuration.
+
+    Resolves short wave variations on the wave group scale (short wave envelope)
+    and the long waves associated with them. This is the XBeach default mode.
+
+    """
+
+    model_type: Literal["surfbeat"] = Field(
+        default="surfbeat",
+        description="Model type discriminator",
+    )
+    breaktype: Optional[Union[Roelvink1, Roelvink2, RoelvinkDaly]] = Field(
+        default=None,
+        description="Type of breaker formulation for the surfbeat wave model",
+        discriminator="model_type",
+        alias="break",
+    )
+
+
+class Nonh(XBeachBaseModel):
+    """Non-hydrostatic (wave-resolving) wave model configuration (XBeach Table 42).
+
+    Uses non-linear shallow water equations with a pressure correction term,
+    allowing modeling of propagation and decay of individual waves.
+
+    Wave breaking is implemented using the Hydrostatic Front Approximation (HFA),
+    where the non-hydrostatic pressure term is disabled when waves exceed a certain
+    steepness, after which bore-like breaking takes over.
+
+    Note
+    ----
+    XBeach has a legacy ``nonh`` parameter (0/1 switch) that is deprecated.
+    The XBeach source code shows that if ``nonh=1`` is specified, XBeach logs
+    a warning and internally sets ``wavemodel=nonh``. Setting both ``nonh=1``
+    and a different ``wavemodel`` causes XBeach to halt with an error.
+
+    Use this ``Nonh`` class via ``Physics(wavemodel=Nonh(...))`` instead of
+    the legacy ``nonh`` parameter. This outputs ``wavemodel = nonh`` in params.txt.
+
+    These are advanced options and it is recommended not to change them unless
+    you have specific requirements.
+
+    References
+    ----------
+    Smit et al. (2014), McCall et al. (2014), Zijlema et al. (2011)
+    """
+
+    model_type: Literal["nonh"] = Field(
+        default="nonh",
+        description="Model type discriminator",
+    )
+    Topt: Optional[float] = Field(
+        default=None,
+        description=(
+            "Absolute period to optimize coefficient (XBeach default: 10.0 s)"
+        ),
+        ge=1.0,
+        le=20.0,
+    )
+    breakviscfac: Optional[float] = Field(
+        default=None,
+        description=(
+            "Factor to increase viscosity during breaking (XBeach default: 1.5)"
+        ),
+        ge=1.0,
+        le=3.0,
+    )
+    breakvisclen: Optional[float] = Field(
+        default=None,
+        description=(
+            "Ratio between local depth and length scale in extra breaking viscosity "
+            "(XBeach default: 1.0)"
+        ),
+        ge=0.75,
+        le=3.0,
+    )
+    dispc: Optional[float] = Field(
+        default=None,
+        description=(
+            "Coefficient in front of the vertical pressure gradient "
+            "(XBeach default: -1.0)"
+        ),
+        ge=0.1,
+        le=2.0,
+    )
+    kdmin: Optional[float] = Field(
+        default=None,
+        description=("Minimum value of kd (pi/dx > min(kd)) (XBeach default: 0.0)"),
+        ge=0.0,
+        le=0.05,
+    )
+    maxbrsteep: Optional[float] = Field(
+        default=None,
+        description=(
+            "Maximum wave steepness criterium for breaking (XBeach default: 0.4)"
+        ),
+        ge=0.3,
+        le=0.8,
+    )
+    nhbreaker: Optional[int] = Field(
+        default=None,
+        description=("Non-hydrostatic breaker model (XBeach default: 2)"),
+        ge=0,
+        le=2,
+    )
+    nhlay: Optional[float] = Field(
+        default=None,
+        description=(
+            "Layer distribution in the nonhydrostatic model (XBeach default: 0.33)"
+        ),
+        ge=0.0,
+        le=1.0,
+    )
+    nonhq3d: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Turn on reduced two-layer non-hydrostatic model for improved "
+            "dispersive behavior (XBeach default: 0)"
+        ),
+        alias="nhq3d",
+    )
+    reformsteep: Optional[float] = Field(
+        default=None,
+        description=(
+            "Wave steepness criterium to reform after breaking. "
+            "XBeach default: 0.25 * maxbrsteep"
+        ),
+        ge=0.0,
+    )
+    secbrsteep: Optional[float] = Field(
+        default=None,
+        description=(
+            "Secondary maximum wave steepness criterium. "
+            "XBeach default: 0.5 * maxbrsteep"
+        ),
+        ge=0.0,
+    )
+    solver: Optional[Literal["sip", "tridiag"]] = Field(
+        default=None,
+        description=(
+            "Solver used to solve the linear system (XBeach default: tridiag)"
+        ),
+    )
+    solver_acc: Optional[float] = Field(
+        default=None,
+        description=(
+            "Accuracy with respect to the right-hand side used in termination criterion: "
+            "||b-ax|| < acc*||b|| (XBeach default: 0.005)"
+        ),
+        ge=1e-05,
+        le=0.1,
+    )
+    solver_maxit: Optional[int] = Field(
+        default=None,
+        description=(
+            "Maximum number of iterations in the linear sip solver (XBeach default: 30)"
+        ),
+        ge=1,
+        le=1000,
+    )
+    solver_urelax: Optional[float] = Field(
+        default=None,
+        description=("Underrelaxation parameter (XBeach default: 0.92)"),
+        ge=0.5,
+        le=0.99,
+    )

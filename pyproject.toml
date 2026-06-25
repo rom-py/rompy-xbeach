@@ -17,6 +17,7 @@ classifiers = [
 ]
 license = {text = "BSD 3-Clause License"}
 dependencies = [
+  "pydantic-numpy",
   "rioxarray",
   "rompy",
   "oceantide",
@@ -32,7 +33,12 @@ dev = [
   "coverage",
   "mypy",
   "pytest",
-  "ruff"
+  "ruff",
+]
+docs = [
+  "mkdocs-material",
+  "mkdocstrings[python]",
+  "mkdocs-jupyter",
 ]
 
 [project.scripts]
@@ -42,23 +48,34 @@ rompy_xbeach = "rompy_xbeach.cli:app"
 xbeach = "rompy_xbeach.config:Config"
 
 [project.entry-points."xbeach.data"]
-"wind_grid:wind" = "rompy_xbeach.forcing:WindGrid"
-"wind_station:wind" = "rompy_xbeach.forcing:WindStation"
-"wind_point:wind" = "rompy_xbeach.forcing:WindPoint"
-"tide_cons_grid:tide" = "rompy_xbeach.forcing:TideConsGrid"
-"tide_cons_point:tide" = "rompy_xbeach.forcing:TideConsPoint"
-"water_level_grid:tide" = "rompy_xbeach.forcing:WaterLevelGrid"
-"water_level_station:tide" = "rompy_xbeach.forcing:WaterLevelStation"
-"water_level_point:tide" = "rompy_xbeach.forcing:WaterLevelPoint"
-"boundary_station_spectra_jons:wave" = "rompy_xbeach.boundary:BoundaryStationSpectraJons"
-"boundary_station_param_jons:wave" = "rompy_xbeach.boundary:BoundaryStationParamJons"
-"boundary_grid_param_jons:wave" = "rompy_xbeach.boundary:BoundaryGridParamJons"
-"boundary_point_param_jons:wave" = "rompy_xbeach.boundary:BoundaryPointParamJons"
-"boundary_station_spectra_jonstable:wave" = "rompy_xbeach.boundary:BoundaryStationSpectraJonstable"
-"boundary_station_param_jonstable:wave" = "rompy_xbeach.boundary:BoundaryStationParamJonstable"
-"boundary_grid_param_jonstable:wave" = "rompy_xbeach.boundary:BoundaryGridParamJonstable"
-"boundary_point_param_jonstable:wave" = "rompy_xbeach.boundary:BoundaryPointParamJonstable"
-"boundary_station_spectra_swan:wave" = "rompy_xbeach.boundary:BoundaryStationSpectraSwan"
+"wind_grid:wind" = "rompy_xbeach.data.wind:WindGrid"
+"wind_station:wind" = "rompy_xbeach.data.wind:WindStation"
+"wind_point:wind" = "rompy_xbeach.data.wind:WindPoint"
+"tide_cons_grid:tide" = "rompy_xbeach.data.waterlevel:TideConsGrid"
+"tide_cons_point:tide" = "rompy_xbeach.data.waterlevel:TideConsPoint"
+"water_level_grid:tide" = "rompy_xbeach.data.waterlevel:WaterLevelGrid"
+"water_level_station:tide" = "rompy_xbeach.data.waterlevel:WaterLevelStation"
+"water_level_point:tide" = "rompy_xbeach.data.waterlevel:WaterLevelPoint"
+"boundary_station_spectra_jons:wave" = "rompy_xbeach.data.boundary:BoundaryStationSpectraJons"
+"boundary_station_param_jons:wave" = "rompy_xbeach.data.boundary:BoundaryStationParamJons"
+"boundary_grid_param_jons:wave" = "rompy_xbeach.data.boundary:BoundaryGridParamJons"
+"boundary_point_param_jons:wave" = "rompy_xbeach.data.boundary:BoundaryPointParamJons"
+"boundary_station_spectra_jonstable:wave" = "rompy_xbeach.data.boundary:BoundaryStationSpectraJonstable"
+"boundary_station_param_jonstable:wave" = "rompy_xbeach.data.boundary:BoundaryStationParamJonstable"
+"boundary_grid_param_jonstable:wave" = "rompy_xbeach.data.boundary:BoundaryGridParamJonstable"
+"boundary_point_param_jonstable:wave" = "rompy_xbeach.data.boundary:BoundaryPointParamJonstable"
+"boundary_station_spectra_swan:wave" = "rompy_xbeach.data.boundary:BoundaryStationSpectraSwan"
+"stat:wave" = "rompy_xbeach.data.boundary:BoundaryStat"
+"bichrom:wave" = "rompy_xbeach.data.boundary:BoundaryBichrom"
+"file_stat_table:wave" = "rompy_xbeach.data.boundary:BoundaryStatTable"
+"file_ts_1:wave" = "rompy_xbeach.data.boundary:BoundaryTs1"
+"file_ts_2:wave" = "rompy_xbeach.data.boundary:BoundaryTs2"
+"file_ts_nonh:wave" = "rompy_xbeach.data.boundary:BoundaryTsNonh"
+"off:wave" = "rompy_xbeach.data.boundary:BoundaryOff"
+"reuse:wave" = "rompy_xbeach.data.boundary:BoundaryReuse"
+"file_jons:wave" = "rompy_xbeach.data.boundary:BoundaryFileJons"
+"file_jonstable:wave" = "rompy_xbeach.data.boundary:BoundaryFileJonstable"
+"file_swan:wave" = "rompy_xbeach.data.boundary:BoundaryFileSwan"
 
 [project.entry-points."xbeach.source"]
 "geotiff:crs" = "rompy_xbeach.source:SourceGeotiff"
