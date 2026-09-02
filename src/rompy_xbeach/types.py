@@ -273,10 +273,13 @@ class XBeachBaseModel(RompyBaseModel):
             all_components = list(components_with_explicit_fields.keys()) + list(
                 components_without_explicit_fields.keys()
             )
+            # Note: exclude_unset must not be used here, it propagates to nested
+            # discriminated-union components and strips their default model_type,
+            # which prevents the serializer from flattening them into keywords
+            # such as `wavemodel = surfbeat` or `bedfriction = cf`
             params = self.model_dump(
                 exclude=["model_type"] + all_components,
                 exclude_none=True,
-                exclude_unset=True,
                 by_alias=True,
             )
 
