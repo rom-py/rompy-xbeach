@@ -208,7 +208,26 @@ class BaseDataStation(BaseData):
             latname=self.coords.y,
             **self.sel_method_kwargs,
         )
+        self._check_selection_not_empty(ds)
         return ds
+
+    def _check_selection_not_empty(self, ds: xr.Dataset) -> None:
+        """Raise if the station selection returned only missing values.
+
+        wavespectra's `sel_idw` masks the output when it cannot find enough
+        neighbouring sites (e.g., a single-site source dataset), which would
+        otherwise propagate silently as NODATA in the generated boundary files.
+
+        """
+        variables = [v for v in ds.data_vars if self.coords.t in ds[v].dims]
+        if variables and all(bool(ds[v].isnull().all()) for v in variables):
+            raise ValueError(
+                f"Station selection with sel_method='{self.sel_method}' returned only "
+                f"missing values for {variables} at the requested location. This "
+                "typically happens with 'idw' when the source has a single site or no "
+                "sites within tolerance; use sel_method='nearest' or adjust "
+                "sel_method_kwargs (e.g., tolerance, max_sites)"
+            )
 
 
 class BaseDataGrid(BaseData):

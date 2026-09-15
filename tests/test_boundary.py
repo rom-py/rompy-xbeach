@@ -506,6 +506,43 @@ def test_boundary_station_spectra_swan_filelist(
         assert hasattr(ds, "spec")
 
 
+@pytest.fixture(scope="module")
+def source_single_site(grid):
+    """Station spectra source with a single site, the closest to the grid."""
+    from rompy_xbeach.grid import GeoPoint
+    from rompy_xbeach.source import SourceCRSDataset
+
+    dset = SourceCRSWavespectra(
+        uri=HERE / "data/aus-20230101.nc", reader="read_ww3"
+    ).open()
+    x, y = grid.offshore
+    bnd = GeoPoint(x=x, y=y, crs=grid.crs).reproject(4326)
+    isite = int(((dset.lon - bnd.x) ** 2 + (dset.lat - bnd.y) ** 2).argmin(dim="site"))
+    yield SourceCRSDataset(
+        obj=dset.isel(site=[isite]).load(), crs=4326, x_dim="lon", y_dim="lat"
+    )
+
+
+def test_boundary_station_single_site_idw_raises(
+    tmp_path, source_single_site, grid, time
+):
+    """Default idw masks the data when a single site is available, raise clearly."""
+    wb = BoundaryStationSpectraSwan(source=source_single_site, filelist=False)
+    with pytest.raises(ValueError, match="sel_method='nearest'"):
+        wb.get(destdir=tmp_path, grid=grid, time=time)
+
+
+def test_boundary_station_single_site_nearest(tmp_path, source_single_site, grid, time):
+    """A single-site station source works with sel_method='nearest'."""
+    wb = BoundaryStationSpectraSwan(
+        source=source_single_site, filelist=False, sel_method="nearest"
+    )
+    boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
+    ds = read_swan(tmp_path / boundary_spec["bcfile"])
+    assert not bool(ds.efth.isnull().any())
+    assert float(ds.spec.hs().squeeze()) > 0
+
+
 # =====================================================================================
 # Data-interface field leakage guard
 # =====================================================================================
