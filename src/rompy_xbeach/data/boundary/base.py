@@ -50,6 +50,15 @@ SOURCE_SPECTRA_TYPES = Union[
     SourceCRSDataset,
 ]
 
+# Boundary ids that follow the legacy XBeach `instat` names, mapped to the `wbctype`
+# value XBeach uses for them (see check_instat_backward_compatibility in params.F90).
+# XBeach rejects these ids as wbctype values.
+WBCTYPE_FROM_ID = {
+    "stat": "params",
+    "bichrom": "params",
+    "jons": "parametric",
+}
+
 
 def dspr_to_s(dspr: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
     """Calculate the Jonswap spreading coefficient from the directional spread.
@@ -208,6 +217,17 @@ class WaveBoundaryParams(RompyBaseModel):
         ge=0.1,
         le=180.0,
     )
+    dtheta_s: Optional[float] = Field(
+        default=None,
+        description=(
+            "Directional resolution (degrees) of the stationary refraction model used "
+            "when single_dir=1, which is the XBeach default for surfbeat on 2D grids. "
+            "Required by XBeach in that case. Only used when swave=1 "
+            "(XBeach default: 10.0)"
+        ),
+        ge=0.1,
+        le=20.0,
+    )
     thetanaut: Optional[bool] = Field(
         default=None,
         description=(
@@ -225,6 +245,11 @@ class WaveBoundaryParams(RompyBaseModel):
             "wave forcing is added) (XBeach default: 2)"
         ),
     )
+
+    @property
+    def wbctype(self) -> str:
+        """The XBeach wbctype value for this boundary type."""
+        return WBCTYPE_FROM_ID.get(self.id, self.id)
 
 
 class SpectralWaveBoundaryParams(WaveBoundaryParams):

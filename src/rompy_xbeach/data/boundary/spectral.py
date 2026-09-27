@@ -144,7 +144,7 @@ class BoundaryJonsBase(FilelistMixin):
             bcfile = self._write_filelist(destdir, bcfiles, durations)
 
         # Return XBeach parameters
-        params = {"wbctype": self.id, "bcfile": bcfile.name}
+        params = {"wbctype": self.wbctype, "bcfile": bcfile.name}
         # Add wave boundary parameters (mixin fields excluded, data interface fields
         # are excluded by the model_serializer in BoundaryBase classes)
         params.update(
@@ -241,7 +241,7 @@ class BoundaryJonstableBase:
         bcfile = wb.write(destdir)
 
         # Return XBeach parameters
-        params = {"wbctype": self.id, "bcfile": bcfile.name}
+        params = {"wbctype": self.wbctype, "bcfile": bcfile.name}
         # Add wave boundary parameters (mixin fields excluded, data interface fields
         # are excluded by the model_serializer in BoundaryBase classes)
         params.update(
@@ -305,7 +305,7 @@ class BoundaryFileSpectralBase(SpectralWaveBoundaryParams):
             self._fetch_filelist_files(destdir, bcfile)
 
         # Return XBeach parameters
-        params = {"wbctype": self.id, "bcfile": bcfile.name}
+        params = {"wbctype": self.wbctype, "bcfile": bcfile.name}
         exclude_fields = {"model_type", "id", "bcfile_source"}
         if hasattr(self, "filelist"):
             exclude_fields.add("filelist")
@@ -587,7 +587,7 @@ class BoundaryStationSpectraSwan(
             bcfile = self._write_filelist(destdir, bcfiles, durations)
 
         # Return XBeach parameters
-        params = {"wbctype": self.id, "bcfile": bcfile.name}
+        params = {"wbctype": self.wbctype, "bcfile": bcfile.name}
         # Add wave boundary parameters (mixin fields excluded, data interface fields
         # are excluded by the model_serializer in BoundaryBase classes)
         params.update(

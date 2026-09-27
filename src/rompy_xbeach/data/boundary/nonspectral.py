@@ -88,7 +88,7 @@ class BoundaryStat(WaveBoundaryParams):
             XBeach parameters including wbctype and wave parameters.
 
         """
-        params = {"wbctype": self.id}
+        params = {"wbctype": self.wbctype}
         params.update(
             self.model_dump(
                 exclude={"model_type", "id"},
@@ -174,7 +174,7 @@ class BoundaryBichrom(WaveBoundaryParams):
             XBeach parameters including wbctype and wave parameters.
 
         """
-        params = {"wbctype": self.id}
+        params = {"wbctype": self.wbctype}
         params.update(
             self.model_dump(
                 exclude={"model_type", "id"},
@@ -234,7 +234,7 @@ class BoundaryStatTable(WaveBoundaryParams):
         """
         destdir = Path(destdir)
         bcfile = self.source.get(destdir)
-        params = {"wbctype": self.id, "bcfile": bcfile.name}
+        params = {"wbctype": self.wbctype, "bcfile": bcfile.name}
         params.update(
             self.model_dump(
                 exclude={"model_type", "id", "source"},
@@ -292,7 +292,7 @@ class BoundaryTs1(WaveBoundaryParams):
         bc_dir = destdir / "bc"
         bc_dir.mkdir(parents=True, exist_ok=True)
         bcfile = self.source.get(bc_dir)
-        params = {"wbctype": self.id, "bcfile": f"bc/{bcfile.name}"}
+        params = {"wbctype": self.wbctype, "bcfile": f"bc/{bcfile.name}"}
         params.update(
             self.model_dump(
                 exclude={"model_type", "id", "source"},
@@ -350,7 +350,7 @@ class BoundaryTs2(WaveBoundaryParams):
         bc_dir = destdir / "bc"
         bc_dir.mkdir(parents=True, exist_ok=True)
         bcfile = self.source.get(bc_dir)
-        params = {"wbctype": self.id, "bcfile": f"bc/{bcfile.name}"}
+        params = {"wbctype": self.wbctype, "bcfile": f"bc/{bcfile.name}"}
         params.update(
             self.model_dump(
                 exclude={"model_type", "id", "source"},
@@ -407,7 +407,7 @@ class BoundaryTsNonh(WaveBoundaryParams):
         """
         destdir = Path(destdir)
         bcfile = self.source.get(destdir)
-        params = {"wbctype": self.id, "bcfile": bcfile.name}
+        params = {"wbctype": self.wbctype, "bcfile": bcfile.name}
         params.update(
             self.model_dump(
                 exclude={"model_type", "id", "source"},

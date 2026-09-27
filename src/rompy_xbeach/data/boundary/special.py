@@ -53,10 +53,12 @@ class BoundaryOff(WaveBoundaryParams):
         Returns
         -------
         dict
-            XBeach parameters with wbctype='off'.
+            XBeach parameters with wbctype='off' and wave boundary settings.
 
         """
-        return {"wbctype": self.id}
+        params = {"wbctype": self.wbctype}
+        params.update(self.model_dump(exclude={"model_type", "id"}, exclude_none=True))
+        return params
 
 
 class BoundaryReuse(SpectralWaveBoundaryParams):
@@ -120,7 +122,7 @@ class BoundaryReuse(SpectralWaveBoundaryParams):
         """
         # Fetch the required bcf files from previous run directory
         self.previous_run.get(destdir, patterns=["ebcflist.bcf", "qbcflist.bcf"])
-        params = {"wbctype": self.id}
+        params = {"wbctype": self.wbctype}
         params.update(
             self.model_dump(
                 exclude={"model_type", "id", "previous_run"},

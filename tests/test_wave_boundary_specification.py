@@ -41,7 +41,7 @@ def test_boundary_stat_get():
         m=10,
     )
     params = boundary.get("/tmp")
-    assert params["wbctype"] == "stat"
+    assert params["wbctype"] == "params"
     assert params["Hrms"] == 2.0
     assert params["Trep"] == 12.0
     assert params["dir0"] == 270.0
@@ -72,7 +72,7 @@ def test_boundary_bichrom_get():
         m=10,
     )
     params = boundary.get("/tmp")
-    assert params["wbctype"] == "bichrom"
+    assert params["wbctype"] == "params"
     assert params["Hrms"] == 1.5
     assert params["Tlong"] == 80.0
 
@@ -232,7 +232,7 @@ def test_boundary_stat_with_wave_params():
         dtheta=10,
     )
     params = boundary.get("/tmp")
-    assert params["wbctype"] == "stat"
+    assert params["wbctype"] == "params"
     assert params["Hrms"] == 2.0
     assert params["nmax"] == 0.8
     assert params["thetamin"] == -60
@@ -282,7 +282,7 @@ def test_boundary_file_jons_get(tmp_path):
     destdir.mkdir(parents=True, exist_ok=True)
     params = boundary.get(destdir)
 
-    assert params["wbctype"] == "jons"
+    assert params["wbctype"] == "parametric"
     assert params["bcfile"] == "spectrum.txt"
     assert params["nmax"] == 0.8
     assert (destdir / "spectrum.txt").exists()
@@ -314,7 +314,7 @@ def test_boundary_file_jons_filelist(tmp_path):
     destdir.mkdir(parents=True, exist_ok=True)
     params = boundary.get(destdir)
 
-    assert params["wbctype"] == "jons"
+    assert params["wbctype"] == "parametric"
     assert params["bcfile"] == "filelist.txt"
     # Verify all files were copied
     assert (destdir / "filelist.txt").exists()
