@@ -83,8 +83,8 @@ python docker/test_image.py xbeach
 The [docker workflow](../.github/workflows/docker.yml):
 
 - **Pull requests** touching this directory: build and test every image.
-- **Pushes to `main` or `output`** touching this directory, and **manual runs**: build, test and publish the release images and the current trunk.
-- **Weekly (Mondays)**: publish `trunk-r<revision>` and move `latest` to it, if the trunk has changed since the last published image.
+- **Pushes to `main` or `output`, and new tags**: publish `trunk-r<revision>` and move `latest` to it, if the trunk has changed since the last published image. If this directory changed, all images are rebuilt and published.
+- **Manual runs**: build, test and publish all images.
 
 To add a release, add a line to [`releases.txt`](releases.txt). Only releases with the `wbctype` keyword (XBeachX, v1.23, and later) can run rompy-xbeach workspaces. To publish a specific trunk revision, run the workflow manually with the `trunk_revision` input.
 
