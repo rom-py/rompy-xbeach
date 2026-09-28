@@ -1,0 +1,207 @@
+"""Tests for wave boundary classes in data/boundary/."""
+
+import pytest
+from pathlib import Path
+from rompy_xbeach.config import Config, DataInterface
+from rompy_xbeach.grid import RegularGrid, GeoPoint
+from rompy_xbeach.data.bathy import XBeachBathy
+from rompy_xbeach.source import SourceGeotiff
+from rompy_xbeach.data.boundary import (
+    BoundaryParams,
+    BoundaryOff,
+    BoundaryReuse,
+)
+from rompy_xbeach.components.physics import Physics
+from rompy_xbeach.components.physics.wavemodel import Surfbeat
+
+
+HERE = Path(__file__).parent
+
+
+@pytest.fixture
+def grid():
+    return RegularGrid(
+        ori=GeoPoint(x=115.594239, y=-32.641104, crs="epsg:4326"),
+        alfa=347.0,
+        dx=10,
+        dy=10,
+        nx=100,
+        ny=50,
+    )
+
+
+@pytest.fixture
+def bathy():
+    return XBeachBathy(
+        source=SourceGeotiff(
+            filename=str(HERE / "data" / "bathy.tif"),
+        ),
+    )
+
+
+def test_boundary_stat_get():
+    """Test BoundaryParams.get() returns correct parameters."""
+    boundary = BoundaryParams(
+        Hrms=2.0,
+        Trep=12.0,
+        dir0=270.0,
+        m=10,
+    )
+    params = boundary.get("/tmp")
+    assert params["wbctype"] == "params"
+    assert params["Hrms"] == 2.0
+    assert params["Trep"] == 12.0
+    assert params["dir0"] == 270.0
+    assert params["m"] == 10
+
+
+def test_boundary_bichrom_get():
+    """Test BoundaryParams.get() returns correct parameters."""
+    boundary = BoundaryParams(
+        Hrms=1.5,
+        Trep=10.0,
+        Tlong=80.0,
+        dir0=270.0,
+        m=10,
+    )
+    params = boundary.get("/tmp")
+    assert params["wbctype"] == "params"
+    assert params["Hrms"] == 1.5
+    assert params["Tlong"] == 80.0
+
+
+def test_boundary_off_get():
+    """Test BoundaryOff.get() returns correct parameters."""
+    boundary = BoundaryOff()
+    params = boundary.get("/tmp")
+    assert params["wbctype"] == "off"
+    assert len(params) == 1
+
+
+def test_boundary_reuse_get(tmp_path):
+    """Test BoundaryReuse.get() returns correct parameters."""
+    from rompy_xbeach.types import XBeachDirectoryBlob
+
+    # Create source directory with test files
+    source_dir = tmp_path / "source"
+    source_dir.mkdir(parents=True, exist_ok=True)
+    (source_dir / "ebcflist.bcf").write_text("test ebcflist content")
+    (source_dir / "qbcflist.bcf").write_text("test qbcflist content")
+
+    boundary = BoundaryReuse(previous_run=XBeachDirectoryBlob(source=str(source_dir)))
+
+    destdir = tmp_path / "dest"
+    destdir.mkdir(parents=True, exist_ok=True)
+    params = boundary.get(destdir)
+
+    assert params["wbctype"] == "reuse"
+    assert "bcfile" not in params  # XBeach knows the file names automatically
+
+
+def test_config_input_optional():
+    """Test that input field is optional in Config."""
+    from pydantic import ValidationError
+
+    # input should be optional
+    try:
+        Config()
+    except ValidationError as e:
+        errors = e.errors()
+        error_fields = [err["loc"][0] for err in errors]
+        # Should fail on grid, bathy (required), but NOT on input (optional)
+        assert "input" not in error_fields
+        assert "grid" in error_fields or "bathy" in error_fields
+
+
+def test_warn_wave_direction_params_without_swave(grid, bathy, caplog):
+    """Test that a warning is logged when wave direction params are set but swave=False."""
+    import logging
+
+    caplog.set_level(logging.WARNING)
+
+    Config(
+        grid=grid,
+        bathy=bathy,
+        physics=Physics(wavemodel=Surfbeat(), swave=False),
+        input=DataInterface(
+            wave=BoundaryParams(
+                Hrms=2.0,
+                Trep=12.0,
+                thetamin=-60,
+                thetamax=60,
+                dtheta=10,
+            ),
+        ),
+    )
+
+    # Check that warning was logged
+    assert any(
+        "Wave directional parameters" in record.message and "swave=0" in record.message
+        for record in caplog.records
+    )
+
+
+def test_no_warn_wave_direction_params_with_swave(grid, bathy, caplog):
+    """Test that no warning is logged when swave is enabled (default)."""
+    import logging
+
+    caplog.set_level(logging.WARNING)
+
+    Config(
+        grid=grid,
+        bathy=bathy,
+        physics=Physics(wavemodel=Surfbeat()),
+        input=DataInterface(
+            wave=BoundaryParams(
+                Hrms=2.0,
+                Trep=12.0,
+                thetamin=-60,
+                thetamax=60,
+                dtheta=10,
+            ),
+        ),
+    )
+
+    # Check that no wave direction warning was logged
+    assert not any(
+        "Wave directional parameters" in record.message for record in caplog.records
+    )
+
+
+def test_config_physics_required(grid, bathy):
+    """Physics must be provided since XBeach needs a wave model."""
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError) as excinfo:
+        Config(grid=grid, bathy=bathy)
+    assert "physics" in [err["loc"][0] for err in excinfo.value.errors()]
+
+
+def test_config_optional_components_can_be_disabled(bathy, tmp_path):
+    """Setting sediment and mpi to None omits them rather than failing."""
+    from rompy.core.time import TimeRange
+    from rompy.model import ModelRun
+
+    config = Config(
+        grid=RegularGrid(
+            ori=GeoPoint(x=115.594239, y=-32.641104, crs=4326),
+            alfa=347.0,
+            dx=10,
+            dy=15,
+            nx=230,
+            ny=220,
+            crs=28350,
+        ),
+        bathy=bathy,
+        physics=Physics(wavemodel=Surfbeat()),
+        sediment=None,
+        mpi=None,
+    )
+    model = ModelRun(
+        run_id="test",
+        output_dir=str(tmp_path),
+        config=config,
+        period=TimeRange(start="2023-01-01T00", end="2023-01-01T03", interval="1h"),
+    )
+    model.generate()
+    assert (tmp_path / "test" / "params.txt").is_file()
