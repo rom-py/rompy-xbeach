@@ -242,7 +242,17 @@ class TideConsPoint(TideConsBase, BaseDataPoint):
 # Combined
 # ======================================================================================
 class CombinedWaterLevel(ZS0Mixin, RompyBaseModel):
-    """Mixin class to generate combined timeseries from water level and tide cons."""
+    """Water level forcing combining a water level timeseries with tide from cons.
+
+    The tide is predicted from the constituents at the frequency `freq` of the
+    `tide` object, the water level is interpolated onto those times and added to it.
+
+    """
+
+    model_type: Literal["combined_water_level"] = Field(
+        default="combined_water_level",
+        description="Model type discriminator",
+    )
 
     waterlevel: Union[WaterLevelGrid, WaterLevelStation, WaterLevelPoint] = Field(
         description="Water level forcing (e.g., surge/SSH from hindcast)"

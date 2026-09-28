@@ -86,8 +86,7 @@ Simple parametric boundaries or time series from files.
 
 | Class | XBeach `wbctype` | Description |
 |-------|------------------|-------------|
-| [`BoundaryStat`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStat) | `stat` | Stationary parametric (no file needed) |
-| [`BoundaryBichrom`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryBichrom) | `bichrom` | Bichromatic waves (no file needed) |
+| [`BoundaryParams`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryParams) | `params` | Constant or bichromatic waves (no file needed) |
 | [`BoundaryStatTable`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryStatTable) | `stat_table` | Time-varying parametric from file |
 | [`BoundaryTs1`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryTs1) | `ts_1` | Time series at single location |
 | [`BoundaryTs2`](../api-reference/data.md#rompy_xbeach.data.boundary.BoundaryTs2) | `ts_2` | Time series at two locations |
@@ -216,34 +215,26 @@ The `FilelistMixin` automatically:
 
 ## Non-Spectral Boundaries
 
-### Stationary Parametric
+### Constant and Bichromatic Waves
 
 For simple, constant wave conditions without files:
 
 ```python
-from rompy_xbeach.data.boundary import BoundaryStat
+from rompy_xbeach.data.boundary import BoundaryParams
 
-wave = BoundaryStat(
+wave = BoundaryParams(
     Hrms=1.0,    # Root-mean-square wave height [m]
-    Tp=10.0,     # Peak period [s]
-    dir0=270.0,  # Mean direction [deg]
-    s=20.0,      # Directional spreading [-]
+    Trep=10.0,   # Representative period [s]
+    dir0=270.0,  # Mean direction, nautical [deg]
+    m=10,        # Power of the cos^m directional spreading [-]
 )
 ```
 
-### Bichromatic Waves
-
-For laboratory-style bichromatic wave conditions:
+Setting `Tlong` gives bichromatic waves, with wave groups of that period. XBeach
+only allows this with the surfbeat wave model:
 
 ```python
-from rompy_xbeach.data.boundary import BoundaryBichrom
-
-wave = BoundaryBichrom(
-    Hrms=0.5,
-    Tp=8.0,
-    dir0=270.0,
-    s=1000.0,    # Narrow spreading
-)
+wave = BoundaryParams(Hrms=0.5, Trep=8.0, Tlong=80.0, dir0=270.0)
 ```
 
 ### Time Series from Files
@@ -286,11 +277,10 @@ wave = BoundaryReuse(
 
 | `wbctype` | Description | Rompy-xbeach Classes |
 |-----------|-------------|---------------------|
-| `jons` | Single JONSWAP spectrum | `BoundaryStationSpectraJons`, `BoundaryStationParamJons`, `BoundaryGridParamJons`, `BoundaryPointParamJons`, `BoundaryFileJons` |
+| `parametric` | Single JONSWAP spectrum | `BoundaryStationSpectraJons`, `BoundaryStationParamJons`, `BoundaryGridParamJons`, `BoundaryPointParamJons`, `BoundaryFileJons` |
 | `jonstable` | Time-varying JONSWAP table | `BoundaryStationSpectraJonstable`, `BoundaryStationParamJonstable`, `BoundaryGridParamJonstable`, `BoundaryPointParamJonstable`, `BoundaryFileJonstable` |
 | `swan` | SWAN 2D spectrum | `BoundaryStationSpectraSwan`, `BoundaryFileSwan` |
-| `stat` | Stationary parametric | `BoundaryStat` |
-| `bichrom` | Bichromatic | `BoundaryBichrom` |
+| `params` | Constant or bichromatic waves | `BoundaryParams` |
 | `stat_table` | Time-varying parametric | `BoundaryStatTable` |
 | `ts_1` | Time series (1 location) | `BoundaryTs1` |
 | `ts_2` | Time series (2 locations) | `BoundaryTs2` |

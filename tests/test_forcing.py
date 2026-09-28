@@ -310,3 +310,43 @@ def test_combined_water_level(
     data = np.loadtxt(filename)
     assert namelist["tidelen"] == data.shape[0]
     assert namelist["tideloc"] == 1
+
+
+def test_combined_water_level_in_config(
+    tmp_path, source_tide_grid, source_water_level_grid, grid
+):
+    """Combined water level can be used as the Config tide input, also from dicts."""
+    from rompy.model import ModelRun
+    from rompy_xbeach.config import Config, DataInterface
+    from rompy_xbeach.data.bathy import XBeachBathy
+    from rompy_xbeach.source import SourceGeotiff
+    from rompy_xbeach.components.physics import Physics
+    from rompy_xbeach.components.physics.wavemodel import Surfbeat
+
+    combined = CombinedWaterLevel(
+        tide=TideConsGrid(source=source_tide_grid, coords={"x": "lon", "y": "lat"}),
+        waterlevel=WaterLevelGrid(
+            source=source_water_level_grid,
+            coords={"x": "lon", "y": "lat"},
+            variables=["ssh"],
+        ),
+    )
+    # Discriminated union resolves the combined class from its model_type
+    data = DataInterface(tide=combined.model_dump())
+    assert isinstance(data.tide, CombinedWaterLevel)
+
+    config = Config(
+        grid=grid,
+        bathy=XBeachBathy(source=SourceGeotiff(filename=HERE / "data/bathy.tif")),
+        physics=Physics(wavemodel=Surfbeat()),
+        input=data,
+    )
+    model = ModelRun(
+        run_id="combined",
+        output_dir=str(tmp_path),
+        config=config,
+        period=TimeRange(start="2023-01-01T00", end="2023-01-01T12", interval="1h"),
+    )
+    model.generate()
+    params = (tmp_path / "combined" / "params.txt").read_text()
+    assert "zs0file" in params

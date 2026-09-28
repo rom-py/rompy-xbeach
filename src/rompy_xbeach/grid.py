@@ -268,8 +268,15 @@ class RegularGrid(BaseGrid):
 
     @cached_property
     def params(self):
-        """Return the XBeach parameters for the grid."""
+        """Return the XBeach parameters for the grid.
+
+        `vardx=0` is set explicitly because the grid is defined by its origin,
+        rotation and constant spacing; newer XBeach versions default to `vardx=1`,
+        which expects the grid coordinates from `xfile` and `yfile` instead.
+
+        """
         return dict(
+            vardx=0,
             nx=self.nx - 1,
             ny=self.ny - 1,
             dx=self.dx,
