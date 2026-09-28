@@ -50,13 +50,6 @@ SOURCE_SPECTRA_TYPES = Union[
     SourceCRSDataset,
 ]
 
-# Boundary ids that follow the legacy XBeach `instat` names, mapped to the `wbctype`
-# value XBeach uses for them (see check_instat_backward_compatibility in params.F90).
-# XBeach rejects these ids as wbctype values.
-WBCTYPE_FROM_ID = {
-    "jons": "parametric",
-}
-
 
 def dspr_to_s(dspr: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
     """Calculate the Jonswap spreading coefficient from the directional spread.
@@ -246,8 +239,8 @@ class WaveBoundaryParams(RompyBaseModel):
 
     @property
     def wbctype(self) -> str:
-        """The XBeach wbctype value for this boundary type."""
-        return WBCTYPE_FROM_ID.get(self.id, self.id)
+        """The XBeach wbctype value for this boundary type, given by its id."""
+        return self.id
 
 
 class SpectralWaveBoundaryParams(WaveBoundaryParams):
