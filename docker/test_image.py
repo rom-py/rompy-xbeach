@@ -54,7 +54,9 @@ def config(wavemodel, wave):
 
 
 CASES = {
-    "stationary": config(Stationary(), BoundaryParams(Hrms=1.0, Trep=10.0, **DIRECTIONS)),
+    "stationary": config(
+        Stationary(), BoundaryParams(Hrms=1.0, Trep=10.0, **DIRECTIONS)
+    ),
     "surfbeat": config(
         Surfbeat(),
         BoundaryStationSpectraJons(
@@ -80,7 +82,9 @@ def main(image: str) -> int:
     with tempfile.TemporaryDirectory() as tmp:
         for name, command in COMMANDS.items():
             case = name.split("-")[0]
-            run = ModelRun(run_id=name, period=period, output_dir=tmp, config=CASES[case])
+            run = ModelRun(
+                run_id=name, period=period, output_dir=tmp, config=CASES[case]
+            )
             workspace = Path(run()).resolve()
             result = subprocess.run(
                 ["docker", "run", "--rm", "-v", f"{workspace}:/data", image, *command],
