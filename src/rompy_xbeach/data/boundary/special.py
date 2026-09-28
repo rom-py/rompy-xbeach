@@ -19,6 +19,10 @@ from rompy_xbeach.data.boundary.base import (
 )
 
 
+# List files written by XBeach that describe the boundary time series to reuse
+REUSE_LIST_FILES = ["ebcflist.bcf", "qbcflist.bcf", "esbcflist.bcf"]
+
+
 class BoundaryOff(WaveBoundaryParams):
     """No wave forcing.
 
@@ -64,18 +68,13 @@ class BoundaryOff(WaveBoundaryParams):
 class BoundaryReuse(SpectralWaveBoundaryParams):
     """Reuse previous boundary conditions.
 
-    Makes XBeach reuse wave time series from a previous simulation.
-    Requires the ebcflist.bcf and qbcflist.bcf files from a previous run.
-    The source field should point to the directory containing these files.
+    Makes XBeach reuse wave time series from a previous simulation. The list files
+    ebcflist.bcf and qbcflist.bcf (and esbcflist.bcf when the previous run used
+    single_dir), and the series files they reference, are copied from the previous
+    run directory into the workspace.
 
-    XBeach automatically looks for ebcflist.bcf and qbcflist.bcf in the
-    run directory - no bcfile parameter is needed in params.txt.
-
-    .. note::
-        TODO: The ebcflist.bcf and qbcflist.bcf files reference additional files
-        (typically with E_ and q_ prefixes) that also need to be present in the
-        workspace. Currently these referenced files are not automatically fetched.
-        Users must ensure all referenced files are available in the source directory.
+    XBeach automatically looks for these files in the run directory - no bcfile
+    parameter is needed in params.txt.
 
     Examples
     --------
@@ -120,8 +119,24 @@ class BoundaryReuse(SpectralWaveBoundaryParams):
             XBeach parameters with wbctype='reuse' and wave boundary settings.
 
         """
-        # Fetch the required bcf files from previous run directory
-        self.previous_run.get(destdir, patterns=["ebcflist.bcf", "qbcflist.bcf"])
+        # Fetch the list files and the series files they reference
+        listfiles = self.previous_run.get(destdir, patterns=REUSE_LIST_FILES)
+        series = sorted(
+            {
+                line.split()[-1]
+                for listfile in listfiles
+                for line in Path(listfile).read_text().splitlines()
+                if line.strip().endswith(".bcf")
+            }
+        )
+        if series:
+            copied = self.previous_run.get(destdir, patterns=series)
+            missing = set(series) - {f.name for f in copied}
+            if missing:
+                raise FileNotFoundError(
+                    f"Boundary series files {sorted(missing)} referenced in "
+                    f"{REUSE_LIST_FILES} not found in {self.previous_run.source}"
+                )
         params = {"wbctype": self.wbctype}
         params.update(
             self.model_dump(

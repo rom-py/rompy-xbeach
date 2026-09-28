@@ -61,3 +61,41 @@ def test_regular_grid_sets_vardx_zero():
         ori=GeoPoint(x=0, y=0, crs=28350), alfa=0, dx=10, dy=10, nx=5, ny=5, crs=28350
     )
     assert grid.params["vardx"] == 0
+
+
+def test_boundary_reuse_copies_referenced_series(tmp_path):
+    """Reuse copies the list files and every series file they reference."""
+    from rompy_xbeach.data.boundary import BoundaryReuse
+    from rompy_xbeach.types import XBeachDirectoryBlob
+
+    source = tmp_path / "previous"
+    source.mkdir()
+    row = "2160.000 2160.000 1.000 12.03 0.785 2.01 {}"
+    (source / "ebcflist.bcf").write_text(row.format("E_series00001.bcf"))
+    (source / "qbcflist.bcf").write_text(row.format("q_series00001.bcf"))
+    (source / "esbcflist.bcf").write_text(row.format("Es_series00001.bcf"))
+    for name in ["E_series00001.bcf", "q_series00001.bcf", "Es_series00001.bcf"]:
+        (source / name).write_text("data")
+
+    destdir = tmp_path / "run"
+    BoundaryReuse(previous_run=XBeachDirectoryBlob(source=str(source))).get(destdir)
+    assert sorted(p.name for p in destdir.iterdir()) == sorted(
+        p.name for p in source.iterdir()
+    )
+
+
+def test_boundary_reuse_missing_series(tmp_path):
+    """A clear error is raised when a referenced series file is missing."""
+    from rompy_xbeach.data.boundary import BoundaryReuse
+    from rompy_xbeach.types import XBeachDirectoryBlob
+
+    source = tmp_path / "previous"
+    source.mkdir()
+    row = "2160.000 2160.000 1.000 12.03 0.785 2.01 {}"
+    (source / "ebcflist.bcf").write_text(row.format("E_series00001.bcf"))
+    (source / "qbcflist.bcf").write_text(row.format("q_series00001.bcf"))
+    (source / "E_series00001.bcf").write_text("data")
+
+    boundary = BoundaryReuse(previous_run=XBeachDirectoryBlob(source=str(source)))
+    with pytest.raises(FileNotFoundError, match="q_series00001.bcf"):
+        boundary.get(tmp_path / "run")
