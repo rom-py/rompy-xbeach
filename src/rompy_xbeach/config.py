@@ -109,9 +109,8 @@ class Config(XBeachBaseConfig):
         default=None,
         description="Input data including wave, wind, and tide boundary conditions",
     )
-    physics: Optional[Physics] = Field(
-        default=None,
-        description="Physical processes configuration",
+    physics: Physics = Field(
+        description="Physical processes configuration, including the required wave model",
     )
     sediment: Optional[Sediment] = Field(
         default_factory=Sediment,
@@ -256,13 +255,15 @@ class Config(XBeachBaseConfig):
         self._params.update(self.physics.get(staging_dir))
 
         # Sediment configuration
-        self._params.update(self.sediment.get(staging_dir))
+        if self.sediment:
+            self._params.update(self.sediment.get(staging_dir))
 
         # Output configuration
         self._params.update(self.output.get(staging_dir))
 
         # MPI configuration
-        self._params.update(self.mpi.get(staging_dir))
+        if self.mpi:
+            self._params.update(self.mpi.get(staging_dir))
 
         # XBeach expects booleans as 0/1. Normalise here, at the single point where
         # all component params are aggregated, so data interfaces (wave, wind, tide)
