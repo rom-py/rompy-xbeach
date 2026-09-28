@@ -1,15 +1,14 @@
 """Non-spectral wave boundary condition classes for XBeach.
 
 This module contains boundary classes for non-spectral wave boundary types:
-- stat: Stationary parametric waves (Hrms, Trep, dir0, m)
-- bichrom: Bichromatic waves (Hrms, Trep, Tlong, dir0, m)
+- params: Constant wave conditions (Hrms, Trep, dir0, m), bichromatic if Tlong is set
 - stat_table: Time-varying parametric waves from file
 - ts_1: Time series at single location from file
 - ts_2: Time series at two locations from file
 - ts_nonh: Non-hydrostatic time series from file
 """
 
-from typing import Literal
+from typing import Literal, Optional
 from pathlib import Path
 from pydantic import Field
 
@@ -21,28 +20,34 @@ from rompy_xbeach.data.boundary.base import WaveBoundaryParams
 
 
 # =====================================================================================
-# Stationary Parametric Waves (no file needed)
+# Wave conditions from parameters (no file needed)
 # =====================================================================================
-class BoundaryStat(WaveBoundaryParams):
-    """Stationary parametric wave boundary conditions.
+class BoundaryParams(WaveBoundaryParams):
+    """Wave boundary conditions from bulk parameters (wbctype=params).
 
-    Defines wave conditions using bulk parameters (Hrms, Trep, dir0, m) without
-    requiring any external files. XBeach generates the wave forcing internally.
+    Defines constant wave conditions using bulk parameters (Hrms, Trep, dir0, m)
+    without requiring any external files. XBeach generates the wave forcing
+    internally. When `Tlong` is set, XBeach generates bichromatic waves with wave
+    groups of period `Tlong` instead, which is only allowed with the surfbeat wave
+    model.
 
     Examples
     --------
-    >>> boundary = BoundaryStat(
-    ...     Hrms=2.0,
-    ...     Trep=12.0,
-    ...     dir0=270.0,
-    ...     m=10,
-    ... )
+    Constant wave conditions:
+
+    >>> boundary = BoundaryParams(Hrms=2.0, Trep=12.0, dir0=270.0, m=10)
+
+    Bichromatic wave groups:
+
+    >>> boundary = BoundaryParams(Hrms=1.5, Trep=10.0, Tlong=80.0)
 
     """
 
-    id: Literal["stat"] = Field(default="stat", description="Boundary type identifier")
-    model_type: Literal["stat"] = Field(
-        default="stat",
+    id: Literal["params"] = Field(
+        default="params", description="Boundary type identifier"
+    )
+    model_type: Literal["params"] = Field(
+        default="params",
         description="Model type discriminator",
     )
     Hrms: float = Field(
@@ -55,89 +60,13 @@ class BoundaryStat(WaveBoundaryParams):
         ge=1.0,
         le=20.0,
     )
-    dir0: float = Field(
-        default=270.0,
-        description="Mean wave direction, nautical convention (degrees)",
-        ge=-360.0,
-        le=360.0,
-    )
-    m: int = Field(
-        default=10,
-        description="Power in cos^m directional distribution",
-        ge=2,
-        le=128,
-    )
-
-    def get(
-        self, destdir: str | Path, grid: RegularGrid = None, time: TimeRange = None
-    ) -> dict:
-        """Return XBeach parameters for stationary wave boundary.
-
-        Parameters
-        ----------
-        destdir : str | Path
-            Destination directory (not used for stat, but required for interface).
-        grid : RegularGrid, optional
-            Grid instance (not used for stat).
-        time : TimeRange, optional
-            Time range (not used for stat).
-
-        Returns
-        -------
-        dict
-            XBeach parameters including wbctype and wave parameters.
-
-        """
-        params = {"wbctype": self.id}
-        params.update(
-            self.model_dump(
-                exclude={"model_type", "id"},
-                exclude_none=True,
-            )
-        )
-        return params
-
-
-# =====================================================================================
-# Bichromatic Waves (no file needed)
-# =====================================================================================
-class BoundaryBichrom(WaveBoundaryParams):
-    """Bichromatic wave boundary conditions.
-
-    Defines bichromatic wave conditions using bulk parameters including the
-    long wave period (Tlong). No external files required.
-
-    Examples
-    --------
-    >>> boundary = BoundaryBichrom(
-    ...     Hrms=1.5,
-    ...     Trep=10.0,
-    ...     Tlong=80.0,
-    ...     dir0=270.0,
-    ...     m=10,
-    ... )
-
-    """
-
-    id: Literal["bichrom"] = Field(
-        default="bichrom", description="Boundary type identifier"
-    )
-    model_type: Literal["bichrom"] = Field(
-        default="bichrom",
-        description="Model type discriminator",
-    )
-    Hrms: float = Field(
-        description="Hrms wave height (m)",
-        ge=0.0,
-        le=10.0,
-    )
-    Trep: float = Field(
-        description="Representative wave period (s)",
-        ge=1.0,
-        le=20.0,
-    )
-    Tlong: float = Field(
-        description="Wave group period (s)",
+    Tlong: Optional[float] = Field(
+        default=None,
+        description=(
+            "Wave group period (s). When set, XBeach generates bichromatic waves, "
+            "which requires the surfbeat wave model (XBeach default: not set, "
+            "constant wave conditions)"
+        ),
         ge=20.0,
         le=300.0,
     )
@@ -157,16 +86,16 @@ class BoundaryBichrom(WaveBoundaryParams):
     def get(
         self, destdir: str | Path, grid: RegularGrid = None, time: TimeRange = None
     ) -> dict:
-        """Return XBeach parameters for bichromatic wave boundary.
+        """Return XBeach parameters for the wave boundary.
 
         Parameters
         ----------
         destdir : str | Path
-            Destination directory (not used for bichrom, but required for interface).
+            Destination directory (not used, but required for interface).
         grid : RegularGrid, optional
-            Grid instance (not used for bichrom).
+            Grid instance (not used).
         time : TimeRange, optional
-            Time range (not used for bichrom).
+            Time range (not used).
 
         Returns
         -------
@@ -174,7 +103,7 @@ class BoundaryBichrom(WaveBoundaryParams):
             XBeach parameters including wbctype and wave parameters.
 
         """
-        params = {"wbctype": self.id}
+        params = {"wbctype": self.wbctype}
         params.update(
             self.model_dump(
                 exclude={"model_type", "id"},
@@ -234,7 +163,7 @@ class BoundaryStatTable(WaveBoundaryParams):
         """
         destdir = Path(destdir)
         bcfile = self.source.get(destdir)
-        params = {"wbctype": self.id, "bcfile": bcfile.name}
+        params = {"wbctype": self.wbctype, "bcfile": bcfile.name}
         params.update(
             self.model_dump(
                 exclude={"model_type", "id", "source"},
@@ -292,7 +221,7 @@ class BoundaryTs1(WaveBoundaryParams):
         bc_dir = destdir / "bc"
         bc_dir.mkdir(parents=True, exist_ok=True)
         bcfile = self.source.get(bc_dir)
-        params = {"wbctype": self.id, "bcfile": f"bc/{bcfile.name}"}
+        params = {"wbctype": self.wbctype, "bcfile": f"bc/{bcfile.name}"}
         params.update(
             self.model_dump(
                 exclude={"model_type", "id", "source"},
@@ -350,7 +279,7 @@ class BoundaryTs2(WaveBoundaryParams):
         bc_dir = destdir / "bc"
         bc_dir.mkdir(parents=True, exist_ok=True)
         bcfile = self.source.get(bc_dir)
-        params = {"wbctype": self.id, "bcfile": f"bc/{bcfile.name}"}
+        params = {"wbctype": self.wbctype, "bcfile": f"bc/{bcfile.name}"}
         params.update(
             self.model_dump(
                 exclude={"model_type", "id", "source"},
@@ -407,7 +336,7 @@ class BoundaryTsNonh(WaveBoundaryParams):
         """
         destdir = Path(destdir)
         bcfile = self.source.get(destdir)
-        params = {"wbctype": self.id, "bcfile": bcfile.name}
+        params = {"wbctype": self.wbctype, "bcfile": bcfile.name}
         params.update(
             self.model_dump(
                 exclude={"model_type", "id", "source"},

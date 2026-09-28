@@ -351,7 +351,7 @@ class XBeachBathy(XBeachDataGrid):
         """
         grid_ext = grid.expand(left=self.left, right=self.right)
         right_ext = np.tile(data[0, :], (self.right, 1))
-        left_ext = np.tile(data[-1, :], (self.right, 1))
+        left_ext = np.tile(data[-1, :], (self.left, 1))
         data_ext = np.concatenate((right_ext, data, left_ext), axis=0)
         return data_ext, grid_ext
 

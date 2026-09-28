@@ -76,12 +76,7 @@ For using pre-existing boundary files:
 
 ### Non-Spectral Boundaries
 
-::: rompy_xbeach.data.boundary.BoundaryStat
-    options:
-      show_root_heading: true
-      show_source: false
-
-::: rompy_xbeach.data.boundary.BoundaryBichrom
+::: rompy_xbeach.data.boundary.BoundaryParams
     options:
       show_root_heading: true
       show_source: false

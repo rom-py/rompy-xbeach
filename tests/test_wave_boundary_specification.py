@@ -3,8 +3,7 @@
 from pathlib import Path
 from rompy_xbeach.types import XBeachDataBlob
 from rompy_xbeach.data.boundary import (
-    BoundaryStat,
-    BoundaryBichrom,
+    BoundaryParams,
     BoundaryStatTable,
     BoundaryTs1,
     BoundaryTs2,
@@ -18,14 +17,14 @@ HERE = Path(__file__).parent
 
 
 def test_boundary_stat():
-    """Test BoundaryStat for stationary waves."""
-    boundary = BoundaryStat(
+    """Test BoundaryParams for stationary waves."""
+    boundary = BoundaryParams(
         Hrms=2.0,
         Trep=12.0,
         dir0=285.0,
         m=10,
     )
-    assert boundary.model_type == "stat"
+    assert boundary.model_type == "params"
     assert boundary.Hrms == 2.0
     assert boundary.Trep == 12.0
     assert boundary.dir0 == 285.0
@@ -33,15 +32,15 @@ def test_boundary_stat():
 
 
 def test_boundary_stat_get():
-    """Test BoundaryStat.get() returns correct XBeach parameters."""
-    boundary = BoundaryStat(
+    """Test BoundaryParams.get() returns correct XBeach parameters."""
+    boundary = BoundaryParams(
         Hrms=2.0,
         Trep=12.0,
         dir0=270.0,
         m=10,
     )
     params = boundary.get("/tmp")
-    assert params["wbctype"] == "stat"
+    assert params["wbctype"] == "params"
     assert params["Hrms"] == 2.0
     assert params["Trep"] == 12.0
     assert params["dir0"] == 270.0
@@ -49,22 +48,22 @@ def test_boundary_stat_get():
 
 
 def test_boundary_bichrom():
-    """Test BoundaryBichrom for bichromatic waves."""
-    boundary = BoundaryBichrom(
+    """Test BoundaryParams for bichromatic waves."""
+    boundary = BoundaryParams(
         Hrms=1.5,
         Trep=10.0,
         Tlong=80.0,
         dir0=270.0,
         m=10,
     )
-    assert boundary.model_type == "bichrom"
+    assert boundary.model_type == "params"
     assert boundary.Hrms == 1.5
     assert boundary.Tlong == 80.0
 
 
 def test_boundary_bichrom_get():
-    """Test BoundaryBichrom.get() returns correct XBeach parameters."""
-    boundary = BoundaryBichrom(
+    """Test BoundaryParams.get() returns correct XBeach parameters."""
+    boundary = BoundaryParams(
         Hrms=1.5,
         Trep=10.0,
         Tlong=80.0,
@@ -72,7 +71,7 @@ def test_boundary_bichrom_get():
         m=10,
     )
     params = boundary.get("/tmp")
-    assert params["wbctype"] == "bichrom"
+    assert params["wbctype"] == "params"
     assert params["Hrms"] == 1.5
     assert params["Tlong"] == 80.0
 
@@ -220,8 +219,8 @@ def test_boundary_reuse_get(tmp_path):
 
 
 def test_boundary_stat_with_wave_params():
-    """Test BoundaryStat with additional wave boundary parameters."""
-    boundary = BoundaryStat(
+    """Test BoundaryParams with additional wave boundary parameters."""
+    boundary = BoundaryParams(
         Hrms=2.0,
         Trep=12.0,
         dir0=270.0,
@@ -232,7 +231,7 @@ def test_boundary_stat_with_wave_params():
         dtheta=10,
     )
     params = boundary.get("/tmp")
-    assert params["wbctype"] == "stat"
+    assert params["wbctype"] == "params"
     assert params["Hrms"] == 2.0
     assert params["nmax"] == 0.8
     assert params["thetamin"] == -60
@@ -258,7 +257,7 @@ def test_boundary_file_jons(tmp_path):
         bcfile_source=XBeachDataBlob(source=str(source_dir / "spectrum.txt")),
     )
     assert boundary.model_type == "file_jons"
-    assert boundary.id == "jons"
+    assert boundary.id == "parametric"
     assert boundary.filelist is False
 
 
@@ -282,7 +281,7 @@ def test_boundary_file_jons_get(tmp_path):
     destdir.mkdir(parents=True, exist_ok=True)
     params = boundary.get(destdir)
 
-    assert params["wbctype"] == "jons"
+    assert params["wbctype"] == "parametric"
     assert params["bcfile"] == "spectrum.txt"
     assert params["nmax"] == 0.8
     assert (destdir / "spectrum.txt").exists()
@@ -314,7 +313,7 @@ def test_boundary_file_jons_filelist(tmp_path):
     destdir.mkdir(parents=True, exist_ok=True)
     params = boundary.get(destdir)
 
-    assert params["wbctype"] == "jons"
+    assert params["wbctype"] == "parametric"
     assert params["bcfile"] == "filelist.txt"
     # Verify all files were copied
     assert (destdir / "filelist.txt").exists()

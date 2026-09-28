@@ -6,8 +6,7 @@ from rompy_xbeach.data.boundary.base import (
     SpectralWaveBoundaryParams,
 )
 from rompy_xbeach.data.boundary.nonspectral import (
-    BoundaryStat,
-    BoundaryBichrom,
+    BoundaryParams,
 )
 from rompy_xbeach.components.boundary.parameters import (
     FlowBoundaryConditions,
@@ -60,8 +59,8 @@ def test_spectral_wave_boundary_conditions():
 
 
 def test_non_spectral_wave_boundary_conditions():
-    """Test BoundaryStat with both general and non-spectral parameters."""
-    wbc = BoundaryStat(
+    """Test BoundaryParams with both general and non-spectral parameters."""
+    wbc = BoundaryParams(
         # General parameters (including taper)
         nmax=0.8,
         wbcScaleEnergy=True,
@@ -84,8 +83,8 @@ def test_non_spectral_wave_boundary_conditions():
 
 
 def test_bichromatic_parameters():
-    """Test BoundaryBichrom with bichromatic-specific parameters."""
-    wbc = BoundaryBichrom(
+    """Test BoundaryParams with bichromatic-specific parameters."""
+    wbc = BoundaryParams(
         Hrms=1.5,
         Trep=10.0,
         Tlong=80.0,  # Bichromatic-specific
@@ -107,10 +106,9 @@ def test_spectral_inherits_from_base():
 
 
 def test_non_spectral_inherits_from_base():
-    """Test that BoundaryStat and BoundaryBichrom inherit from WaveBoundaryParams."""
-    assert issubclass(BoundaryStat, WaveBoundaryParams)
-    assert issubclass(BoundaryBichrom, WaveBoundaryParams)
-    wbc = BoundaryStat(Hrms=1.0, Trep=10.0)
+    """Test that BoundaryParams inherits from WaveBoundaryParams."""
+    assert issubclass(BoundaryParams, WaveBoundaryParams)
+    wbc = BoundaryParams(Hrms=1.0, Trep=10.0)
     assert isinstance(wbc, WaveBoundaryParams)
 
 
@@ -131,13 +129,13 @@ def test_spectral_validation_ranges():
 def test_non_spectral_validation_ranges():
     """Test validation ranges for non-spectral parameters."""
     with pytest.raises(ValueError):
-        BoundaryStat(Hrms=15.0, Trep=10.0)  # Above maximum 10.0
+        BoundaryParams(Hrms=15.0, Trep=10.0)  # Above maximum 10.0
     with pytest.raises(ValueError):
-        BoundaryStat(Hrms=1.0, Trep=0.5)  # Below minimum 1.0
+        BoundaryParams(Hrms=1.0, Trep=0.5)  # Below minimum 1.0
     with pytest.raises(ValueError):
-        BoundaryStat(Hrms=1.0, Trep=10.0, m=1)  # Below minimum 2
+        BoundaryParams(Hrms=1.0, Trep=10.0, m=1)  # Below minimum 2
     with pytest.raises(ValueError):
-        BoundaryBichrom(Hrms=1.0, Trep=10.0, Tlong=15.0)  # Below minimum 20.0
+        BoundaryParams(Hrms=1.0, Trep=10.0, Tlong=15.0)  # Below minimum 20.0
     # Note: taper is now in base class, not non-spectral specific
 
 
@@ -178,8 +176,8 @@ def test_serialization_spectral():
 
 
 def test_serialization_non_spectral():
-    """Test serialization of BoundaryStat."""
-    wbc = BoundaryStat(
+    """Test serialization of BoundaryParams."""
+    wbc = BoundaryParams(
         nmax=0.8,
         Hrms=2.0,
         Trep=12.0,
@@ -187,8 +185,8 @@ def test_serialization_non_spectral():
     )
     params = wbc.model_dump(exclude_none=True)
     assert params == {
-        "id": "stat",
-        "model_type": "stat",
+        "id": "params",
+        "model_type": "params",
         "nmax": 0.8,
         "Hrms": 2.0,
         "Trep": 12.0,

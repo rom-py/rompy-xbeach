@@ -53,9 +53,9 @@ class BoundaryJonsBase(FilelistMixin):
     This class generates JONSWAP boundary files from wave data.
     """
 
-    id: Literal["jons", "parametric"] = Field(
-        default="jons",
-        description="Boundary type identifier, used to define the wbctype",
+    id: Literal["parametric"] = Field(
+        default="parametric",
+        description="Boundary type identifier, the XBeach wbctype for JONSWAP spectra",
     )
     fnyq: Optional[float] = Field(
         default=None,
@@ -144,7 +144,7 @@ class BoundaryJonsBase(FilelistMixin):
             bcfile = self._write_filelist(destdir, bcfiles, durations)
 
         # Return XBeach parameters
-        params = {"wbctype": self.id, "bcfile": bcfile.name}
+        params = {"wbctype": self.wbctype, "bcfile": bcfile.name}
         # Add wave boundary parameters (mixin fields excluded, data interface fields
         # are excluded by the model_serializer in BoundaryBase classes)
         params.update(
@@ -241,7 +241,7 @@ class BoundaryJonstableBase:
         bcfile = wb.write(destdir)
 
         # Return XBeach parameters
-        params = {"wbctype": self.id, "bcfile": bcfile.name}
+        params = {"wbctype": self.wbctype, "bcfile": bcfile.name}
         # Add wave boundary parameters (mixin fields excluded, data interface fields
         # are excluded by the model_serializer in BoundaryBase classes)
         params.update(
@@ -305,7 +305,7 @@ class BoundaryFileSpectralBase(SpectralWaveBoundaryParams):
             self._fetch_filelist_files(destdir, bcfile)
 
         # Return XBeach parameters
-        params = {"wbctype": self.id, "bcfile": bcfile.name}
+        params = {"wbctype": self.wbctype, "bcfile": bcfile.name}
         exclude_fields = {"model_type", "id", "bcfile_source"}
         if hasattr(self, "filelist"):
             exclude_fields.add("filelist")
@@ -401,7 +401,10 @@ class BoundaryFileJons(FilelistMixin, BoundaryFileSpectralBase):
 
     """
 
-    id: Literal["jons"] = Field(default="jons", description="Boundary type identifier")
+    id: Literal["parametric"] = Field(
+        default="parametric",
+        description="Boundary type identifier, the XBeach wbctype for JONSWAP spectra",
+    )
     model_type: Literal["file_jons"] = Field(
         default="file_jons",
         description="Model type discriminator",
@@ -587,7 +590,7 @@ class BoundaryStationSpectraSwan(
             bcfile = self._write_filelist(destdir, bcfiles, durations)
 
         # Return XBeach parameters
-        params = {"wbctype": self.id, "bcfile": bcfile.name}
+        params = {"wbctype": self.wbctype, "bcfile": bcfile.name}
         # Add wave boundary parameters (mixin fields excluded, data interface fields
         # are excluded by the model_serializer in BoundaryBase classes)
         params.update(

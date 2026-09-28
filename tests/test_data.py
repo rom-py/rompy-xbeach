@@ -156,3 +156,13 @@ def test_xbeach_bathy_fillna(source, grid, tmp_path):
     # dset = xr.Dataset.xbeach.from_xbeach(datafile, grid)
     # dset.xbeach.plot_model_bathy(grid, posdwn=False)
     # plt.show()
+
+
+@pytest.mark.parametrize("left,right", [(5, 5), (10, 0), (0, 10), (3, 7)])
+def test_xbeach_bathy_lateral_extension_shapes(source, grid, tmp_path, left, right):
+    """Depth data and grid are extended by the same number of rows on each side."""
+    bathy = XBeachBathy(source=source, posdwn=False, left=left, right=right)
+    xfile, yfile, depfile, grid_ext = bathy.get(destdir=tmp_path, grid=grid)
+    assert grid_ext.shape == (grid.ny + left + right, grid.nx)
+    assert np.loadtxt(depfile).shape == grid_ext.shape
+    assert np.loadtxt(xfile).shape == grid_ext.shape

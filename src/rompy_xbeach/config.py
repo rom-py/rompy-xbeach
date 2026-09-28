@@ -158,7 +158,8 @@ class Config(XBeachBaseConfig):
     def warn_wave_direction_params_without_swave(self) -> "Config":
         """Warn if wave directional parameters are set but swave is disabled.
 
-        The wave directional grid parameters (thetamin, thetamax, dtheta, thetanaut)
+        The wave directional grid parameters (thetamin, thetamax, dtheta, dtheta_s,
+        thetanaut)
         are only used when short waves are enabled (swave=1). Setting these when
         swave=0 has no effect.
         """
@@ -166,7 +167,7 @@ class Config(XBeachBaseConfig):
         dir_params = {}
         if self.input and self.input.wave:
             wave = self.input.wave
-            for k in ["thetamin", "thetamax", "dtheta", "thetanaut"]:
+            for k in ["thetamin", "thetamax", "dtheta", "dtheta_s", "thetanaut"]:
                 v = getattr(wave, k, None)
                 if v is not None:
                     dir_params[k] = v
