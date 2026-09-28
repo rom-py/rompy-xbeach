@@ -24,8 +24,7 @@ XBEACH_WBCTYPES = {
 @pytest.mark.parametrize(
     "boundary_id,expected",
     [
-        ("stat", "params"),
-        ("bichrom", "params"),
+        ("params", "params"),
         ("jons", "parametric"),
         ("parametric", "parametric"),
         ("jonstable", "jonstable"),
@@ -99,3 +98,16 @@ def test_boundary_reuse_missing_series(tmp_path):
     boundary = BoundaryReuse(previous_run=XBeachDirectoryBlob(source=str(source)))
     with pytest.raises(FileNotFoundError, match="q_series00001.bcf"):
         boundary.get(tmp_path / "run")
+
+
+def test_boundary_params_constant_and_bichromatic():
+    """Tlong is only written when set, which makes XBeach use bichromatic waves."""
+    from rompy_xbeach.data.boundary import BoundaryParams
+
+    constant = BoundaryParams(Hrms=1.0, Trep=10.0).get(destdir=None)
+    assert constant["wbctype"] == "params"
+    assert "Tlong" not in constant
+
+    bichromatic = BoundaryParams(Hrms=1.0, Trep=10.0, Tlong=80.0).get(destdir=None)
+    assert bichromatic["wbctype"] == "params"
+    assert bichromatic["Tlong"] == 80.0

@@ -54,8 +54,6 @@ SOURCE_SPECTRA_TYPES = Union[
 # value XBeach uses for them (see check_instat_backward_compatibility in params.F90).
 # XBeach rejects these ids as wbctype values.
 WBCTYPE_FROM_ID = {
-    "stat": "params",
-    "bichrom": "params",
     "jons": "parametric",
 }
 

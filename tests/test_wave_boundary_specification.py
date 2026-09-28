@@ -3,8 +3,7 @@
 from pathlib import Path
 from rompy_xbeach.types import XBeachDataBlob
 from rompy_xbeach.data.boundary import (
-    BoundaryStat,
-    BoundaryBichrom,
+    BoundaryParams,
     BoundaryStatTable,
     BoundaryTs1,
     BoundaryTs2,
@@ -18,14 +17,14 @@ HERE = Path(__file__).parent
 
 
 def test_boundary_stat():
-    """Test BoundaryStat for stationary waves."""
-    boundary = BoundaryStat(
+    """Test BoundaryParams for stationary waves."""
+    boundary = BoundaryParams(
         Hrms=2.0,
         Trep=12.0,
         dir0=285.0,
         m=10,
     )
-    assert boundary.model_type == "stat"
+    assert boundary.model_type == "params"
     assert boundary.Hrms == 2.0
     assert boundary.Trep == 12.0
     assert boundary.dir0 == 285.0
@@ -33,8 +32,8 @@ def test_boundary_stat():
 
 
 def test_boundary_stat_get():
-    """Test BoundaryStat.get() returns correct XBeach parameters."""
-    boundary = BoundaryStat(
+    """Test BoundaryParams.get() returns correct XBeach parameters."""
+    boundary = BoundaryParams(
         Hrms=2.0,
         Trep=12.0,
         dir0=270.0,
@@ -49,22 +48,22 @@ def test_boundary_stat_get():
 
 
 def test_boundary_bichrom():
-    """Test BoundaryBichrom for bichromatic waves."""
-    boundary = BoundaryBichrom(
+    """Test BoundaryParams for bichromatic waves."""
+    boundary = BoundaryParams(
         Hrms=1.5,
         Trep=10.0,
         Tlong=80.0,
         dir0=270.0,
         m=10,
     )
-    assert boundary.model_type == "bichrom"
+    assert boundary.model_type == "params"
     assert boundary.Hrms == 1.5
     assert boundary.Tlong == 80.0
 
 
 def test_boundary_bichrom_get():
-    """Test BoundaryBichrom.get() returns correct XBeach parameters."""
-    boundary = BoundaryBichrom(
+    """Test BoundaryParams.get() returns correct XBeach parameters."""
+    boundary = BoundaryParams(
         Hrms=1.5,
         Trep=10.0,
         Tlong=80.0,
@@ -220,8 +219,8 @@ def test_boundary_reuse_get(tmp_path):
 
 
 def test_boundary_stat_with_wave_params():
-    """Test BoundaryStat with additional wave boundary parameters."""
-    boundary = BoundaryStat(
+    """Test BoundaryParams with additional wave boundary parameters."""
+    boundary = BoundaryParams(
         Hrms=2.0,
         Trep=12.0,
         dir0=270.0,

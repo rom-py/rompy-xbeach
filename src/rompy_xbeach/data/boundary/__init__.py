@@ -21,8 +21,7 @@ Spectral Boundaries (from pre-existing bcfiles):
 - BoundaryFileSwan: SWAN from existing bcfile(s)
 
 Non-Spectral Boundaries:
-- BoundaryStat: Stationary parametric waves (no file needed)
-- BoundaryBichrom: Bichromatic waves (no file needed)
+- BoundaryParams: Constant or bichromatic waves from parameters (no file needed)
 - BoundaryStatTable: Time-varying parametric from file
 - BoundaryTs1: Time series at single location from file
 - BoundaryTs2: Time series at two locations from file
@@ -63,8 +62,7 @@ from rompy_xbeach.data.boundary.spectral import (
 )
 
 from rompy_xbeach.data.boundary.nonspectral import (
-    BoundaryStat,
-    BoundaryBichrom,
+    BoundaryParams,
     BoundaryStatTable,
     BoundaryTs1,
     BoundaryTs2,
@@ -107,8 +105,7 @@ __all__ = [
     "BoundaryFileJonstable",
     "BoundaryFileSwan",
     # Non-spectral classes
-    "BoundaryStat",
-    "BoundaryBichrom",
+    "BoundaryParams",
     "BoundaryStatTable",
     "BoundaryTs1",
     "BoundaryTs2",

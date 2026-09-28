@@ -7,8 +7,7 @@ from rompy_xbeach.grid import RegularGrid, GeoPoint
 from rompy_xbeach.data.bathy import XBeachBathy
 from rompy_xbeach.source import SourceGeotiff
 from rompy_xbeach.data.boundary import (
-    BoundaryStat,
-    BoundaryBichrom,
+    BoundaryParams,
     BoundaryOff,
     BoundaryReuse,
 )
@@ -41,8 +40,8 @@ def bathy():
 
 
 def test_boundary_stat_get():
-    """Test BoundaryStat.get() returns correct parameters."""
-    boundary = BoundaryStat(
+    """Test BoundaryParams.get() returns correct parameters."""
+    boundary = BoundaryParams(
         Hrms=2.0,
         Trep=12.0,
         dir0=270.0,
@@ -57,8 +56,8 @@ def test_boundary_stat_get():
 
 
 def test_boundary_bichrom_get():
-    """Test BoundaryBichrom.get() returns correct parameters."""
-    boundary = BoundaryBichrom(
+    """Test BoundaryParams.get() returns correct parameters."""
+    boundary = BoundaryParams(
         Hrms=1.5,
         Trep=10.0,
         Tlong=80.0,
@@ -125,7 +124,7 @@ def test_warn_wave_direction_params_without_swave(grid, bathy, caplog):
         bathy=bathy,
         physics=Physics(wavemodel=Surfbeat(), swave=False),
         input=DataInterface(
-            wave=BoundaryStat(
+            wave=BoundaryParams(
                 Hrms=2.0,
                 Trep=12.0,
                 thetamin=-60,
@@ -152,7 +151,7 @@ def test_no_warn_wave_direction_params_with_swave(grid, bathy, caplog):
         grid=grid,
         bathy=bathy,
         input=DataInterface(
-            wave=BoundaryStat(
+            wave=BoundaryParams(
                 Hrms=2.0,
                 Trep=12.0,
                 thetamin=-60,
