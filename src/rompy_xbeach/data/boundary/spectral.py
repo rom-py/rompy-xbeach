@@ -53,9 +53,9 @@ class BoundaryJonsBase(FilelistMixin):
     This class generates JONSWAP boundary files from wave data.
     """
 
-    id: Literal["jons", "parametric"] = Field(
-        default="jons",
-        description="Boundary type identifier, used to define the wbctype",
+    id: Literal["parametric"] = Field(
+        default="parametric",
+        description="Boundary type identifier, the XBeach wbctype for JONSWAP spectra",
     )
     fnyq: Optional[float] = Field(
         default=None,
@@ -401,7 +401,10 @@ class BoundaryFileJons(FilelistMixin, BoundaryFileSpectralBase):
 
     """
 
-    id: Literal["jons"] = Field(default="jons", description="Boundary type identifier")
+    id: Literal["parametric"] = Field(
+        default="parametric",
+        description="Boundary type identifier, the XBeach wbctype for JONSWAP spectra",
+    )
     model_type: Literal["file_jons"] = Field(
         default="file_jons",
         description="Model type discriminator",

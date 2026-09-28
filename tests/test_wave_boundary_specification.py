@@ -257,7 +257,7 @@ def test_boundary_file_jons(tmp_path):
         bcfile_source=XBeachDataBlob(source=str(source_dir / "spectrum.txt")),
     )
     assert boundary.model_type == "file_jons"
-    assert boundary.id == "jons"
+    assert boundary.id == "parametric"
     assert boundary.filelist is False
 
 

@@ -187,7 +187,7 @@ def test_boundary_grid_jons_bctype(tmp_path, source_gridded_file, grid, time):
 
 
 def test_boundary_jons_bctype(tmp_path, source_file, grid, time):
-    """Test bctype can be defined as either jons or parametric."""
+    """The JONSWAP boundary id is the XBeach wbctype, parametric."""
     kwargs = dict(
         source=source_file,
         coords=dict(s="seapoint", x="longitude", y="latitude", t="time"),
@@ -198,17 +198,14 @@ def test_boundary_jons_bctype(tmp_path, source_file, grid, time):
         gammajsp_var="ppe1",
         dspr_var="pspr1",
     )
-    # Jons
     wb = BoundaryStationParamJons(**kwargs)
+    assert wb.id == "parametric"
     boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
     assert boundary_spec["wbctype"] == "parametric"
-    # Parametric
-    wb = BoundaryStationParamJons(id="parametric", **kwargs)
-    boundary_spec = wb.get(destdir=tmp_path, grid=grid, time=time)
-    assert boundary_spec["wbctype"] == "parametric"
-    # Unsupported
+    assert boundary_spec["bcfile"].startswith("parametric-")
+    # The legacy instat name is no longer accepted
     with pytest.raises(ValueError):
-        wb = BoundaryStationParamJons(id="unsupported", **kwargs)
+        BoundaryStationParamJons(id="jons", **kwargs)
 
 
 def test_boundary_station_param_jons_bcfile(tmp_path, source_file, grid, time):

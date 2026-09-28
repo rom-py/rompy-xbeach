@@ -329,7 +329,7 @@ class WbcEnum(str, Enum):
     ----------
     PARAMS: "params"
         Wave boundary conditions specified as a constant value.
-    JONS: "jons"
+    PARAMETRIC: "parametric"
         Wave boundary conditions specified as a single Jonswap spectrum.
     JONSTABLE: "jonstable"
         Wave boundary conditions specified as a time-series of wave parameters.
@@ -352,7 +352,7 @@ class WbcEnum(str, Enum):
     """
 
     PARAMS = "params"
-    JONS = "jons"
+    PARAMETRIC = "parametric"
     JONSTABLE = "jonstable"
     SWAN = "swan"
     VARDENS = "vardens"
