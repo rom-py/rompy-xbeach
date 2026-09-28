@@ -7,7 +7,6 @@ This module contains all models used by the Physics.wavemodel field, including:
 
 """
 
-from pathlib import Path
 from typing import Literal, Optional, Union
 from pydantic import Field, model_validator
 
@@ -82,27 +81,6 @@ class ShortWaveFriction(XBeachBaseModel):
             "If specified, overrides wavfriccoef."
         ),
     )
-
-    def get(self, destdir: str | Path) -> dict:
-        """Fetch external friction file if specified, and return the params dict.
-
-        Parameters
-        ----------
-        destdir : str | Path
-            Destination directory for fetching files.
-
-        Returns
-        -------
-        dict
-            Parameters dictionary with file paths updated to workspace directory.
-
-        """
-        params = super().get(destdir)
-
-        if self.wavfricfile:
-            params["wavfricfile"] = self.wavfricfile.get(destdir).name
-
-        return params
 
     @model_validator(mode="after")
     def check_mutually_exclusive(self):

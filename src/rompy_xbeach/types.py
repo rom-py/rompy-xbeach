@@ -15,16 +15,11 @@ class XBeachDataBlob(DataBlob):
 
     XBeachDataBlob fields are excluded from .params serialization to prevent
     internal fields (id, source, link) from leaking into params.txt.
-    In .get() they are replaced with the fetched file path.
+    In XBeachBaseModel.get() they are fetched into the destination directory and
+    replaced with the file name, under the field name.
 
     Usage:
         veggiefile: Optional[XBeachDataBlob] = Field(default=None, ...)
-
-        def get(self, destdir: Path) -> dict:
-            params = super().get(destdir)
-            if self.veggiefile and destdir:
-                params["veggiefile"] = self.veggiefile.get(destdir).name
-            return params
     """
 
     @model_serializer(mode="wrap")
@@ -230,7 +225,9 @@ class XBeachBaseModel(RompyBaseModel):
         - For discriminated unions or leaf components: returns standard params
         - For parent components: processes XBeachBaseModel children recursively
 
-        Override this method if you need custom file fetching logic (e.g., DataBlob).
+        XBeachDataBlob fields are fetched into destdir and written as the file name
+        under the field name. Override this method only for other file handling, such
+        as fetching several files from a directory.
 
         Parameters
         ----------
@@ -321,6 +318,13 @@ class XBeachBaseModel(RompyBaseModel):
         # fields such as bedfricfile, so get() fetches the files and adds them
         for field_value in discriminated_components.values():
             params.update(field_value.get(destdir))
+
+        # File fields are fetched into destdir and written as the file name, under the
+        # field name, which is the XBeach parameter name (e.g. bedfricfile, ne_layer)
+        for field_name in self.model_fields_set:
+            field_value = getattr(self, field_name, None)
+            if isinstance(field_value, XBeachDataBlob):
+                params[field_name] = field_value.get(destdir).name
 
         return params
 

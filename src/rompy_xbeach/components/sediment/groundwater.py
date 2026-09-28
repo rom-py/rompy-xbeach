@@ -4,7 +4,6 @@ This module contains models for groundwater flow parameters including permeabili
 coefficients, aquifer properties, and groundwater head modeling.
 """
 
-from pathlib import Path
 from typing import Literal, Optional
 
 from pydantic import Field
@@ -128,27 +127,3 @@ class GroundwaterFlow(XBeachBaseModel):
         ge=1e-05,
         le=0.1,
     )
-
-    def get(self, destdir: str | Path) -> dict:
-        """Fetch external files if specified, and return the params dict.
-
-        Parameters
-        ----------
-        destdir : str | Path
-            Destination directory for fetching files.
-
-        Returns
-        -------
-        dict
-            Parameters dictionary with file paths updated to workspace directory.
-        """
-        # Get base params (XBeachDataBlob fields are automatically excluded by serializer)
-        params = super().get(destdir)
-
-        # Fetch DataBlob files and add the fetched file paths
-        if self.aquiferbotfile:
-            params["aquiferbotfile"] = self.aquiferbotfile.get(destdir).name
-        if self.gw0file:
-            params["gw0file"] = self.gw0file.get(destdir).name
-
-        return params

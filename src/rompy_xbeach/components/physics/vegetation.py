@@ -3,7 +3,6 @@
 This module contains the Vegetation model used by the Physics.vegetation field.
 """
 
-from pathlib import Path
 from typing import Literal, Optional
 from pydantic import Field
 
@@ -59,28 +58,3 @@ class Vegetation(XBeachBaseModel):
         default=None,
         description="Include undertow in phase-averaged vegetation (XBeach default: 1)",
     )
-
-    def get(self, destdir: str | Path) -> dict:
-        """Fetch external vegetation files if specified, and return the params dict.
-
-        Parameters
-        ----------
-        destdir : str | Path
-            Destination directory for fetching files.
-
-        Returns
-        -------
-        dict
-            Parameters dictionary with file paths updated to workspace directory.
-
-        """
-        # Get base params (DataBlob fields are automatically excluded by serializer)
-        params = super().get(destdir)
-
-        # Fetch DataBlob files and add the fetched file paths
-        if self.veggiefile:
-            params["veggiefile"] = self.veggiefile.get(destdir).name
-        if self.veggiemapfile:
-            params["veggiemapfile"] = self.veggiemapfile.get(destdir).name
-
-        return params
