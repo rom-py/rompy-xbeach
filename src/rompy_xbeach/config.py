@@ -28,6 +28,18 @@ logger = logging.getLogger(__name__)
 
 HERE = Path(__file__).parent
 
+# Wave models each wbctype can be used with, from the start-up checks in XBeach
+# params.F90. Types not listed work with every wave model.
+WBCTYPE_WAVEMODELS = {
+    "parametric": {"surfbeat", "nonh"},
+    "swan": {"surfbeat", "nonh"},
+    "vardens": {"surfbeat", "nonh"},
+    "reuse": {"surfbeat", "nonh"},
+    "ts_1": {"surfbeat"},
+    "ts_2": {"surfbeat"},
+    "ts_nonh": {"nonh"},
+}
+
 
 # TODO: Remove the 'rugdepth' parameter? (confirm it with CSIRO)
 # TODO: Make 'random' part of the wave boundary conditions objects
@@ -152,6 +164,32 @@ class Config(XBeachBaseConfig):
     @model_validator(mode="after")
     def set_dtheta_if_surfbeat(self) -> "Config":
         """Placeholder validator for future dtheta logic."""
+        return self
+
+    @model_validator(mode="after")
+    def check_wave_boundary_for_wavemodel(self) -> "Config":
+        """Raise if the wave boundary type cannot be used with the wave model.
+
+        XBeach stops at start-up for these combinations, see WBCTYPE_WAVEMODELS.
+        Bichromatic waves (wbctype=params with Tlong) require the surfbeat model.
+
+        """
+        if not (self.input and self.input.wave):
+            return self
+        wave = self.input.wave
+        wavemodel = self.physics.wavemodel.model_type
+        if wave.wbctype == "params" and getattr(wave, "Tlong", None) is not None:
+            description = "Bichromatic waves (wbctype=params with Tlong)"
+            allowed = {"surfbeat"}
+        else:
+            description = f"wbctype={wave.wbctype}"
+            allowed = WBCTYPE_WAVEMODELS.get(wave.wbctype)
+        if allowed and wavemodel not in allowed:
+            raise ValueError(
+                f"{description} from {type(wave).__name__} cannot be used with the "
+                f"{wavemodel} wave model, XBeach requires "
+                f"{' or '.join(sorted(allowed))}"
+            )
         return self
 
     @model_validator(mode="after")
