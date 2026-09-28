@@ -1,0 +1,5 @@
+# XBeach releases published as ghcr.io/rom-py/xbeach:<tag>, one per line:
+# <image tag> <SVN tag under https://svn.oss.deltares.nl/repos/xbeach/tags> <base image>
+# Only releases with the wbctype keyword, which rompy-xbeach writes, can be used.
+# Releases before trunk r6075 need gfortran 7 (ubuntu:18.04) to compile.
+1.24.6057-halloween-beta 2023-10-31-XBeach-v1.24.6057-Halloween_BETA ubuntu:18.04
