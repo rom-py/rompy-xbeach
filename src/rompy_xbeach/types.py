@@ -15,16 +15,11 @@ class XBeachDataBlob(DataBlob):
 
     XBeachDataBlob fields are excluded from .params serialization to prevent
     internal fields (id, source, link) from leaking into params.txt.
-    In .get() they are replaced with the fetched file path.
+    In XBeachBaseModel.get() they are fetched into the destination directory and
+    replaced with the file name, under the field name.
 
     Usage:
         veggiefile: Optional[XBeachDataBlob] = Field(default=None, ...)
-
-        def get(self, destdir: Path) -> dict:
-            params = super().get(destdir)
-            if self.veggiefile and destdir:
-                params["veggiefile"] = self.veggiefile.get(destdir).name
-            return params
     """
 
     @model_serializer(mode="wrap")
@@ -230,7 +225,9 @@ class XBeachBaseModel(RompyBaseModel):
         - For discriminated unions or leaf components: returns standard params
         - For parent components: processes XBeachBaseModel children recursively
 
-        Override this method if you need custom file fetching logic (e.g., DataBlob).
+        XBeachDataBlob fields are fetched into destdir and written as the file name
+        under the field name. Override this method only for other file handling, such
+        as fetching several files from a directory.
 
         Parameters
         ----------
@@ -249,6 +246,7 @@ class XBeachBaseModel(RompyBaseModel):
         # 3. Components without explicit fields (e.g., ShortWaveFriction) - just merge params
         components_with_explicit_fields = {}
         components_without_explicit_fields = {}
+        discriminated_components = {}
 
         for field_name in self.model_fields_set:
             field_value = getattr(self, field_name, None)
@@ -257,7 +255,9 @@ class XBeachBaseModel(RompyBaseModel):
                 if hasattr(field_value, "model_type") and not isinstance(
                     getattr(field_value, "model_type", None), bool
                 ):
-                    # Discriminated union - will be handled by serializer
+                    # Discriminated union - flattened by the serializer, its get()
+                    # is still called below to fetch any files it references
+                    discriminated_components[field_name] = field_value
                     continue
                 # Check if the component has a field matching the parent field name
                 elif hasattr(field_value, field_name):
@@ -305,15 +305,28 @@ class XBeachBaseModel(RompyBaseModel):
                 component_params = field_value.get(destdir)
                 params.update(component_params)
 
-            return params
+        else:
+            # No child components - return all params including defaults
+            # (don't use exclude_unset so explicit fields like 'roller' are included)
+            params = self.model_dump(
+                exclude=["model_type"],
+                exclude_none=True,
+                by_alias=True,
+            )
 
-        # No child components - return all params including defaults
-        # (don't use exclude_unset so explicit fields like 'roller' are included)
-        return self.model_dump(
-            exclude=["model_type"],
-            exclude_none=True,
-            by_alias=True,
-        )
+        # Discriminated unions are flattened by the serializer, which drops file
+        # fields such as bedfricfile, so get() fetches the files and adds them
+        for field_value in discriminated_components.values():
+            params.update(field_value.get(destdir))
+
+        # File fields are fetched into destdir and written as the file name, under the
+        # field name, which is the XBeach parameter name (e.g. bedfricfile, ne_layer)
+        for field_name in self.model_fields_set:
+            field_value = getattr(self, field_name, None)
+            if isinstance(field_value, XBeachDataBlob):
+                params[field_name] = field_value.get(destdir).name
+
+        return params
 
 
 class XBeachBaseConfig(BaseConfig):

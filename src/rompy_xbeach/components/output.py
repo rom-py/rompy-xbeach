@@ -1,7 +1,6 @@
 """XBeach output."""
 
 import logging
-from pathlib import Path
 from typing import Literal, Optional, Any
 from pydantic import (
     Field,
@@ -351,17 +350,3 @@ class Output(XBeachBaseModel):
                 data.pop(field_name)
 
         return data
-
-    def get(self, destdir: str | Path) -> dict:
-        """Fetch external timing files if specified, and return the params dict."""
-        # Get base params (XBeachDataBlob fields are automatically excluded by serializer)
-        params = super().get(destdir)
-
-        # Fetch DataBlob files and add the fetched file paths (just filename, not full path)
-        if self.tsglobal:
-            params["tsglobal"] = self.tsglobal.get(destdir).name
-        if self.tsmean:
-            params["tsmean"] = self.tsmean.get(destdir).name
-        if self.tspoint:
-            params["tspoint"] = self.tspoint.get(destdir).name
-        return params

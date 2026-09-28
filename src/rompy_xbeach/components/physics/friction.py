@@ -6,7 +6,6 @@ bed shear stress in the shallow water equations.
 """
 
 import logging
-from pathlib import Path
 from typing import Literal, Optional
 from pydantic import Field, model_validator
 
@@ -164,28 +163,6 @@ class BedFriction(FrictionModifiers):
             "If specified, overrides bedfriccoef."
         ),
     )
-
-    def get(self, destdir: str | Path) -> dict:
-        """Fetch external friction file if specified, and return the params dict.
-
-        Parameters
-        ----------
-        destdir : str | Path
-            Destination directory for fetching files.
-
-        Returns
-        -------
-        dict
-            Parameters dictionary with file paths updated to workspace directory.
-        """
-        # Get base params (XBeachDataBlob fields are automatically excluded by serializer)
-        params = super().get(destdir)
-
-        # Fetch DataBlob file and add the fetched file path
-        if self.bedfricfile:
-            params["bedfricfile"] = self.bedfricfile.get(destdir).name
-
-        return params
 
     @model_validator(mode="after")
     def check_mutually_exclusive(self):

@@ -4,7 +4,6 @@ This module contains models for morphological evolution parameters including
 morphological acceleration, avalanching, and non-erodible structures.
 """
 
-from pathlib import Path
 from typing import Optional, Literal
 from pydantic import Field
 
@@ -128,25 +127,3 @@ class Morphology(XBeachBaseModel):
         ge=0.1,
         le=1.0,
     )
-
-    def get(self, destdir: str | Path) -> dict:
-        """Fetch external ne_layer file if specified, and return the params dict.
-
-        Parameters
-        ----------
-        destdir : str | Path
-            Destination directory for fetching files.
-
-        Returns
-        -------
-        dict
-            Parameters dictionary with file paths updated to workspace directory.
-        """
-        # Get base params (XBeachDataBlob fields are automatically excluded by serializer)
-        params = super().get(destdir)
-
-        # Fetch DataBlob file and add the fetched file path
-        if self.ne_layer:
-            params["ne_layer"] = self.ne_layer.get(destdir).name
-
-        return params

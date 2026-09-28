@@ -3,7 +3,6 @@
 This module contains models for bed composition, layering, and bed update parameters.
 """
 
-from pathlib import Path
 from typing import Optional
 
 from pydantic import Field, model_validator
@@ -89,25 +88,3 @@ class BedUpdate(XBeachBaseModel):
                 "It defines the number of bed update time steps in the file."
             )
         return self
-
-    def get(self, destdir: str | Path) -> dict:
-        """Fetch external setbathyfile if specified, and return the params dict.
-
-        Parameters
-        ----------
-        destdir : str | Path
-            Destination directory for fetching files.
-
-        Returns
-        -------
-        dict
-            Parameters dictionary with file paths updated to workspace directory.
-        """
-        # Get base params (XBeachDataBlob fields are automatically excluded by serializer)
-        params = super().get(destdir)
-
-        # Fetch DataBlob file and add the fetched file path
-        if self.setbathyfile:
-            params["setbathyfile"] = self.setbathyfile.get(destdir).name
-
-        return params
