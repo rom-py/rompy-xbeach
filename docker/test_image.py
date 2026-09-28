@@ -72,7 +72,14 @@ CASES = {
 COMMANDS = {
     "stationary": ["xbeach"],
     "surfbeat": ["xbeach"],
-    "surfbeat-mpi": ["mpirun", "--allow-run-as-root", "-n", "3", "xbeach"],
+    "surfbeat-mpi": [
+        "mpirun",
+        "--allow-run-as-root",
+        "--oversubscribe",
+        "-n",
+        "3",
+        "xbeach",
+    ],
 }
 
 
