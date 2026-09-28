@@ -151,6 +151,7 @@ def test_no_warn_wave_direction_params_with_swave(grid, bathy, caplog):
     Config(
         grid=grid,
         bathy=bathy,
+        physics=Physics(wavemodel=Surfbeat()),
         input=DataInterface(
             wave=BoundaryStat(
                 Hrms=2.0,
@@ -166,3 +167,42 @@ def test_no_warn_wave_direction_params_with_swave(grid, bathy, caplog):
     assert not any(
         "Wave directional parameters" in record.message for record in caplog.records
     )
+
+
+def test_config_physics_required(grid, bathy):
+    """Physics must be provided since XBeach needs a wave model."""
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError) as excinfo:
+        Config(grid=grid, bathy=bathy)
+    assert "physics" in [err["loc"][0] for err in excinfo.value.errors()]
+
+
+def test_config_optional_components_can_be_disabled(bathy, tmp_path):
+    """Setting sediment and mpi to None omits them rather than failing."""
+    from rompy.core.time import TimeRange
+    from rompy.model import ModelRun
+
+    config = Config(
+        grid=RegularGrid(
+            ori=GeoPoint(x=115.594239, y=-32.641104, crs=4326),
+            alfa=347.0,
+            dx=10,
+            dy=15,
+            nx=230,
+            ny=220,
+            crs=28350,
+        ),
+        bathy=bathy,
+        physics=Physics(wavemodel=Surfbeat()),
+        sediment=None,
+        mpi=None,
+    )
+    model = ModelRun(
+        run_id="test",
+        output_dir=str(tmp_path),
+        config=config,
+        period=TimeRange(start="2023-01-01T00", end="2023-01-01T03", interval="1h"),
+    )
+    model.generate()
+    assert (tmp_path / "test" / "params.txt").is_file()
