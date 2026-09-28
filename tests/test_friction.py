@@ -105,7 +105,9 @@ def test_white_colebrook_with_coefficient():
 
 def test_white_colebrook_in_physics():
     """Test White-Colebrook formulation in Physics context."""
-    physics = Physics(wavemodel=Surfbeat(), bedfriction=WhiteColebrook(bedfriccoef=0.05))
+    physics = Physics(
+        wavemodel=Surfbeat(), bedfriction=WhiteColebrook(bedfriccoef=0.05)
+    )
     params = physics.params
     assert params["bedfriction"] == "white-colebrook"
     assert params["bedfriccoef"] == 0.05
@@ -178,7 +180,9 @@ def test_friction_get_without_file(tmp_path):
 # =============================================================================
 def test_manning_with_mincf():
     """Test Manning formulation with mincf parameter."""
-    physics = Physics(wavemodel=Surfbeat(), bedfriction=Manning(bedfriccoef=0.02, mincf=0.001))
+    physics = Physics(
+        wavemodel=Surfbeat(), bedfriction=Manning(bedfriccoef=0.02, mincf=0.001)
+    )
     params = physics.params
     assert params["bedfriction"] == "manning"
     assert params["bedfriccoef"] == 0.02
@@ -187,7 +191,9 @@ def test_manning_with_mincf():
 
 def test_white_colebrook_with_mincf():
     """Test White-Colebrook formulation with mincf parameter."""
-    physics = Physics(wavemodel=Surfbeat(), bedfriction=WhiteColebrook(bedfriccoef=0.05, mincf=0.002))
+    physics = Physics(
+        wavemodel=Surfbeat(), bedfriction=WhiteColebrook(bedfriccoef=0.05, mincf=0.002)
+    )
     params = physics.params
     assert params["bedfriction"] == "white-colebrook"
     assert params["bedfriccoef"] == 0.05
@@ -202,7 +208,7 @@ def test_white_colebrook_grainsize_with_xbeachg_params():
             friction_acceleration="mccall",
             friction_infiltration=True,
             friction_turbulence=True,
-        )
+        ),
     )
     params = physics.params
     assert params["bedfriction"] == "white-colebrook-grainsize"
@@ -221,7 +227,7 @@ def test_xbeachg_params_apply_to_all_formulations():
             friction_acceleration="nielsen",
             friction_infiltration=True,
             friction_turbulence=True,
-        )
+        ),
     )
     params = physics_manning.params
     assert params["bedfriction"] == "manning"
@@ -235,7 +241,7 @@ def test_xbeachg_params_apply_to_all_formulations():
         bedfriction=Chezy(
             bedfriccoef=55.0,
             friction_acceleration="mccall",
-        )
+        ),
     )
     params = physics_chezy.params
     assert params["bedfriction"] == "chezy"
@@ -247,8 +253,52 @@ def test_xbeachg_params_apply_to_all_formulations():
         bedfriction=WhiteColebrook(
             bedfriccoef=0.05,
             friction_infiltration=True,
-        )
+        ),
     )
     params = physics_wc.params
     assert params["bedfriction"] == "white-colebrook"
     assert params["friction_infiltration"] == 1
+
+
+def test_friction_file_in_physics(tmp_path):
+    """A friction file nested in Physics is fetched and written to params."""
+    from rompy_xbeach.types import XBeachDataBlob
+
+    source = tmp_path / "source" / "friction.txt"
+    source.parent.mkdir()
+    source.write_text("0.02 0.02\n0.02 0.02\n")
+    destdir = tmp_path / "run"
+    destdir.mkdir()
+
+    physics = Physics(
+        wavemodel=Surfbeat(),
+        bedfriction=Manning(bedfricfile=XBeachDataBlob(source=source)),
+    )
+    params = physics.get(destdir)
+    assert params["bedfriction"] == "manning"
+    assert params["bedfricfile"] == "friction.txt"
+    assert (destdir / "friction.txt").is_file()
+
+
+def test_wave_friction_file_in_physics(tmp_path):
+    """A short-wave friction file nested in the breaker is fetched and written."""
+    from rompy_xbeach.components.physics.wavemodel import Roelvink2, ShortWaveFriction
+    from rompy_xbeach.types import XBeachDataBlob
+
+    source = tmp_path / "source" / "wavfric.txt"
+    source.parent.mkdir()
+    source.write_text("0.05 0.05\n0.05 0.05\n")
+    destdir = tmp_path / "run"
+    destdir.mkdir()
+
+    physics = Physics(
+        wavemodel=Surfbeat(
+            breaktype=Roelvink2(
+                wavfric=ShortWaveFriction(wavfricfile=XBeachDataBlob(source=source))
+            )
+        )
+    )
+    params = physics.get(destdir)
+    assert params["break"] == "roelvink2"
+    assert params["wavfricfile"] == "wavfric.txt"
+    assert (destdir / "wavfric.txt").is_file()

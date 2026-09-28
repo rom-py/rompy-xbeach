@@ -249,6 +249,7 @@ class XBeachBaseModel(RompyBaseModel):
         # 3. Components without explicit fields (e.g., ShortWaveFriction) - just merge params
         components_with_explicit_fields = {}
         components_without_explicit_fields = {}
+        discriminated_components = {}
 
         for field_name in self.model_fields_set:
             field_value = getattr(self, field_name, None)
@@ -257,7 +258,9 @@ class XBeachBaseModel(RompyBaseModel):
                 if hasattr(field_value, "model_type") and not isinstance(
                     getattr(field_value, "model_type", None), bool
                 ):
-                    # Discriminated union - will be handled by serializer
+                    # Discriminated union - flattened by the serializer, its get()
+                    # is still called below to fetch any files it references
+                    discriminated_components[field_name] = field_value
                     continue
                 # Check if the component has a field matching the parent field name
                 elif hasattr(field_value, field_name):
@@ -305,15 +308,21 @@ class XBeachBaseModel(RompyBaseModel):
                 component_params = field_value.get(destdir)
                 params.update(component_params)
 
-            return params
+        else:
+            # No child components - return all params including defaults
+            # (don't use exclude_unset so explicit fields like 'roller' are included)
+            params = self.model_dump(
+                exclude=["model_type"],
+                exclude_none=True,
+                by_alias=True,
+            )
 
-        # No child components - return all params including defaults
-        # (don't use exclude_unset so explicit fields like 'roller' are included)
-        return self.model_dump(
-            exclude=["model_type"],
-            exclude_none=True,
-            by_alias=True,
-        )
+        # Discriminated unions are flattened by the serializer, which drops file
+        # fields such as bedfricfile, so get() fetches the files and adds them
+        for field_value in discriminated_components.values():
+            params.update(field_value.get(destdir))
+
+        return params
 
 
 class XBeachBaseConfig(BaseConfig):
