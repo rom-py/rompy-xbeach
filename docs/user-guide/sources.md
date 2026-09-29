@@ -195,7 +195,7 @@ print(dict(waterlevel.ds.sizes))
 
 ### Filters
 
-`filter.crop` selects a range along any coordinate when the data is opened, which keeps memory use low with large regional or global datasets. [`Filter`][rompy.core.filters] also provides `sort`, `subset` and `rename`. Filters are applied after `variables` are selected, so they cannot create the variables a class asks for.
+`filter.crop` selects a range along any coordinate when the data is opened, which keeps memory use low with large regional or global datasets. [`Filter`][rompy.core.filters.Filter] also provides `sort`, `subset` and `rename`. Filters are applied after `variables` are selected, so they cannot create the variables a class asks for.
 
 ```python exec="on" source="above" result="text" session="sources"
 from rompy.core.filters import Filter
