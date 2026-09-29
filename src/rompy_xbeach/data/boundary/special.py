@@ -30,7 +30,11 @@ class BoundaryOff(WaveBoundaryParams):
 
     Examples
     --------
-    >>> boundary = BoundaryOff()
+    ```python exec="on" source="above" result="text" session="special-boundaryoff"
+    from rompy_xbeach.data.boundary import BoundaryOff
+
+    print(BoundaryOff().get("."))
+    ```
 
     """
 
@@ -78,10 +82,14 @@ class BoundaryReuse(SpectralWaveBoundaryParams):
 
     Examples
     --------
-    >>> from rompy_xbeach.types import XBeachDirectoryBlob
-    >>> boundary = BoundaryReuse(
-    ...     previous_run=XBeachDirectoryBlob(source="/path/to/previous/run")
-    ... )
+    ```python
+    from rompy_xbeach.data.boundary import BoundaryReuse
+    from rompy_xbeach.types import XBeachDirectoryBlob
+
+    boundary = BoundaryReuse(
+        previous_run=XBeachDirectoryBlob(source="/path/to/previous/run")
+    )
+    ```
 
     """
 

@@ -54,12 +54,12 @@ class Physics(XBeachBaseModel):
     -------
     Minimal valid Physics requires a wavemodel:
 
-    .. code-block:: python
+    ```python
+    from rompy_xbeach.components.physics import Physics
+    from rompy_xbeach.components.physics.wavemodel import Surfbeat
 
-        from rompy_xbeach.components.physics import Physics
-        from rompy_xbeach.components.physics.wavemodel import Surfbeat
-
-        physics = Physics(wavemodel=Surfbeat())
+    physics = Physics(wavemodel=Surfbeat())
+    ```
 
     """
 

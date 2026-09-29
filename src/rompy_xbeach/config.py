@@ -63,15 +63,19 @@ TideType = Annotated[
 
 # TODO: Add the bathy here, need to change the return type of the get method
 class DataInterface(RompyBaseModel):
-    """XBeach forcing data interface.
+    """XBeach forcing data: waves, wind and tide.
+
+    Each field takes a data interface, which writes its forcing files into the
+    workspace and returns the XBeach parameters that point to them.
 
     Examples
     --------
+    ```python exec="on" source="above" result="text" session="config-datainterface"
+    from rompy_xbeach.config import DataInterface
+    from rompy_xbeach.data.boundary import BoundaryParams
 
-    .. ipython:: python
-        :okwarning:
-
-        from rompy_xbeach.interface import DataInterface
+    print(DataInterface(wave=BoundaryParams(Hrms=1.0, Trep=10.0, dir0=270.0)))
+    ```
 
     """
 
@@ -101,7 +105,18 @@ class DataInterface(RompyBaseModel):
 
 
 class Config(XBeachBaseConfig):
-    """Xbeach config class."""
+    """XBeach model configuration.
+
+    Gathers the grid, bathymetry, forcing and model settings. When a
+    [`ModelRun`][rompy.model.ModelRun] generates the workspace, the configuration
+    writes the input files and `params.txt`: the data interfaces (`bathy` and
+    `input`) write their files and return the parameters that point to them, and
+    the components (`physics`, `sediment`, `output`, the boundaries, `mpi` and
+    `hotstart`) add their parameters.
+
+    The validators reject combinations XBeach refuses, such as a wave boundary
+    type that does not suit the wave model.
+    """
 
     model_type: Literal["xbeach"] = Field(
         default="xbeach",

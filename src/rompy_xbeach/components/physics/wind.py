@@ -29,14 +29,16 @@ class Wind(XBeachBaseModel):
 
     Examples
     --------
-    >>> from rompy_xbeach.components.physics import Physics
-    >>> from rompy_xbeach.components.physics.wind import Wind
-    >>>
-    >>> # Enable wind with default parameters
-    >>> physics = Physics(wind=True)
-    >>>
-    >>> # Enable wind with custom drag coefficient
-    >>> physics = Physics(wind=Wind(Cd=0.003))
+    Enable wind with XBeach's default parameters, or set the drag coefficient:
+
+    ```python exec="on" source="above" result="text" session="wind-wind"
+    from rompy_xbeach.components.physics import Physics
+    from rompy_xbeach.components.physics.wavemodel import Surfbeat
+    from rompy_xbeach.components.physics.wind import Wind
+
+    print(Physics(wavemodel=Surfbeat(), wind=True).get("."))
+    print(Physics(wavemodel=Surfbeat(), wind=Wind(Cd=0.003)).get("."))
+    ```
     """
 
     wind: Literal[True] = Field(

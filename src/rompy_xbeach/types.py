@@ -39,24 +39,29 @@ class XBeachDirectoryBlob(RompyBaseModel):
     The source should point to a directory containing the files to fetch.
     Patterns are passed to the get() method to specify which files to copy.
 
-    Usage:
+    Examples
+    --------
+    Fetch the files matching the patterns from a directory into a destination:
+
+    ```python
+    blob = XBeachDirectoryBlob(source="/path/to/dir")
+    blob.get("/dest", patterns=["ebcflist.bcf", "qbcflist.bcf"])
+    blob.get("/dest", patterns=["hotstart_*000000.dat"])
+    ```
+
+    A component uses it as a field, and fetches the files it needs in `get()`:
+
+    ```python
+    class MyComponent(XBeachBaseModel):
         source: Optional[XBeachDirectoryBlob] = Field(
-            default=None,
-            description="Directory containing files to fetch"
+            default=None, description="Directory containing files to fetch"
         )
 
         def get(self, destdir: Path) -> dict:
             if self.source:
                 self.source.get(destdir, patterns=["*.bcf"])
             return params
-
-    Examples
-    --------
-    >>> blob = XBeachDirectoryBlob(source="/path/to/dir")
-    >>> # Fetch specific files
-    >>> blob.get("/dest", patterns=["ebcflist.bcf", "qbcflist.bcf"])
-    >>> # Fetch files matching a pattern
-    >>> blob.get("/dest", patterns=["hotstart_*000000.dat"])
+    ```
     """
 
     source: str = Field(

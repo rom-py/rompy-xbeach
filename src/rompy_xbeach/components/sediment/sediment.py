@@ -36,22 +36,21 @@ class Sediment(XBeachBaseModel):
 
     Examples
     --------
-    >>> from rompy_xbeach.components.sediment import Sediment
-    >>> from rompy_xbeach.components.sediment.transport import SedimentTransport
-    >>> from rompy_xbeach.components.sediment.morphology import Morphology
-    >>>
-    >>> sediment = Sediment(
-    ...     transport=SedimentTransport(
-    ...         form="vanthiel_vanrijn",
-    ...         facua=0.15,
-    ...         bdslpeffmag="roelvink_total",
-    ...     ),
-    ...     morphology=Morphology(
-    ...         morfac=10.0,
-    ...         morstart=0.0,
-    ...         morstop=3600.0,
-    ...     ),
-    ... )
+    ```python exec="on" source="above" result="text" session="sediment-sediment"
+    from rompy_xbeach.components.sediment import Sediment
+    from rompy_xbeach.components.sediment.morphology import Morphology
+    from rompy_xbeach.components.sediment.transport import SedimentTransport
+
+    sediment = Sediment(
+        sedtrans=SedimentTransport(
+            form="vanthiel_vanrijn",
+            facua=0.15,
+            bdslpeffmag="roelvink_total",
+        ),
+        morphology=Morphology(morfac=10.0, morstart=0.0, morstop=3600.0),
+    )
+    print(sediment.get("."))
+    ```
 
     See Also
     --------
