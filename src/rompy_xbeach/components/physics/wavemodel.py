@@ -58,34 +58,34 @@ class ShortWaveFriction(XBeachBaseModel):
     friction coefficient can be specified as a constant value or spatially varying
     through a file.
 
-    When used in Physics.wavfriction field, this allows specification of short wave
-    friction parameters.
+    It is set in the `wavfric` field of a breaker formulation. XBeach reads the
+    parameters `fw` and `fwfile`.
 
     See https://xbeach.readthedocs.io/en/latest/xbeach_manual.html#bottom-friction
     for more information.
 
     """
 
-    wavfriccoef: Optional[float] = Field(
+    fw: Optional[float] = Field(
         default=None,
         description=(
             "Wave friction coefficient used in Reniers formulation for dissipation "
-            "(XBeach default: -123)"
+            "(XBeach default: 0.0)"
         ),
         ge=0.0,
+        le=1.0,
     )
-    wavfricfile: Optional[XBeachDataBlob] = Field(
+    fwfile: Optional[XBeachDataBlob] = Field(
         default=None,
         description=(
-            "Name of file with spatially varying wave friction coefficients. "
-            "If specified, overrides wavfriccoef."
+            "File with spatially varying wave friction coefficients, used instead of fw"
         ),
     )
 
     @model_validator(mode="after")
     def check_mutually_exclusive(self):
-        if self.wavfriccoef is not None and self.wavfricfile is not None:
-            raise ValueError("Only one of wavfriccoef or wavfricfile can be specified.")
+        if self.fw is not None and self.fwfile is not None:
+            raise ValueError("Only one of fw or fwfile can be specified.")
         return self
 
 
@@ -388,7 +388,6 @@ class Nonh(XBeachBaseModel):
             "Turn on reduced two-layer non-hydrostatic model for improved "
             "dispersive behavior (XBeach default: 0)"
         ),
-        alias="nhq3d",
     )
     reformsteep: Optional[float] = Field(
         default=None,

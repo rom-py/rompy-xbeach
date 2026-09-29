@@ -187,19 +187,19 @@ def test_params_with_file_timing(timing_file):
     output = Output(
         tsglobal=dict(source=str(timing_file)),
         tsmean=dict(source=str(timing_file)),
-        tspoint=dict(source=str(timing_file)),
+        tspoints=dict(source=str(timing_file)),
     )
     params = output.params
 
     # DataBlob fields are excluded from params to prevent leakage
     assert "tsglobal" not in params
     assert "tsmean" not in params
-    assert "tspoint" not in params
+    assert "tspoints" not in params
 
     # But the DataBlob objects are accessible on the instance
     assert output.tsglobal is not None
     assert output.tsmean is not None
-    assert output.tspoint is not None
+    assert output.tspoints is not None
 
 
 def test_params_timings_bool_to_int():
@@ -272,7 +272,7 @@ def test_get_method_with_multiple_timing_files(timing_file, tmp_path):
         tsmean=dict(source=str(timing_file)),
         pointvars=["H"],
         points=[(0.0, 500.0)],
-        tspoint=dict(source=str(timing_file)),
+        tspoints=dict(source=str(timing_file)),
     )
 
     params = output.get(tmp_path)
@@ -280,12 +280,12 @@ def test_get_method_with_multiple_timing_files(timing_file, tmp_path):
     # All three timing files should be fetched
     assert "tsglobal" in params
     assert "tsmean" in params
-    assert "tspoint" in params
+    assert "tspoints" in params
 
     # params contains just filenames, files should exist in destdir
     global_file = tmp_path / params["tsglobal"]
     mean_file = tmp_path / params["tsmean"]
-    point_file = tmp_path / params["tspoint"]
+    point_file = tmp_path / params["tspoints"]
 
     assert global_file.exists()
     assert mean_file.exists()
@@ -451,9 +451,11 @@ def test_validation_fixed_and_file_times_point(caplog, timing_file):
     with caplog.at_level(logging.WARNING):
         Output(
             tintp=5.0,
-            tspoint=dict(source=str(timing_file)),
+            tspoints=dict(source=str(timing_file)),
         )
-    assert "Point times defined by both fixed (tintp) and file (tspoint)" in caplog.text
+    assert (
+        "Point times defined by both fixed (tintp) and file (tspoints)" in caplog.text
+    )
 
 
 # =====================================================================================

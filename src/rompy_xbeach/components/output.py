@@ -202,7 +202,7 @@ class Output(XBeachBaseModel):
         default=None,
         description="File source containing timings of mean, max, min and var output",
     )
-    tspoint: Optional[XBeachDataBlob] = Field(
+    tspoints: Optional[XBeachDataBlob] = Field(
         default=None,
         description="File source containing timings of point output",
     )
@@ -302,10 +302,10 @@ class Output(XBeachBaseModel):
             )
 
         # Check point output times
-        if self.tintp is not None and self.tspoint is not None:
+        if self.tintp is not None and self.tspoints is not None:
             logger.warning(
-                "Point times defined by both fixed (tintp) and file (tspoint) times. "
-                "The file-based times (tspoint) will supersede the fixed interval."
+                "Point times defined by both fixed (tintp) and file (tspoints) times. "
+                "The file-based times (tspoints) will supersede the fixed interval."
             )
 
         return self

@@ -294,11 +294,11 @@ def test_wave_friction_file_in_physics(tmp_path):
     physics = Physics(
         wavemodel=Surfbeat(
             breaktype=Roelvink2(
-                wavfric=ShortWaveFriction(wavfricfile=XBeachDataBlob(source=source))
+                wavfric=ShortWaveFriction(fwfile=XBeachDataBlob(source=source))
             )
         )
     )
     params = physics.get(destdir)
     assert params["break"] == "roelvink2"
-    assert params["wavfricfile"] == "wavfric.txt"
+    assert params["fwfile"] == "wavfric.txt"
     assert (destdir / "wavfric.txt").is_file()

@@ -86,7 +86,7 @@ def test_nested_file_fields_are_fetched(tmp_path):
         wavemodel=Surfbeat(
             breaktype=Roelvink2(
                 wavfric=ShortWaveFriction(
-                    wavfricfile=XBeachDataBlob(source=source / "wavfric.txt")
+                    fwfile=XBeachDataBlob(source=source / "wavfric.txt")
                 )
             )
         ),
@@ -94,5 +94,5 @@ def test_nested_file_fields_are_fetched(tmp_path):
     )
     params = physics.get(destdir)
     assert params["bedfricfile"] == "friction.txt"
-    assert params["wavfricfile"] == "wavfric.txt"
+    assert params["fwfile"] == "wavfric.txt"
     assert sorted(p.name for p in destdir.iterdir()) == ["friction.txt", "wavfric.txt"]

@@ -543,23 +543,23 @@ def test_swave_true_without_nonh_wavemodel_no_warning(caplog):
 # =====================================================================================
 # Parameter component tests
 # =====================================================================================
-def test_nonh_with_nhq3d_parameter():
-    """Test that Nonh component can specify nhq3d parameter."""
-    physics = Physics(wavemodel=Nonh(nhq3d=True), swave=False)
+def test_nonh_with_nonhq3d_parameter():
+    """Test that Nonh component can specify the nonhq3d parameter."""
+    physics = Physics(wavemodel=Nonh(nonhq3d=True), swave=False)
     params = physics.params
 
     assert params["wavemodel"] == "nonh"
-    assert params["nhq3d"] == 1
+    assert params["nonhq3d"] == 1
     assert params["swave"] == 0
 
 
-def test_nonh_without_nhq3d_parameter():
-    """Test that Nonh component without nhq3d doesn't include it in params."""
+def test_nonh_without_nonhq3d_parameter():
+    """Test that Nonh component without nonhq3d doesn't include it in params."""
     physics = Physics(wavemodel=Nonh(), swave=False)
     params = physics.params
 
     assert params["wavemodel"] == "nonh"
-    assert "nhq3d" not in params
+    assert "nonhq3d" not in params
     assert params["swave"] == 0
 
 

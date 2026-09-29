@@ -79,7 +79,7 @@ physics:
       gamma: 0.55
       n: 10
       wavfric:
-        wavfriccoef: 0.1
+        fw: 0.1
   roller:
     beta: 0.1
   vegetation:
@@ -170,7 +170,7 @@ output:
   tstart: 0.
   tintm: 3600.0
   rugdepth: 0.011
-  tspoint:
+  tspoints:
     source: ./data/ssh.csv
   meanvars:
     - H
