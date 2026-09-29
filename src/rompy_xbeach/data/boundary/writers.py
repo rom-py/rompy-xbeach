@@ -348,7 +348,7 @@ class SwanWriter(SpectralWriter):
         default=None,
         description=(
             "The (counter-clockwise) angle in the degrees needed to rotate from the "
-            "x-axis in swan to the x-axis pointing east (XBeach default: 0.0)",
+            "x-axis in swan to the x-axis pointing east (XBeach default: 0.0)"
         ),
         ge=-360.0,
         le=360.0,

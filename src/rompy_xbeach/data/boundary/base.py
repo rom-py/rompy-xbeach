@@ -277,7 +277,7 @@ class SpectralWaveBoundaryParams(WaveBoundaryParams):
         default=None,
         description=(
             "The (counter-clockwise) angle in the degrees needed to rotate from the "
-            "x-axis in swan to the x-axis pointing east (XBeach default: 0.0)",
+            "x-axis in swan to the x-axis pointing east (XBeach default: 0.0)"
         ),
         ge=-360.0,
         le=360.0,
@@ -315,14 +315,14 @@ class SpectralWaveBoundaryParams(WaveBoundaryParams):
         default=None,
         description=(
             "Switch to enable long wave direction forced into centres of short wave "
-            "bins (XBeach default: 0)",
+            "bins (XBeach default: 0)"
         ),
     )
     random: Optional[bool] = Field(
         default=None,
         description=(
             "Switch to enable random seed for jons, swan or vardens boundary "
-            "conditions (XBeach default: 1)",
+            "conditions (XBeach default: 1)"
         ),
     )
     sprdthr: Optional[float] = Field(
@@ -339,7 +339,7 @@ class SpectralWaveBoundaryParams(WaveBoundaryParams):
         description=(
             "Compute mean wave period over energy band: par%trepfac*maxval(sf) for "
             "jons, swan or vardens; converges to tm01 for trepfac = 0.0 "
-            "(XBeach default: 0.01)",
+            "(XBeach default: 0.01)"
         ),
         ge=0.0,
         le=1.0,
