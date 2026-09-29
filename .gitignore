@@ -101,10 +101,6 @@ ENV/
 # mkdocs documentation
 /site
 
-# Synced notebooks (from rompy-notebooks repo)
-docs/examples/*.ipynb
-docs/examples/*.yml
-
 # mypy
 .mypy_cache/
 

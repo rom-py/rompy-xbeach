@@ -1,156 +1,145 @@
 site_name: rompy-xbeach
-site_description: Python interface for the XBeach coastal morphodynamic model
+site_description: Configure and run the XBeach coastal model from Python and YAML
 site_url: https://rom-py.github.io/rompy-xbeach/
 repo_url: https://github.com/rom-py/rompy-xbeach
 repo_name: rom-py/rompy-xbeach
-edit_uri: edit/main/docs/
+edit_uri: edit/output/docs/
 
 nav:
   - Home: index.md
-  - Getting Started:
+  - Getting started:
       - Installation: getting-started/installation.md
-      - Quickstart: getting-started/quickstart.md
-  - Concepts:
-      - Architecture: user-guide/architecture.md
+      - Your first model: getting-started/first-model.md
+  - User guide:
+      - How rompy-xbeach works: user-guide/how-it-works.md
       - Configuration: user-guide/configuration.md
-  - Components:
-      - Overview: components/index.md
-      - Physics: components/physics.md
-      - Sediment: components/sediment.md
-      - Output: components/output.md
-      - Boundary Conditions: components/boundary_conditions.md
-  - Data Interfaces:
-      - Overview: data-interfaces/index.md
-      - Grid: data-interfaces/grid.md
-      - Sources: data-interfaces/sources.md
-      - Bathymetry: data-interfaces/bathy.md
-      - Wave Boundaries: data-interfaces/boundaries.md
-      - Forcing: data-interfaces/forcing.md
-  - Examples:
-      - examples/index.md
-      - Getting Started:
-          - Procedural Workflow: examples/example-procedural.ipynb
-          - Declarative Workflow: examples/example-declarative.ipynb
-      - Data Interfaces:
-          - Grid: examples/data-interfaces/tutorial-grid.ipynb
-          - Sources: examples/data-interfaces/tutorial-source.ipynb
-          - Bathymetry: examples/data-interfaces/tutorial-bathy.ipynb
-          - Wave Boundary: examples/data-interfaces/tutorial-wave-boundary.ipynb
-          - Forcing: examples/data-interfaces/tutorial-forcing.ipynb
-          - Timeseries Forcing: examples/data-interfaces/tutorial-timeseries-forcing.ipynb
-      - Components:
-          - Physics: examples/components/tutorial_01_physics.ipynb
-          - Sediment: examples/components/tutorial_02_sediment.ipynb
-          - Output: examples/components/tutorial_03_output.ipynb
-          - Boundary Conditions: examples/components/tutorial_04_boundary-conditions.ipynb
-          - Hotstart: examples/components/tutorial_05_hotstart.ipynb
-          - MPI: examples/components/tutorial_06_mpi.ipynb
-  - Parameter Reference: user-guide/parameter-reference.md
-  - API Reference:
-      - Config: api-reference/config.md
-      - Components: api-reference/components.md
-      - Data: api-reference/data.md
-      - Types: api-reference/types.md
-  - Developer:
-      - Contributing: developer/contributing.md
+      - Grid and bathymetry: user-guide/grid-and-bathymetry.md
+      - Data sources: user-guide/sources.md
+      - Waves: user-guide/waves.md
+      - Tide and water levels: user-guide/water-levels.md
+      - Wind: user-guide/wind.md
+      - Physics: user-guide/physics.md
+      - Sediment and morphology: user-guide/sediment.md
+      - Flow and tide boundaries: user-guide/boundary-conditions.md
+      - Output: user-guide/output.md
+      - Running XBeach: user-guide/running.md
+      - Hotstart and chained runs: user-guide/hotstart.md
+      - Troubleshooting: user-guide/troubleshooting.md
+  - Tutorial: tutorial.md
+  - Examples: examples.md
+  - Reference:
+      - reference/index.md
+      - Config: reference/config.md
+      - Grid: reference/grid.md
+      - Bathymetry: reference/bathy.md
+      - Sources: reference/sources.md
+      - Data interfaces: reference/data.md
+      - Wave boundaries: reference/wave-boundaries.md
+      - Water levels: reference/water-levels.md
+      - Wind: reference/wind.md
+      - Physics: reference/physics.md
+      - Sediment: reference/sediment.md
+      - Flow and tide boundaries: reference/boundary-conditions.md
+      - Output: reference/output.md
+      - Hotstart and MPI: reference/hotstart-mpi.md
+      - Base types: reference/types.md
+      - Parameter index: reference/parameters.md
+  - Development:
+      - Contributing: development/contributing.md
+      - Changelog: development/changelog.md
 
 theme:
   name: material
+  custom_dir: docs/overrides
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: teal
-      accent: teal
+      primary: indigo
+      accent: indigo
       toggle:
-        icon: material/lightbulb
+        icon: material/brightness-7
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: teal
-      accent: teal
+      primary: indigo
+      accent: indigo
       toggle:
-        icon: material/lightbulb-outline
+        icon: material/brightness-4
         name: Switch to light mode
   features:
     - navigation.tabs
     - navigation.sections
-    - navigation.expand
-    - navigation.top
     - navigation.indexes
+    - navigation.top
+    - navigation.footer
     - toc.follow
     - search.suggest
     - search.highlight
-    - content.tabs.link
-    - content.code.annotate
     - content.code.copy
-  icon:
-    repo: fontawesome/brands/github
+    - content.code.annotate
+    - content.tabs.link
+
+extra_css:
+  - stylesheets/rompy.css
+
+extra:
+  rompy:
+    site: xbeach
 
 plugins:
   - search
-  - mkdocs-jupyter:
-      include_source: true
-      ignore_h1_titles: true
-      execute: false
-      allow_errors: true
-      include_requirejs: true
+  - markdown-exec
   - mkdocstrings:
       handlers:
         python:
           paths: [src]
-          import:
+          inventories:
+            - https://docs.python.org/3/objects.inv
             - https://docs.pydantic.dev/latest/objects.inv
+            - https://docs.xarray.dev/en/stable/objects.inv
+            # ROMPY_INVENTORY points local builds at an unpublished rompy site.
+            - url: !ENV [ROMPY_INVENTORY, "https://rom-py.github.io/rompy/objects.inv"]
+              base_url: https://rom-py.github.io/rompy/
           options:
+            docstring_style: auto
+            docstring_section_style: table
+            preload_modules: [rompy]
+            inherited_members: true
+            show_bases: true
             show_root_heading: true
             show_root_full_path: false
-            show_object_full_path: false
-            show_category_heading: true
-            show_if_no_docstring: true
-            show_signature_annotations: true
-            signature_crossrefs: true
-            separate_signature: true
-            docstring_section_style: spacy
-            members_order: source
-            group_by_category: true
-            show_submodules: false
-            merge_init_into_class: true
-            show_docstring_attributes: true
-            members: true
-            inherited_members: false
-            annotations_path: brief
             show_symbol_type_heading: true
             show_symbol_type_toc: true
-            filters:
-              - "!^_"  # Hide private members
-              - "!^model_"  # Hide Pydantic internal methods
+            show_if_no_docstring: false
+            show_source: false
+            separate_signature: true
+            show_signature_annotations: true
+            signature_crossrefs: true
+            merge_init_into_class: true
+            members_order: source
+            group_by_category: true
+            summary: false
+            filters: ["!^_", "!^model_(?!type$)"]
+            extensions:
+              - griffe_pydantic: {schema: false}
+              - rompy_docs.griffe:PydanticFieldRules
 
 markdown_extensions:
-  - pymdownx.highlight:
-      anchor_linenums: true
-      line_spans: __span
-      pygments_lang_class: true
-  - pymdownx.inlinehilite
-  - pymdownx.snippets
-  - pymdownx.superfences
-  - pymdownx.details
-  - pymdownx.tabbed:
-      alternate_style: true
-  - pymdownx.critic
-  - pymdownx.caret
-  - pymdownx.keys
-  - pymdownx.mark
-  - pymdownx.tilde
+  - admonition
   - attr_list
   - md_in_html
-  - admonition
-  - pymdownx.emoji:
-      emoji_index: !!python/name:material.extensions.emoji.twemoji
-      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - tables
   - toc:
       permalink: true
-
-extra:
-  social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/rom-py/rompy-xbeach
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true

@@ -42,13 +42,6 @@ jobs:
       - name: Checkout rompy-xbeach
         uses: actions/checkout@v4
 
-      - name: Checkout rompy-notebooks
-        uses: actions/checkout@v4
-        with:
-          repository: rom-py/rompy-notebooks
-          ref: xbeach
-          path: rompy-notebooks
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -78,24 +71,16 @@ jobs:
       - name: Install package with docs dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[docs]"
+          pip install -e ".[docs,extra]"
 
-      - name: Sync notebooks
-        run: |
-          mkdir -p docs/examples/components docs/examples/data-interfaces
-          # Copy main workflow notebooks
-          cp rompy-notebooks/notebooks/xbeach/*.ipynb docs/examples/ || true
-          cp rompy-notebooks/notebooks/xbeach/*.yml docs/examples/ || true
-          # Copy component tutorials
-          cp rompy-notebooks/notebooks/xbeach/components/*.ipynb docs/examples/components/ || true
-          # Copy data interface tutorials
-          cp rompy-notebooks/notebooks/xbeach/data-interface/*.ipynb docs/examples/data-interfaces/ || true
-          ls -la docs/examples/
-          ls -la docs/examples/components/
-          ls -la docs/examples/data-interfaces/
+      # The notebooks are rendered on the rompy-notebooks site; the Tutorial and
+      # Examples pages list them from the inventory that site publishes.
+      - name: Check the shared docs configuration
+        run: rompy-docs check -f mkdocs.yml
 
+      # Strict: broken links, missing API targets and failing examples fail the build
       - name: Build documentation
-        run: mkdocs build
+        run: properdocs build --strict -f mkdocs.yml
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
