@@ -1,143 +1,48 @@
-# Rompy-XBeach
+# rompy-xbeach
 
-**Python interface for the XBeach coastal morphodynamic model**
+rompy-xbeach sets up and runs the [XBeach](https://xbeach.readthedocs.io/) coastal model from Python or YAML. It is the XBeach plugin of [rompy](https://rom-py.github.io/rompy/), which provides the parts every model shares: the run period, data sources, model runs and backends.
 
-Rompy-xbeach provides a type-safe, Pythonic way to configure and run [XBeach](https://xbeach.readthedocs.io/) simulations. It is part of the [rompy](https://github.com/rom-py/rompy) ecosystem for regional ocean modelling.
+With rompy-xbeach you describe an XBeach model as validated Python objects, and it writes the XBeach workspace for you:
 
-## Features
-
-- **Type-safe configuration** — Pydantic models validate parameters before running XBeach, catching errors early with clear messages
-- **Data interfaces** — Automatic generation of boundary condition files from various data sources (NetCDF, THREDDS, local files)
-- **Structured organisation** — Related parameters grouped into logical components for better discoverability
-- **YAML support** — Define configurations declaratively for reproducibility
-- **IDE support** — Full autocomplete and type hints in modern editors
-
-## Quick Example
+- **The grid and bathymetry** from GeoTIFF, XYZ or gridded data, interpolated to the model grid, with seaward and lateral extensions.
+- **Wave boundaries** from parameters, spectra or existing files, in any of the XBeach boundary types.
+- **Tide, water level and wind** forcing from time series, gridded data or tide constituents.
+- **Model settings**: physics, sediment, output, flow and tide boundaries, MPI and hotstart. Each setting is a typed field named after its XBeach parameter, and invalid combinations are rejected before XBeach runs.
 
 ```python
-from rompy_xbeach import Config
-from rompy_xbeach.components import Physics, Sediment, Output
-from rompy_xbeach.components.physics import Surfbeat, BedFriction
-from rompy_xbeach.components.sediment import Morphology
+from rompy.core.time import TimeRange
+from rompy.model import ModelRun
+from rompy_xbeach.components.physics import Physics
+from rompy_xbeach.components.physics.wavemodel import Surfbeat
+from rompy_xbeach.config import Config, DataInterface
 
 config = Config(
-    grid=grid,
-    bathy=bathy,
-    physics=Physics(
-        wavemodel=Surfbeat(),
-        bedfriction=BedFriction(bedfriccoef=0.01),
-    ),
-    sediment=Sediment(
-        morphology=Morphology(morfac=10),
-    ),
-    output=Output(outputformat="netcdf", tintg=3600),
+    grid=grid,                        # a RegularGrid
+    bathy=bathy,                      # an XBeachBathy
+    input=DataInterface(wave=waves),  # wave, tide and wind forcing
+    physics=Physics(wavemodel=Surfbeat()),
 )
+run = ModelRun(
+    run_id="storm",
+    period=TimeRange(start="2023-01-01T00", end="2023-01-02T00", interval="1h"),
+    output_dir="runs",
+    config=config,
+)
+run()  # writes params.txt and the input files to runs/storm
 ```
 
-This generates a valid `params.txt` file:
+[Your first model](getting-started/first-model.md) builds this example in full.
 
-```
-wavemodel    = surfbeat
-bedfriccoef  = 0.01
-morfac       = 10
-outputformat = netcdf
-tintg        = 3600.0
-```
+## Where to go next
 
-## Why Rompy-XBeach?
+| If you want to | Go to |
+|---|---|
+| Install rompy-xbeach and XBeach | [Installation](getting-started/installation.md) |
+| Build and run a model in five minutes | [Your first model](getting-started/first-model.md) |
+| Learn step by step, with notebooks | [Tutorial](tutorial.md) |
+| Understand how the configuration maps to XBeach | [How rompy-xbeach works](user-guide/how-it-works.md) |
+| Set up a specific part of the model | The [User guide](user-guide/configuration.md) |
+| Find the field for an XBeach parameter | [Parameter index](reference/parameters.md) |
+| Look up a class | [Reference](reference/index.md) |
 
-XBeach uses a flat `params.txt` file with ~250 parameters. While flexible, this can be:
-
-- **Error-prone** — Typos in parameter names silently ignored
-- **Hard to discover** — Which parameters exist? What are valid values?
-- **Difficult to validate** — Invalid combinations only fail at runtime
-
-Rompy-xbeach addresses these by:
-
-1. **Validating at construction** — Invalid values raise clear errors immediately
-2. **Grouping related parameters** — Find morphology settings under `sediment.morphology`
-3. **Enforcing constraints** — Can't set non-hydrostatic parameters on a surfbeat model
-4. **Providing defaults** — Sensible XBeach defaults with documentation
-
-## Documentation Structure
-
-<div class="grid cards" markdown>
-
--   :material-rocket-launch:{ .lg .middle } **Getting Started**
-
-    ---
-
-    Install rompy-xbeach and run your first simulation
-
-    [:octicons-arrow-right-24: Installation](getting-started/installation.md)
-
--   :material-book-open-variant:{ .lg .middle } **Concepts**
-
-    ---
-
-    Learn the architecture and how to configure XBeach models
-
-    [:octicons-arrow-right-24: Architecture](user-guide/architecture.md)
-
--   :material-puzzle:{ .lg .middle } **Components**
-
-    ---
-
-    Detailed reference for each component (Physics, Sediment, Output, etc.)
-
-    [:octicons-arrow-right-24: Components](components/index.md)
-
--   :material-database:{ .lg .middle } **Data Interfaces**
-
-    ---
-
-    Bridge external data sources with XBeach model inputs
-
-    [:octicons-arrow-right-24: Data Interfaces](data-interfaces/index.md)
-
--   :material-notebook:{ .lg .middle } **Examples**
-
-    ---
-
-    Interactive Jupyter notebooks demonstrating rompy-xbeach features
-
-    [:octicons-arrow-right-24: Examples](examples/index.md)
-
--   :material-table:{ .lg .middle } **Parameter Reference**
-
-    ---
-
-    Map XBeach parameters to their rompy-xbeach locations
-
-    [:octicons-arrow-right-24: Parameter Reference](user-guide/parameter-reference.md)
-
--   :material-api:{ .lg .middle } **API Reference**
-
-    ---
-
-    Complete API documentation generated from source code
-
-    [:octicons-arrow-right-24: API Reference](api-reference/config.md)
-
--   :material-account-group:{ .lg .middle } **Developer**
-
-    ---
-
-    Contributing guidelines and development setup
-
-    [:octicons-arrow-right-24: Contributing](developer/contributing.md)
-
-</div>
-
-## Part of the Rompy Ecosystem
-
-Rompy-xbeach is a plugin for [rompy](https://github.com/rom-py/rompy), the regional ocean modelling framework. Other model plugins include:
-
-- [rompy-swan](https://github.com/rom-py/rompy-swan){:target="_blank"} — SWAN spectral wave model
-- [rompy-schism](https://github.com/rom-py/rompy-schism){:target="_blank"} — SCHISM unstructured grid model
-
-## Links
-
-- [XBeach Documentation](https://xbeach.readthedocs.io/){:target="_blank"}
-- [XBeach Release & Source](https://oss.deltares.nl/web/xbeach/release-and-source){:target="_blank"}
-- [Rompy Core](https://rom-py.github.io/rompy/){:target="_blank"}
+rompy-xbeach is one of the rompy model plugins, with [rompy-swan](https://rom-py.github.io/rompy-swan/) and [rompy-schism](https://rom-py.github.io/rompy-schism/). The [rompy docs](https://rom-py.github.io/rompy/) explain the ideas they share.
