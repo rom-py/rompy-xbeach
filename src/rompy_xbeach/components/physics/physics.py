@@ -80,7 +80,7 @@ class Physics(XBeachBaseModel):
     )
     avalanching: Optional[bool] = Field(
         default=None,
-        description="Turn on avalanching (XBeach default: 1)",
+        description="Turn on avalanching (XBeach default: the value of morphology)",
     )
     bedfriction: Optional[
         Union[Cf, Chezy, Manning, WhiteColebrook, WhiteColebrookGrainsize]
@@ -124,7 +124,7 @@ class Physics(XBeachBaseModel):
         default=None,
         description=(
             "Turn on stationary model for refraction, surfbeat based on mean direction "
-            "(XBeach default: 1)"
+            "(XBeach default: 1 for surfbeat on a 2D grid, otherwise 0)"
         ),
     )
     snells: Optional[bool] = Field(
@@ -160,7 +160,7 @@ class Physics(XBeachBaseModel):
         default=None,
         description=(
             "Include wind in flow solver. Can be True/False to enable/disable, "
-            "or a Wind object to enable with custom parameters like Cd (XBeach default: 1)"
+            "or a Wind object to enable with custom parameters like Cd (XBeach default: 0)"
         ),
     )
     flow_numerics: Optional[FlowNumerics] = Field(
@@ -211,11 +211,8 @@ class Physics(XBeachBaseModel):
             "avalanching",
             "flow",
             "lwave",
-            "single_dir",
             "swave",
             "viscosity",
-            "wci",
-            "wind",
         ]
 
         for field_name in default_enabled_fields:

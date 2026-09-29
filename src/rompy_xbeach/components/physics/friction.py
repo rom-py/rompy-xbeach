@@ -227,7 +227,7 @@ class Manning(BedFriction):
         default=None,
         description=(
             "Maximum dimensionless friction coefficient for Manning formulation "
-            "(XBeach default: no limit)"
+            "(XBeach default: 0.04)"
         ),
         ge=0.0,
     )
@@ -259,7 +259,7 @@ class WhiteColebrook(BedFriction):
         default=None,
         description=(
             "Maximum dimensionless friction coefficient for White-Colebrook formulation "
-            "(XBeach default: no limit)"
+            "(XBeach default: 0.04)"
         ),
         ge=0.0,
     )
@@ -298,7 +298,7 @@ class WhiteColebrookGrainsize(FrictionModifiers):
         default=None,
         description=(
             "Maximum dimensionless friction coefficient for grain size formulation "
-            "(XBeach default: no limit)"
+            "(XBeach default: 0.04)"
         ),
         ge=0.0,
     )

@@ -186,7 +186,7 @@ class Baldock(WaveDissipation):
     )
     gamma: Optional[float] = Field(
         default=None,
-        description="Breaker parameter gamma (XBeach default: 0.46)",
+        description="Breaker parameter gamma (XBeach default: 0.78)",
         ge=0.4,
         le=0.9,
     )
@@ -207,7 +207,7 @@ class Roelvink1(WaveDissipation):
     )
     gamma: Optional[float] = Field(
         default=None,
-        description="Breaker parameter gamma (XBeach default: 0.46)",
+        description="Breaker parameter gamma (XBeach default: 0.55)",
         ge=0.4,
         le=0.9,
     )

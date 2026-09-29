@@ -157,8 +157,8 @@ class Output(XBeachBaseModel):
     tintg: Optional[float] = Field(
         default=None,
         description=(
-            "Interval time (s) of global output (XBeach default: 1), the first output "
-            "is given at tstart"
+            "Interval time (s) of global output (XBeach default: tint, 900 s), the "
+            "first output is given at tstart"
         ),
         gt=0.0,
     )
@@ -174,8 +174,8 @@ class Output(XBeachBaseModel):
     tintp: Optional[float] = Field(
         default=None,
         description=(
-            "Interval time (s) of point and runup gauge output (XBeach default: the "
-            "value defined for tintg), the first output is given at tstart"
+            "Interval time (s) of point and runup gauge output (XBeach default: 1), "
+            "the first output is given at tstart"
         ),
         gt=0.0,
     )

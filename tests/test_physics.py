@@ -424,17 +424,17 @@ def test_log_default_enabled_processes(caplog):
         "avalanching",
         "flow",
         "lwave",
-        "single_dir",
         "swave",
         "viscosity",
-        "wci",
-        "wind",
     ]
 
     for param in default_enabled_params:
-        assert param in caplog.text
-        assert "not explicitly set" in caplog.text
+        assert f"Parameter '{param}' not explicitly set" in caplog.text
         assert "will be ENABLED by XBeach default" in caplog.text
+
+    # XBeach 1.24 defaults wind and wci to 0; single_dir depends on the model and grid
+    for param in ["single_dir", "wci", "wind"]:
+        assert f"Parameter '{param}'" not in caplog.text
 
 
 def test_no_log_when_default_enabled_process_is_set(caplog):

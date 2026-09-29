@@ -31,7 +31,10 @@ class Morphology(XBeachBaseModel):
 
     morphology: Literal[True] = Field(
         default=True,
-        description="Turn on morphology (XBeach default: 0)",
+        description=(
+            "Turn on morphology (XBeach default: the value of sedtrans, which is 1 "
+            "unless the wave model is nonh)"
+        ),
     )
     dryslp: Optional[float] = Field(
         default=None,
@@ -122,7 +125,7 @@ class Morphology(XBeachBaseModel):
         default=None,
         description=(
             "Critical avalanching slope under water (dz/dx and dz/dy) "
-            "(XBeach default: 0.3)"
+            "(XBeach default: 0.15)"
         ),
         ge=0.1,
         le=1.0,
