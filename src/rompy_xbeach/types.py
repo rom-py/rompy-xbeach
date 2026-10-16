@@ -1,6 +1,7 @@
 from enum import Enum
-from pydantic import ConfigDict
+from typing import Any
 
+from pydantic import ConfigDict, model_validator
 from rompy.core.config import BaseConfig
 
 
@@ -8,6 +9,25 @@ class XBeachBaseConfig(BaseConfig):
     """Base configuration class for all XBeach models."""
 
     model_config = ConfigDict(extra="forbid")
+
+    @model_validator(mode="before")
+    @classmethod
+    def check_for_typos(cls, data: Any) -> Any:
+        """Let valid Pydantic aliases through core's field-name typo check.
+
+        In particular, XBeach's ``break`` parameter aliases ``breaktype``.
+        Keep the original keys for Pydantic validation and serialization.
+        """
+        if isinstance(data, dict):
+            aliases = {
+                field.alias: name
+                for name, field in cls.model_fields.items()
+                if field.alias is not None
+            }
+            super().check_for_typos(
+                {aliases.get(key, key): value for key, value in data.items()}
+            )
+        return data
 
 
 class WbcEnum(str, Enum):

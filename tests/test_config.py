@@ -6,6 +6,8 @@ from importlib.metadata import entry_points
 
 from rompy.model import ModelRun
 from rompy.core.time import TimeRange
+from rompy.core.responses import GenerateSuccess
+from rompy.core.result_persistence import load_generate_result
 from rompy_xbeach.config import Config
 
 
@@ -57,5 +59,15 @@ def test_model_generate(kwargs, tmp_path):
         config=config,
         period=TimeRange(start="2023-01-01T00", end="2023-01-01T12", interval="1h"),
     )
-    model.generate()
+    result = model.generate()
+    assert isinstance(result, GenerateSuccess)
     assert (tmp_path / model.run_id / "params.txt").is_file()
+    assert load_generate_result(tmp_path / model.run_id).payload == result
+
+
+def test_break_alias_round_trip_and_typo_detection(kwargs):
+    config = Config(**kwargs)
+    assert config.breaktype == kwargs["break"]
+    assert config.model_dump(by_alias=True)["break"] == kwargs["break"]
+    with pytest.raises(ValueError, match="Did you mean 'outputformat'"):
+        Config(**kwargs, outputformt="netcdf")
