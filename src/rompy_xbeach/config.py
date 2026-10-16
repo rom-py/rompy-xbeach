@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Literal, Optional, Union, Annotated
 from pydantic import Field, field_serializer
 
+from rompy.core.responses import Artifact, ArtifactType
 from rompy.core.types import RompyBaseModel
 from rompy.core.time import TimeRange
 from rompy.utils import load_entry_points
@@ -105,6 +106,13 @@ class Config(XBeachBaseConfig):
     )
     input: DataInterface = Field(
         description="Input data",
+    )
+    wavemodel: Optional[Literal["stationary", "surfbeat", "nonh"]] = Field(
+        default=None,
+        description=(
+            "Hydrodynamic wave model. Set explicitly for modern XBeach builds, "
+            "which do not select a hydrodynamic type when this is omitted."
+        ),
     )
     zs0: Optional[float] = Field(
         default=None,
@@ -241,6 +249,12 @@ class Config(XBeachBaseConfig):
         description="Directional resolution (deg) (XBeach default: 10.0)",
         ge=0.1,
         le=180.0,
+    )
+    dtheta_s: Optional[float] = Field(
+        default=None,
+        description="Short-wave directional resolution in single-direction surfbeat mode (deg)",
+        gt=0.0,
+        le=360.0,
     )
     beta: Optional[float] = Field(
         default=None,
@@ -414,6 +428,33 @@ class Config(XBeachBaseConfig):
         if value is None:
             return None
         return int(value)
+
+    def expected_artifacts(self) -> list[Artifact]:
+        """Declare outputs with names determined by this configuration.
+
+        Unset outputformat means Fortran, not NetCDF. Debug writes both
+        formats when the executable has NetCDF support. Variable-specific
+        binary files are discovered rather than guessed from solver defaults.
+        """
+        outputs = [Artifact(path="XBlog.txt", artifact_type=ArtifactType.TEXT)]
+        outputformat = self.outputformat or "fortran"
+        if outputformat in ("netcdf", "debug"):
+            outputs.append(Artifact(
+                path=Path(self.ncfilename or "xboutput.nc").as_posix(),
+                artifact_type=ArtifactType.NETCDF,
+            ))
+        if outputformat in ("fortran", "debug"):
+            outputs.extend(
+                Artifact(path=name, artifact_type=ArtifactType.OTHER)
+                for name in ("dims.dat", "xy.dat")
+            )
+        return outputs
+
+    def validate_outputs(self, output_dir: Path | str) -> list[Artifact]:
+        """Discover existing outputs, including binary variable files."""
+        from rompy_xbeach.artifacts import discover_artifacts
+
+        return discover_artifacts(output_dir, self.expected_artifacts())
 
     @property
     def namelist(self) -> dict:

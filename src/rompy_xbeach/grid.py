@@ -266,8 +266,9 @@ class RegularGrid(BaseGrid):
 
     @cached_property
     def namelist(self):
-        """Return the namelist representation of the grid."""
+        """Return a uniform grid, without requiring xfile/yfile coordinates."""
         return dict(
+            vardx=0,
             nx=self.nx - 1,
             ny=self.ny - 1,
             dx=self.dx,
