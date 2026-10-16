@@ -52,7 +52,7 @@ def test_xbeach_config(kwargs):
 
 
 def test_model_generate(kwargs, tmp_path):
-    config = Config(**kwargs)
+    config = Config(**kwargs, wavemodel="surfbeat", dtheta_s=10.0)
     model = ModelRun(
         run_id="test",
         output_dir=str(tmp_path),
@@ -63,6 +63,26 @@ def test_model_generate(kwargs, tmp_path):
     assert isinstance(result, GenerateSuccess)
     assert (tmp_path / model.run_id / "params.txt").is_file()
     assert load_generate_result(tmp_path / model.run_id).payload == result
+    parameters = (tmp_path / model.run_id / "params.txt").read_text()
+    assert "wavemodel = surfbeat" in parameters
+    assert "dtheta_s = 10.0" in parameters
+    assert "vardx = 0" in parameters
+
+
+@pytest.mark.parametrize("wave_model", ["stationary", "surfbeat", "nonh"])
+def test_wave_model_selection(kwargs, wave_model):
+    assert Config(**kwargs, wavemodel=wave_model).wavemodel == wave_model
+
+
+@pytest.mark.parametrize("resolution", [0, -1, 361])
+def test_invalid_short_wave_resolution_rejected(kwargs, resolution):
+    with pytest.raises(ValueError, match="dtheta_s"):
+        Config(**kwargs, dtheta_s=resolution)
+
+
+def test_invalid_wave_model_rejected(kwargs):
+    with pytest.raises(ValueError, match="wavemodel"):
+        Config(**kwargs, wavemodel="invalid")
 
 
 def test_break_alias_round_trip_and_typo_detection(kwargs):

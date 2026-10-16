@@ -2,7 +2,14 @@
 
 This integration requires the core canonical return-schema API used in this
 workspace. XBeach's `break` alias remains accepted by the core typo checker;
-other misspelled fields still receive typo suggestions.
+other misspelled fields still receive typo suggestions. Modern XBeach builds
+also need an explicit hydrodynamic selection: set `wavemodel="surfbeat"`,
+`"stationary"` or `"nonh"`. This optional field is written to `params.txt`;
+leaving it unset preserves older configurations but may be rejected by newer
+executables. Surfbeat builds using single-direction mode also require
+`dtheta_s` (short-wave directional resolution, e.g. `10.0` degrees).
+Regular grids explicitly write `vardx=0`, so the executable uses
+the generated uniform spacing instead of expecting `xfile`/`yfile` inputs.
 
 `Config.expected_artifacts()` returns core `Artifact` objects with normalized
 workspace-relative POSIX paths. It does not fetch forcing data or run XBeach.

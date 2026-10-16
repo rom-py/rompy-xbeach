@@ -107,6 +107,13 @@ class Config(XBeachBaseConfig):
     input: DataInterface = Field(
         description="Input data",
     )
+    wavemodel: Optional[Literal["stationary", "surfbeat", "nonh"]] = Field(
+        default=None,
+        description=(
+            "Hydrodynamic wave model. Set explicitly for modern XBeach builds, "
+            "which do not select a hydrodynamic type when this is omitted."
+        ),
+    )
     zs0: Optional[float] = Field(
         default=None,
         description="Initial water level (m) (XB default: 0.0)",
@@ -242,6 +249,12 @@ class Config(XBeachBaseConfig):
         description="Directional resolution (deg) (XBeach default: 10.0)",
         ge=0.1,
         le=180.0,
+    )
+    dtheta_s: Optional[float] = Field(
+        default=None,
+        description="Short-wave directional resolution in single-direction surfbeat mode (deg)",
+        gt=0.0,
+        le=360.0,
     )
     beta: Optional[float] = Field(
         default=None,
